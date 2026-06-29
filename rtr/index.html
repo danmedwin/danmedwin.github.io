@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual T'filah Sign-Up</title>
+<style>
+  :root{
+    --ink:#1c1c1c; --accent:#7a3b12; --accent2:#9a5424; --sky:#2f5d86;
+    --amber:#f6d27a; --cream:#fbf7f0; --card:#ffffff; --line:#e2d8c9;
+    --muted:#7c7468; --taken-bg:#f0ece4; --good:#3c7a4a;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    color:var(--ink); background:var(--cream); line-height:1.5;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:28px 20px 64px}
+  header.page{text-align:center; margin-bottom:8px}
+  header.page h1{font-size:2.2rem; margin:.2em 0 .1em; letter-spacing:.2px}
+  header.page .sub{color:var(--accent); font-size:1.05rem; font-weight:600}
+  .intro{max-width:720px; margin:14px auto 8px; text-align:center; color:#3a342c}
+  .statusbar{
+    text-align:center; margin:18px auto 22px; font-size:.95rem; color:var(--muted);
+  }
+  .statusbar b{color:var(--accent)}
+  .manage{display:inline-block; margin-left:10px; color:var(--sky); cursor:pointer; text-decoration:underline; font-size:.9rem}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 16px 14px;
+    cursor:pointer; transition:transform .08s ease, box-shadow .12s ease, border-color .12s;
+    display:flex; flex-direction:column; min-height:128px; position:relative;
+  }
+  .card:hover{transform:translateY(-2px); box-shadow:0 6px 18px rgba(90,60,20,.10); border-color:var(--accent)}
+  .card .he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.5rem; color:var(--ink); direction:rtl; margin-bottom:2px}
+  .card .name{font-weight:700; font-size:1.08rem}
+  .card .theme{color:var(--accent); font-size:.9rem; margin-top:2px}
+  .card .foot{margin-top:auto; padding-top:10px; display:flex; align-items:center; justify-content:space-between}
+  .pill{font-size:.78rem; font-weight:700; padding:3px 9px; border-radius:999px}
+  .pill.open{background:#eef5ef; color:var(--good)}
+  .pill.taken{background:#eee; color:#8a8275}
+  .pill.mine{background:#eaf1f8; color:var(--sky)}
+  .cta{font-size:.85rem; color:var(--sky); font-weight:600}
+
+  .card.taken{cursor:default; background:var(--taken-bg); border-style:dashed}
+  .card.taken:hover{transform:none; box-shadow:none; border-color:var(--line)}
+  .card.taken .he,.card.taken .name{color:#9a9486}
+  .card.taken .theme{color:#a89a86}
+  .card .takenby{font-size:.82rem; color:#8a8275; margin-top:6px}
+  .card.mine{border-color:var(--sky); border-style:solid; background:#f7fafd}
+  .card .imgflag{font-size:.78rem;color:var(--good);margin-top:4px}
+
+  /* modal */
+  .backdrop{position:fixed; inset:0; background:rgba(30,24,16,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:50}
+  .backdrop.show{display:flex}
+  .modal{background:#fff; border-radius:16px; max-width:520px; width:100%; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,.3); max-height:90vh; overflow:auto}
+  .modal .he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:2rem; direction:rtl; text-align:right; color:var(--ink)}
+  .modal h2{margin:.1em 0 .1em; font-size:1.5rem}
+  .modal .theme{color:var(--accent); font-weight:600; margin-bottom:10px}
+  .modal .info{color:#37312a; margin:6px 0 4px}
+  .modal .frame{background:#eef4fa; border:1px solid #d4e2ef; border-radius:10px; padding:10px 12px; font-size:.92rem; color:#28435f; margin:12px 0}
+  .modal .frame b{color:var(--sky)}
+  .field{margin:10px 0}
+  .field label{display:block; font-size:.85rem; font-weight:600; margin-bottom:4px; color:#4a4338}
+  .field input{width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:9px; font-size:1rem; font-family:inherit}
+  .field input:focus{outline:none; border-color:var(--sky); box-shadow:0 0 0 3px rgba(47,93,134,.12)}
+  .row2{display:flex; gap:10px}
+  .row2 .field{flex:1}
+  .btn{appearance:none; border:none; border-radius:10px; padding:12px 16px; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit}
+  .btn.primary{background:var(--accent); color:#fff; width:100%}
+  .btn.primary:hover{background:var(--accent2)}
+  .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line)}
+  .btn[disabled]{opacity:.5; cursor:not-allowed}
+  .modal .close{float:right; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#aaa; line-height:1; margin:-6px -6px 0 0}
+  .err{color:#b5402f; font-size:.85rem; margin-top:6px; min-height:1em}
+  .ok{color:var(--good); font-weight:600}
+  .takennote{background:var(--taken-bg); border-radius:10px; padding:12px; color:#6c6557; text-align:center}
+  .uploadzone{border:2px dashed var(--sky); border-radius:12px; padding:18px; text-align:center; color:var(--sky); cursor:pointer; background:#f6fafd}
+  .uploadzone.has{border-style:solid; color:var(--good); border-color:var(--good); background:#f1f8f2}
+  .uploadzone input{display:none}
+  .hint{font-size:.85rem; color:var(--muted); text-align:center; margin-top:8px}
+  footer.page{text-align:center; margin-top:40px; color:#a59a89; font-size:.85rem}
+  .demoflag{position:fixed; bottom:10px; right:10px; background:#fff3cd; border:1px solid #e6cf7a; color:#7a5a12; font-size:.75rem; padding:5px 9px; border-radius:8px; z-index:60}
+
+  /* admin */
+  table.admin{width:100%; border-collapse:collapse; margin-top:14px; font-size:.9rem}
+  table.admin th,table.admin td{border:1px solid var(--line); padding:6px 8px; text-align:left}
+  table.admin th{background:#f3ede3}
+
+  /* access gate */
+  #gate{position:fixed; inset:0; background:var(--cream); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px}
+  #gate.hide{display:none}
+  .gatebox{max-width:380px; width:100%; text-align:center}
+  .gatebox h2{margin:.2em 0 .1em; font-size:1.6rem}
+  .gatebox .sub{color:var(--accent); font-weight:600; margin-bottom:18px}
+  .gatebox input{width:100%; padding:12px 13px; border:1px solid var(--line); border-radius:10px; font-size:1.05rem; text-align:center; margin-bottom:10px; font-family:inherit}
+  .gatebox input:focus{outline:none; border-color:var(--sky); box-shadow:0 0 0 3px rgba(47,93,134,.12)}
+
+  /* guide modal content */
+  .guide h3{color:var(--accent); margin:18px 0 6px; font-size:1.05rem}
+  .guide h3:first-of-type{margin-top:6px}
+  .guide ul{margin:6px 0 6px 1.1em; padding:0}
+  .guide li{margin:3px 0}
+  .guide .opt{background:#f7f4ef; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0}
+  .guide .opt b{color:var(--sky)}
+  .guidebtn{display:inline-block; margin-top:6px; background:#fff; border:1px solid var(--accent); color:var(--accent);
+    border-radius:999px; padding:8px 16px; font-weight:700; font-size:.92rem; cursor:pointer; font-family:inherit}
+  .guidebtn:hover{background:#fbf3ea}
+</style>
+</head>
+<body>
+<div id="gate">
+  <div class="gatebox">
+    <h2>Visual T'filah Sign-Up</h2>
+    <div class="sub">Help create our Shabbat together</div>
+    <input id="gatepass" type="password" placeholder="Access word" autocomplete="off" autocapitalize="off">
+    <button class="btn primary" id="gatego">Enter</button>
+    <div class="err" id="gateerr"></div>
+  </div>
+</div>
+<div class="wrap">
+  <header class="page">
+    <h1>Visual T'filah&nbsp;&mdash;&nbsp;Sign Up for a Prayer</h1>
+    <div class="sub">Help create our Shabbat together</div>
+  </header>
+  <p class="intro">Choose a prayer that speaks to you, then create an image to carry it on the screen
+  this Friday night. Tap any prayer to read its theme and sign up. Once you claim one, you can come
+  back anytime to upload your image. You may sign up for up to three prayers.</p>
+  <div style="text-align:center"><button class="guidebtn" id="guideBtn">&#128247;&nbsp; How to make your image</button></div>
+
+  <div class="statusbar" id="statusbar">
+    Loading prayers&hellip;
+    <span class="manage" id="manageLink" style="display:none">Already signed up? Manage your prayer</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div id="adminMount"></div>
+
+  <footer class="page">rabbi.dan@medw.in &nbsp;&bull;&nbsp; techrabbi.org</footer>
+</div>
+
+<!-- Sign-up / info modal -->
+<div class="backdrop" id="backdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="demoflag" id="demoflag">Demo mode &middot; data stays in this browser</div>
+
+<script type="module">
+/* ============================================================
+   Visual T'filah prayer sign-up
+   Backend is abstracted so the same UI runs on a local MOCK
+   (for demos) or on Firebase (for production).
+   Flip USE_FIREBASE to true and paste firebaseConfig to go live.
+   ============================================================ */
+
+const USE_FIREBASE = true;
+const firebaseConfig = {
+  apiKey: "AIzaSyB9y5lRYUUG1XXcqkDnxoED-Ot1paqNh-0",
+  authDomain: "vt-sign-up.firebaseapp.com",
+  projectId: "vt-sign-up",
+  storageBucket: "vt-sign-up.firebasestorage.app",
+  messagingSenderId: "454872788801",
+  appId: "1:454872788801:web:d18328eb3f678bf6e8fbc0"
+};
+
+/* ---------- Prayer list (edit freely) ---------- */
+const PRAYERS = [
+  {id:"candles", name:"Candle Blessings", he:"הַדְלָקַת נֵרוֹת", tr:"Hadlakat Nerot",
+   theme:"Welcoming the light",
+   info:"We kindle the lights and draw a circle of peace around Shabbat, letting ordinary time give way to holy time.",
+   frame:"Think warmth and glow: candle flames in soft focus, the hush of dusk, light spreading into a dim room."},
+  {id:"lcha-dodi", name:"L'cha Dodi", he:"לְכָה דוֹדִי", tr:"L'cha Dodi",
+   theme:"Welcoming the Shabbat bride",
+   info:"We turn toward the door to greet Shabbat like a beloved arriving at evening.",
+   frame:"Think arrival and joy: a figure approaching at sunset, gates opening, the sky turning gold."},
+  {id:"barchu", name:"Bar'chu", he:"בָּרְכוּ", tr:"Bar'chu",
+   theme:"The call to worship",
+   info:"We bow and call one another to bless the Source of all, gathering the community together.",
+   frame:"Think gathering and invitation: a community turning together, an opening, first light over a congregation."},
+  {id:"maariv-aravim", name:"Ma'ariv Aravim", he:"מַעֲרִיב עֲרָבִים", tr:"Ma'ariv Aravim",
+   theme:"The One who brings on evening",
+   info:"God rolls light away before darkness and darkness before light, turning the great wheel of time.",
+   frame:"Think twilight: the turning sky, dusk over a horizon, the first stars appearing."},
+  {id:"ahavat-olam", name:"Ahavat Olam", he:"אַהֲבַת עוֹלָם", tr:"Ahavat Olam",
+   theme:"Loved with an everlasting love",
+   info:"Torah is the sign that we are loved across the generations.",
+   frame:"Think tenderness and continuity: an open book in warm light, hands passing a flame, an embrace."},
+  {id:"shma", name:"Sh'ma", he:"שְׁמַע", tr:"Sh'ma",
+   theme:"Listen: God is One",
+   info:"Our core declaration that all of being is woven into one.",
+   frame:"Think unity and stillness: a single point of light, the whole sky as one, a held breath."},
+  {id:"vahavta", name:"V'ahavta", he:"וְאָהַבְתָּ", tr:"V'ahavta",
+   theme:"You shall love",
+   info:"Love God with all you are, and teach it to the next generation, keeping the words close.",
+   frame:"Think devotion and teaching: a parent and child, a doorpost, words carried near the heart."},
+  {id:"mi-chamocha", name:"Mi Chamocha", he:"מִי כָמֹכָה", tr:"Mi Chamocha",
+   theme:"Song at the sea",
+   info:"Freed from bondage, our ancestors sing at the water's edge.",
+   frame:"Think liberation: the sea parting, dawn after escape, a people reaching the far shore."},
+  {id:"hashkiveinu", name:"Hashkiveinu", he:"הַשְׁכִּיבֵנוּ", tr:"Hashkiveinu",
+   theme:"Shelter of peace",
+   info:"Lay us down in peace and spread over us a shelter of wholeness through the night.",
+   frame:"Think protection: a canopy or wings, a calm night sky, a sheltering tree."},
+  {id:"vshamru", name:"V'shamru", he:"וְשָׁמְרוּ", tr:"V'shamru",
+   theme:"Keeping Shabbat",
+   info:"We keep Shabbat as an eternal covenant, a sign between us and the Holy One.",
+   frame:"Think rest set apart: the seventh day, a sealed promise, a quiet field at rest."},
+  {id:"avot-vimahot", name:"Avot v'Imahot", he:"אָבוֹת וְאִמָּהוֹת", tr:"Avot v'Imahot",
+   theme:"God of our ancestors",
+   info:"We stand on the faith of those who came before us, women and men alike.",
+   frame:"Think generations: a long line of hands, deep roots, light reaching back and forward."},
+  {id:"gvurot", name:"G'vurot", he:"גְּבוּרוֹת", tr:"G'vurot",
+   theme:"Sustaining life",
+   info:"A power that holds up the falling, frees the bound, and renews life.",
+   frame:"Think renewal: rain on dry ground, a steadying hand, new growth after winter."},
+  {id:"kedushah", name:"Kedushah", he:"קְדֻשָּׁה", tr:"K'dushah",
+   theme:"Holy, holy, holy",
+   info:"We rise with the angels to call God holy, holy, holy, the whole earth filled with glory.",
+   frame:"Think soaring radiance: a vast open sky, wings, light filling all the earth."},
+  {id:"rtzei", name:"R'tzeih", he:"רְצֵה", tr:"R'tzeih",
+   theme:"Accept our prayer",
+   info:"We ask God to receive our worship with love and let the Divine Presence dwell among us.",
+   frame:"Think welcome and homecoming: open hands, an open gate, presence settling over a gathered people."},
+  {id:"modim", name:"Modim", he:"מוֹדִים", tr:"Modim",
+   theme:"We give thanks",
+   info:"We bow in gratitude for the daily wonders, evening, morning, and noon, that we too easily overlook.",
+   frame:"Think gratitude: bowed heads, cupped hands, an ordinary moment lit with wonder."},
+  {id:"shalom-rav", name:"Shalom Rav", he:"שָׁלוֹם רָב", tr:"Shalom Rav",
+   theme:"Abundant peace",
+   info:"We ask for a great and lasting peace to rest upon all God's people.",
+   frame:"Think deep peace: still water at dusk, a wide calm horizon, peace settling over a community."},
+  {id:"mi-shebeirach", name:"Mi Shebeirach", he:"מִי שֶׁבֵּרַךְ", tr:"Mi Shebeirach",
+   theme:"Prayer for healing",
+   info:"We call on the One who blessed our ancestors to bring healing of body and spirit to those who are ill.",
+   frame:"Think gentle hope: soft dawn light, a steadying hand, new growth, a warm and tender glow."},
+  {id:"silent", name:"Silent Prayer", he:"תְּפִלַּת הַלֵּב", tr:"T'filat HaLev",
+   theme:"A moment of stillness",
+   info:"We pause for our own private words, the prayers of the heart that have no fixed text.",
+   frame:"Think quiet openness: an empty path, still water, soft light, a single candle, room to breathe."},
+  {id:"aleinu", name:"Aleinu", he:"עָלֵינוּ", tr:"Aleinu",
+   theme:"Our task and our hope",
+   info:"We bend toward the hope of a world made whole, repaired and at one.",
+   frame:"Think hope: a wide horizon, many becoming one, a world coming into balance."},
+  {id:"kaddish", name:"Mourner's Kaddish", he:"קַדִּישׁ יָתוֹם", tr:"Kaddish Yatom",
+   theme:"Memory and praise",
+   info:"Mourners rise to sanctify God's name, holding memory and praise together.",
+   frame:"Think enduring light: candle flames, stars, names remembered, light that persists in the dark."}
+];
+
+/* ============================================================
+   STORE  — common interface used by the UI
+     store.subscribe(cb)            cb(claimsMap) on every change
+     store.claim(id, person)        -> {ok} | {ok:false, reason}
+     store.findByEmail(email)       -> [claim,...]
+     store.attachImage(id, email, file) -> {ok, name}
+   claimsMap: { prayerId: {first,last,email,at,image} }
+   ============================================================ */
+
+function makeMockStore(){
+  const KEY = "vt-claims-v1";
+  const chan = ("BroadcastChannel" in self) ? new BroadcastChannel("vt-claims") : null;
+  let subs = [];
+  const read = () => { try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch{ return {}; } };
+  const write = (m) => { localStorage.setItem(KEY, JSON.stringify(m)); };
+  const emit = () => { const m=read(); subs.forEach(cb=>cb(m)); };
+  if(chan) chan.onmessage = () => emit();
+  window.addEventListener("storage", e => { if(e.key===KEY) emit(); });
+  return {
+    subscribe(cb){ subs.push(cb); cb(read()); },
+    async claim(id, person){
+      const m = read();
+      if(m[id]) return {ok:false, reason:"taken"};
+      m[id] = {...person, at:Date.now(), image:null};
+      write(m); if(chan) chan.postMessage("x"); emit();
+      return {ok:true};
+    },
+    async findByEmail(email){
+      const m = read(); email=email.trim().toLowerCase();
+      return Object.entries(m).filter(([,c])=>(c.email||"").toLowerCase()===email)
+                   .map(([id,c])=>({id,...c}));
+    },
+    async attachImage(id, email, file, niceName){
+      const m = read();
+      if(!m[id] || (m[id].email||"").toLowerCase()!==email.trim().toLowerCase())
+        return {ok:false, reason:"not-yours"};
+      const ext = (file.name.match(/\.[a-z0-9]+$/i)||[""])[0];
+      m[id].image = niceName + ext;       // mock: store the nice filename
+      m[id].imageAt = Date.now();
+      write(m); if(chan) chan.postMessage("x"); emit();
+      return {ok:true, name:niceName + ext};
+    },
+    async release(id, email){
+      const m = read();
+      if(!m[id]) return {ok:false, reason:"not-found"};
+      if((m[id].email||"").toLowerCase()!==email.trim().toLowerCase())
+        return {ok:false, reason:"not-yours"};
+      delete m[id];
+      write(m); if(chan) chan.postMessage("x"); emit();
+      return {ok:true};
+    }
+  };
+}
+
+async function makeFirebaseStore(){
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const { getFirestore, doc, onSnapshot, collection, runTransaction, query, where, getDocs, updateDoc, deleteDoc }
+    = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const { getStorage, ref, uploadBytes, getDownloadURL }
+    = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  const col = collection(db, "claims");
+  return {
+    subscribe(cb){
+      onSnapshot(col, snap => {
+        const m = {}; snap.forEach(d => m[d.id] = d.data()); cb(m);
+      });
+    },
+    async claim(id, person){
+      try{
+        await runTransaction(db, async tx => {
+          const r = doc(db, "claims", id);
+          const s = await tx.get(r);
+          if(s.exists()) throw new Error("taken");
+          tx.set(r, {...person, at:Date.now(), image:null});
+        });
+        return {ok:true};
+      }catch(e){ return {ok:false, reason:e.message==="taken"?"taken":"error"}; }
+    },
+    async findByEmail(email){
+      const qs = await getDocs(query(col, where("email","==",email.trim().toLowerCase())));
+      return qs.docs.map(d=>({id:d.id, ...d.data()}));
+    },
+    async attachImage(id, email, file, niceName){
+      const ext = (file.name.match(/\.[a-z0-9]+$/i)||[""])[0];
+      const sref = ref(storage, `prayer-images/${niceName}${ext}`);
+      await uploadBytes(sref, file);
+      const url = await getDownloadURL(sref);
+      await updateDoc(doc(db,"claims",id), {image:url, imageAt:Date.now()});
+      return {ok:true, name:niceName + ext};
+    },
+    async release(id, email){
+      await deleteDoc(doc(db,"claims",id));
+      return {ok:true};
+    }
+  };
+}
+
+/* ---------- App ---------- */
+const MAX_PER_PERSON = 3;          // how many prayers one person may sign up for
+const GATE_WORD = "rtr";           // access word for the whole page (light gate)
+
+let store, claims = {};
+const byId = Object.fromEntries(PRAYERS.map(p=>[p.id,p]));
+const grid = document.getElementById("grid");
+const backdrop = document.getElementById("backdrop");
+const modal = document.getElementById("modal");
+let me = JSON.parse(localStorage.getItem("vt-me")||"null"); // {first,last,email}
+
+function isMine(c){ return me && c && (c.email||"").toLowerCase()===me.email.toLowerCase(); }
+
+function fmt(ts){
+  if(!ts) return "";
+  try{ return new Date(ts).toLocaleString(undefined,
+    {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}); }
+  catch{ return ""; }
+}
+
+function render(){
+  const taken = Object.keys(claims).length;
+  document.getElementById("statusbar").innerHTML =
+    `<b>${PRAYERS.length-taken}</b> of ${PRAYERS.length} prayers still open` +
+    `<span class="manage" id="manageLink">Already signed up? Manage your prayer</span>`;
+  document.getElementById("manageLink").onclick = openManage;
+
+  grid.innerHTML = "";
+  PRAYERS.forEach(p => {
+    const c = claims[p.id];
+    const mine = isMine(c);
+    const el = document.createElement("div");
+    el.className = "card" + (c ? (mine ? " mine" : " taken") : "");
+    let foot;
+    if(!c) foot = `<span class="pill open">Open</span><span class="cta">Sign up &rarr;</span>`;
+    else if(mine) foot = `<span class="pill mine">Yours</span><span class="cta">${c.image?"Image added":"Add image &rarr;"}</span>`;
+    else foot = `<span class="pill taken">Taken</span>`;
+    el.innerHTML =
+      `<div class="he" dir="rtl">${p.he}</div>
+       <div class="name">${p.name}</div>
+       <div class="theme">${p.theme}</div>
+       ${c && !mine ? `<div class="takenby">Taken by ${esc(c.first)} ${esc((c.last||"").charAt(0))}.</div>` : ""}
+       ${mine && c.image ? `<div class="imgflag">&#10003; your image is in</div>` : ""}
+       <div class="foot">${foot}</div>`;
+    if(!c || mine) el.onclick = () => openPrayer(p.id);
+    grid.appendChild(el);
+  });
+}
+
+function esc(s){ return (s||"").replace(/[&<>"]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+function closeModal(){ backdrop.classList.remove("show"); }
+backdrop.addEventListener("click", e => { if(e.target===backdrop) closeModal(); });
+
+function openPrayer(id){
+  const p = byId[id], c = claims[id], mine = isMine(c);
+  let body = `
+    <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
+    <div class="he" dir="rtl">${p.he}</div>
+    <h2>${p.name}</h2>
+    <div class="theme">${p.theme} &middot; <span style="color:#6b6358;font-weight:400">${p.tr}</span></div>
+    <div class="info">${p.info}</div>
+    <div class="frame"><b>Picturing it:</b> ${p.frame}</div>`;
+
+  if(mine){
+    body += imageSection(p, c);
+  }else{
+    body += `
+    <div class="row2">
+      <div class="field"><label>First name</label><input id="f_first" autocomplete="given-name"></div>
+      <div class="field"><label>Last name</label><input id="f_last" autocomplete="family-name"></div>
+    </div>
+    <div class="field"><label>Email</label><input id="f_email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+    <div class="err" id="f_err"></div>
+    <button class="btn primary" id="f_go">Claim this prayer</button>`;
+  }
+  modal.innerHTML = body;
+  backdrop.classList.add("show");
+
+  if(!mine){
+    if(me){ q("#f_first").value=me.first||""; q("#f_last").value=me.last||""; q("#f_email").value=me.email||""; }
+    q("#f_go").onclick = () => doClaim(id);
+  }else{
+    wireUpload(p, c);
+  }
+}
+
+function niceName(p, c){
+  // [Prayer name] - [First Last], stripped of characters that break filenames
+  return `${p.name} - ${c.first} ${c.last}`
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mailtoFallback(p, c){
+  const subj = `VT image: ${p.name} - ${c.first} ${c.last}`;
+  const body = `Hi Rabbi Dan,\n\nMy image for ${p.name} is attached.\n\n- ${c.first} ${c.last}`;
+  return `mailto:rabbi.dan@medw.in?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+
+function imageSection(p, c){
+  const nice = niceName(p, c);
+  return `
+    <div style="margin-top:6px">
+      <div class="ok" style="margin-bottom:8px">&#10003; You've claimed this prayer.</div>
+      ${c.at ? `<div class="hint" style="margin-top:-2px">Claimed ${esc(fmt(c.at))}${c.imageAt?` &middot; image added ${esc(fmt(c.imageAt))}`:""}.</div>` : ""}
+      <label class="uploadzone ${c.image?'has':''}" id="uz">
+        <input type="file" id="f_file" accept="image/*,video/*">
+        <div id="uztext">${c.image ? "&#10003; "+esc(c.image)+" &middot; tap to replace" : "Tap to upload your image (or come back later)"}</div>
+      </label>
+      <div class="hint">Saved as &ldquo;${esc(nice)}&rdquo;. Landscape works best; return anytime with your email to change it.</div>
+      <div class="hint" id="emailfallback">Trouble uploading? <a href="${mailtoFallback(p,c)}">Email it to rabbi.dan@medw.in</a> instead.</div>
+      <div style="margin-top:18px;text-align:center">
+        <button class="btn ghost" id="f_release">Release this prayer for someone else</button>
+      </div>
+    </div>`;
+}
+
+function wireUpload(p, c){
+  const input = q("#f_file"), nice = niceName(p, c);
+  input.onchange = async () => {
+    const file = input.files[0]; if(!file) return;
+    q("#uztext").innerHTML = "Uploading&hellip;";
+    try{
+      const r = await store.attachImage(p.id, c.email, file, nice);
+      if(!r.ok) throw new Error(r.reason||"failed");
+      q("#uz").classList.add("has");
+      q("#uztext").innerHTML = "&#10003; "+esc(r.name)+" &middot; tap to replace";
+    }catch(e){
+      q("#uz").classList.remove("has");
+      q("#uztext").innerHTML = "Upload didn't work &middot; tap to try again";
+      const ef = q("#emailfallback");
+      if(ef){ ef.style.fontWeight = "700"; ef.style.color = "var(--accent)"; }
+    }
+  };
+  const rel = q("#f_release");
+  if(rel) rel.onclick = () => doRelease(p.id, c.email);
+}
+
+async function doRelease(id, email){
+  const p = byId[id];
+  if(!confirm(`Release ${p.name}? It opens up for someone else, and any image you added is unlinked.`)) return;
+  const r = await store.release(id, email);
+  if(r.ok) closeModal();
+  else alert("Couldn't release this one just now. Please try again.");
+}
+
+async function doClaim(id){
+  const first=q("#f_first").value.trim(), last=q("#f_last").value.trim();
+  const email=q("#f_email").value.trim().toLowerCase();
+  const err = q("#f_err");
+  if(!first||!last){ err.textContent="Please enter your first and last name."; return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent="Please enter a valid email."; return; }
+  q("#f_go").disabled = true; err.textContent="";
+  // limit: at most MAX_PER_PERSON prayers per email
+  const existing = await store.findByEmail(email);
+  if(existing.length >= MAX_PER_PERSON){
+    err.innerHTML = `You're already signed up for ${MAX_PER_PERSON} prayers, which is the limit. `
+      + `<a href="#" id="goManage">Manage or release one</a> to choose another.`;
+    q("#goManage").onclick = (e)=>{ e.preventDefault(); openManage(); };
+    q("#f_go").disabled = false; return;
+  }
+  const r = await store.claim(id, {first,last,email});
+  if(!r.ok){
+    if(r.reason==="taken"){ err.textContent="Sorry, someone just claimed this one. Please pick another."; setTimeout(closeModal, 1400); }
+    else err.textContent="Something went wrong. Please try again.";
+    q("#f_go").disabled = false; return;
+  }
+  me = {first,last,email};
+  localStorage.setItem("vt-me", JSON.stringify(me));
+  // optimistic: the Firestore snapshot arrives a beat later, so seed the claim
+  // locally now so the modal reopens on the upload step (not the form).
+  claims[id] = {first, last, email, at:Date.now(), image:null};
+  render();
+  openPrayer(id);
+}
+
+function openManage(){
+  modal.innerHTML = `
+    <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
+    <h2>Manage your prayer</h2>
+    <div class="info">Enter the email you signed up with to find your prayer and add your image.</div>
+    <div class="field"><label>Email</label><input id="m_email" type="email" value="${me?esc(me.email):''}"></div>
+    <div class="err" id="m_err"></div>
+    <button class="btn primary" id="m_go">Find my prayer</button>`;
+  backdrop.classList.add("show");
+  q("#m_go").onclick = async () => {
+    const email = q("#m_email").value.trim().toLowerCase();
+    if(!email){ q("#m_err").textContent="Please enter your email."; return; }
+    const mine = await store.findByEmail(email);
+    if(!mine.length){ q("#m_err").textContent="No prayer found for that email yet."; return; }
+    localStorage.setItem("vt-me", JSON.stringify({first:mine[0].first,last:mine[0].last,email}));
+    location.reload();
+  };
+}
+
+function q(s){ return modal.querySelector(s); }
+
+/* ---------- Admin view  (?admin) ---------- */
+function maybeAdmin(){
+  if(!new URLSearchParams(location.search).has("admin")) return;
+  document.getElementById("demoflag").style.display="none";
+  const mount = document.getElementById("adminMount");
+  const rows = PRAYERS.map(p=>{
+    const c = claims[p.id];
+    const img = c&&c.image ? (String(c.image).startsWith("http")?`<a href="${c.image}" target="_blank">image</a>`:esc(c.image)) : "&mdash;";
+    return `<tr><td>${p.name}</td><td>${c?esc(c.first+" "+c.last):"&mdash;"}</td>
+      <td>${c?esc(c.email):"&mdash;"}</td><td>${c?fmt(c.at):"&mdash;"}</td>
+      <td>${img}</td><td>${c&&c.imageAt?fmt(c.imageAt):"&mdash;"}</td></tr>`;
+  }).join("");
+  const taken = Object.keys(claims).length;
+  mount.innerHTML = `<h2 style="margin-top:34px">Sign-ups (admin) &middot; ${taken}/${PRAYERS.length} taken</h2>
+    <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Claimed</th><th>Image</th><th>Uploaded</th></tr>${rows}</table>
+    <p><button class="btn ghost" id="csv">Download CSV</button></p>`;
+  document.getElementById("csv").onclick = () => {
+    const lines = [["Prayer","First","Last","Email","Claimed","Image","Uploaded"]];
+    PRAYERS.forEach(p=>{ const c=claims[p.id]; if(c) lines.push([p.name,c.first,c.last,c.email,fmt(c.at),c.image||"",c.imageAt?fmt(c.imageAt):""]); });
+    const csv = lines.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+    a.download="vt-signups.csv"; a.click();
+  };
+}
+
+/* ---------- access gate (light obscurity, not real security) ---------- */
+(function gate(){
+  const g = document.getElementById("gate");
+  if(localStorage.getItem("vt-gate")==="1"){ g.classList.add("hide"); return; }
+  const go = () => {
+    if(document.getElementById("gatepass").value.trim().toLowerCase()===GATE_WORD){
+      localStorage.setItem("vt-gate","1"); g.classList.add("hide");
+    }else document.getElementById("gateerr").textContent="That's not the access word. Please try again.";
+  };
+  document.getElementById("gatego").onclick = go;
+  document.getElementById("gatepass").addEventListener("keydown", e=>{ if(e.key==="Enter") go(); });
+  document.getElementById("gatepass").focus();
+})();
+
+/* ---------- guide modal ---------- */
+function openGuide(){
+  modal.innerHTML = `
+    <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
+    <h2>Making your image</h2>
+    <div class="guide">
+      <p class="info">Your image becomes the background on the screen, and the words of the prayer rest on top of it. Here is how to choose it and frame it.</p>
+
+      <h3>Start with the prayer</h3>
+      <ul>
+        <li>What are its main themes, ideas, or emotions?</li>
+        <li>When you close your eyes and picture it, what do you see?</li>
+        <li>Where might you find or create that image?</li>
+      </ul>
+
+      <h3>Any form works</h3>
+      <ul>
+        <li>A photo: a wide view, a few objects, people</li>
+        <li>A video: a slow pan or slow motion</li>
+        <li>Artwork: a painting, sculpture, or collage (photograph it)</li>
+        <li>Movement, or your own digital art</li>
+      </ul>
+
+      <h3>Leave room for the words</h3>
+      <p>The prayer text sits over your image: Hebrew in the upper right, transliteration in the upper left, and the translation along the bottom. Keep those areas calm and open so the words stay readable. Two easy ways:</p>
+      <div class="opt"><b>Words around the edges:</b> keep the top corners and the bottom strip plain, with your subject in the open middle, a little low.</div>
+      <div class="opt"><b>Words down one side:</b> keep one whole half of the frame calm for the words, with your subject on the other half.</div>
+
+      <h3>A few framing tips</h3>
+      <ul>
+        <li>Shoot wide and horizontal, and leave breathing room instead of cropping tight.</li>
+        <li>Keep the calm zones plain: open sky, a wall, water, or a soft blur.</li>
+        <li>Place your subject off to one side, or low and center, not filling the frame.</li>
+        <li>Simpler is stronger, and send the highest resolution you can.</li>
+      </ul>
+
+      <p style="text-align:center;margin-top:18px">
+        <a class="btn primary" href="VT-Image-Guide.pdf" download
+           style="display:inline-block;text-decoration:none;width:auto;padding:12px 22px">Download the printable PDF</a>
+      </p>
+    </div>`;
+  backdrop.classList.add("show");
+}
+document.getElementById("guideBtn").onclick = openGuide;
+
+/* ---------- boot ---------- */
+(async function init(){
+  store = USE_FIREBASE ? await makeFirebaseStore() : makeMockStore();
+  if(USE_FIREBASE) document.getElementById("demoflag").style.display="none";
+  store.subscribe(m => { claims = m; render(); maybeAdmin(); });
+})();
+</script>
+</body>
+</html>
