@@ -338,7 +338,11 @@ async function makeFirebaseStore(){
     async attachImage(id, email, file, niceName){
       const ext = (file.name.match(/\.[a-z0-9]+$/i)||[""])[0];
       const sref = ref(storage, `prayer-images/${niceName}${ext}`);
-      await uploadBytes(sref, file);
+      // contentDisposition makes the download URL save the original file with a
+      // friendly name; no compression is applied (original bytes are stored).
+      const meta = { contentType: file.type || "application/octet-stream",
+                     contentDisposition: `attachment; filename="${niceName}${ext}"` };
+      await uploadBytes(sref, file, meta);
       const url = await getDownloadURL(sref);
       await updateDoc(doc(db,"claims",id), {image:url, imageAt:Date.now()});
       return {ok:true, name:niceName + ext};
@@ -555,7 +559,10 @@ function maybeAdmin(){
   const mount = document.getElementById("adminMount");
   const rows = PRAYERS.map(p=>{
     const c = claims[p.id];
-    const img = c&&c.image ? (String(c.image).startsWith("http")?`<a href="${c.image}" target="_blank">image</a>`:esc(c.image)) : "&mdash;";
+    const img = c&&c.image ? (String(c.image).startsWith("http")
+        ? `<a href="${c.image}" title="Download the file">&#11015;&nbsp;download</a>`
+          + `<br><img src="${c.image}" alt="" style="height:36px;border-radius:4px;margin-top:3px" onerror="this.style.display='none'">`
+        : esc(c.image)) : "&mdash;";
     return `<tr><td>${p.name}</td><td>${c?esc(c.first+" "+c.last):"&mdash;"}</td>
       <td>${c?esc(c.email):"&mdash;"}</td><td>${c?fmt(c.at):"&mdash;"}</td>
       <td>${img}</td><td>${c&&c.imageAt?fmt(c.imageAt):"&mdash;"}</td></tr>`;
