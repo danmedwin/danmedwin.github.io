@@ -72,7 +72,10 @@
   .btn.primary:hover{background:var(--accent2)}
   .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line)}
   .btn[disabled]{opacity:.5; cursor:not-allowed}
-  .modal .close{float:right; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#aaa; line-height:1; margin:-6px -6px 0 0}
+  .modal .close{position:sticky; top:-8px; float:right; z-index:10; background:#fff; border:none; font-size:1.5rem; cursor:pointer; color:#999; width:32px; height:32px; line-height:30px; text-align:center; border-radius:50%; margin:-10px -10px 0 0; box-shadow:0 1px 5px rgba(0,0,0,.16)}
+  .modal .close:hover{color:#444}
+  .modal .remember{margin-top:12px; color:var(--accent); font-size:.96rem}
+  .modal .remember a{color:var(--accent); font-weight:600}
   .err{color:#b5402f; font-size:.85rem; margin-top:6px; min-height:1em}
   .ok{color:var(--good); font-weight:600}
   .takennote{background:var(--taken-bg); border-radius:10px; padding:12px; color:#6c6557; text-align:center}
@@ -415,7 +418,9 @@ function openPrayer(id){
     <h2>${p.name}</h2>
     <div class="theme">${p.theme} &middot; <span style="color:#6b6358;font-weight:400">${p.tr}</span></div>
     <div class="info">${p.info}</div>
-    <div class="frame"><b>Picturing it:</b> ${p.frame}</div>`;
+    <div class="frame"><b>Picturing it:</b> What is the prayer literally about? How does it make you feel?
+      <div style="margin-top:6px">For example: ${p.frame.replace(/^Think\s+/i,"")}</div></div>
+    <div class="remember">Remember to <a href="#" id="leaveRoomLink"><i>leave room for the words</i></a>!</div>`;
 
   if(mine){
     body += imageSection(p, c);
@@ -431,6 +436,9 @@ function openPrayer(id){
   }
   modal.innerHTML = body;
   backdrop.classList.add("show");
+
+  const lr = q("#leaveRoomLink");
+  if(lr) lr.onclick = (e)=>{ e.preventDefault(); openGuide("guide-words"); };
 
   if(!mine){
     if(me){ q("#f_first").value=me.first||""; q("#f_last").value=me.last||""; q("#f_email").value=me.email||""; }
@@ -595,7 +603,7 @@ function maybeAdmin(){
 })();
 
 /* ---------- guide modal ---------- */
-function openGuide(){
+function openGuide(scrollToId){
   modal.innerHTML = `
     <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
     <h2>Making your image</h2>
@@ -617,7 +625,7 @@ function openGuide(){
         <li>Movement, or your own digital art</li>
       </ul>
 
-      <h3>Leave room for the words</h3>
+      <h3 id="guide-words">Leave room for the words</h3>
       <p>The prayer text sits over your image: Hebrew in the upper right, transliteration in the upper left, and the translation along the bottom. Keep those areas calm and open so the words stay readable. Two easy ways:</p>
       <div class="opt"><b>Words around the edges:</b> keep the top corners and the bottom strip plain, with your subject in the open middle, a little low.</div>
       <div class="opt"><b>Words down one side:</b> keep one whole half of the frame calm for the words, with your subject on the other half.</div>
@@ -636,8 +644,13 @@ function openGuide(){
       </p>
     </div>`;
   backdrop.classList.add("show");
+  modal.scrollTop = 0;
+  if(scrollToId){
+    const el=document.getElementById(scrollToId);
+    if(el){ const mr=modal.getBoundingClientRect(), er=el.getBoundingClientRect(); modal.scrollTop += (er.top-mr.top)-12; }
+  }
 }
-document.getElementById("guideBtn").onclick = openGuide;
+document.getElementById("guideBtn").onclick = () => openGuide();
 
 /* ---------- boot ---------- */
 (async function init(){
