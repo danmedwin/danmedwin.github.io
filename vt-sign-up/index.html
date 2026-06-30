@@ -223,7 +223,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.7</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.8</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -975,11 +975,7 @@ function _prayerParams(prayer, person){
     deadline: g.deadline || "", manage_url: location.origin + location.pathname };
 }
 function emailOnClaim(prayer, person){
-  const g = currentGroup || {};
-  _send(EMAILJS_TPL.admin, { to_email: ADMIN_NOTIFY_EMAIL, name: "Rabbi Dan",
-    prayer: prayer.name, group: g.label || g.code || "", deadline: g.deadline || "",
-    signup_name: `${person.first} ${person.last}`.trim(), signup_email: person.email,
-    manage_url: location.origin + location.pathname });
+  // congregant confirmation only; Dan is notified on SUBMIT (upload), not on claim.
   const st = _emailState[prayer.id] = { person };
   st.claimTimer = setTimeout(() => { st.claimTimer = null; _send(EMAILJS_TPL.claim, _prayerParams(prayer, person)); }, CLAIM_EMAIL_DELAY);
 }
@@ -990,6 +986,12 @@ function emailOnUpload(prayer){
   st.uploadSent = true;
   if(st.claimTimer){ clearTimeout(st.claimTimer); st.claimTimer = null; _send(EMAILJS_TPL.combo, _prayerParams(prayer, person)); }
   else _send(EMAILJS_TPL.upload, _prayerParams(prayer, person));
+  // notify Dan that a submission came in (once per session)
+  const g = currentGroup || {};
+  _send(EMAILJS_TPL.admin, { to_email: ADMIN_NOTIFY_EMAIL, name: "Rabbi Dan",
+    prayer: prayer.name, group: g.label || g.code || "", deadline: g.deadline || "",
+    signup_name: `${person.first||""} ${person.last||""}`.trim(), signup_email: person.email,
+    manage_url: location.origin + location.pathname });
 }
 
 let store, claims = {};                 // claims = public status map {id:{token,image,hasImage}}
