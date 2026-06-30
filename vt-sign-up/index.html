@@ -205,7 +205,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.0</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.1</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -275,6 +275,10 @@ const PRAYERS = [
    theme:"Keeping Shabbat",
    info:"We keep Shabbat as an eternal covenant, a sign between us and the Holy One.",
    frame:"Think rest set apart: the seventh day, a sealed promise, a quiet field at rest."},
+  {id:"adonai-sfatai", name:"Adonai S'fatai", he:"אֲדֹנָי שְׂפָתַי", tr:"Adonai S'fatai",
+   theme:"Open my lips",
+   info:"The single line that opens the Amidah: we ask God to open our lips so our mouths can offer praise.",
+   frame:"Think readiness and opening: a breath before speaking, parting lips, first light, an open gate, the held pause before a song begins."},
   {id:"avot-vimahot", name:"Avot v'Imahot", he:"אָבוֹת וְאִמָּהוֹת", tr:"Avot v'Imahot",
    theme:"God of our ancestors",
    info:"We stand on the faith of those who came before us, women and men alike.",
@@ -484,20 +488,18 @@ const TEXTS = {
    },
    {
     "he": [
-     "שִׁירָה חֲדָשָׁה שִׁבְּחוּ גְאוּלִים",
-     "לְשִׁמְךָ עַל שְׂפַת הַיָּם;",
-     "יַחַד כֻּלָּם הוֹדוּ",
-     "וְהִמְלִיכוּ וְאָמְרוּ:",
-     "יְיָ יִמְלֹךְ לְעוֹלָם וָעֶד."
+     "מַלְכוּתְךָ רָאוּ בָנֶיךָ,",
+     "בּוֹקֵעַ יָם לִפְנֵי מֹשֶׁה וּמִרְיָם.",
+     "זֶה אֵלִי, עָנוּ וְאָמְרוּ,",
+     "יְיָ יִמְלֹךְ לְעוֹלָם וָעֶד!"
     ],
     "tr": [
-     "Shirah chadashah shib’chu g’ulim",
-     "l’shimcha al s’fat hayam;",
-     "yachad kulam hodu",
-     "v’himlichu v’am’ru:",
-     "Adonai yimloch l’olam va’ed."
+     "Malchut’cha ra’u vanecha,",
+     "bokei’a yam lifnei Moshe uMiriam.",
+     "Zeh Eli, anu v’am’ru,",
+     "Adonai yimloch l’olam va’ed!"
     ],
-    "en": "A new song the redeemed sang to Your name at the shore of the sea; together they gave thanks, proclaimed Your sovereignty, and said: Adonai will reign for ever and ever."
+    "en": "Your children beheld Your sovereignty as You split the sea before Moses and Miriam. “This is my God!” they cried, and said: Adonai will reign for ever and ever!"
    }
   ]
  },
@@ -540,23 +542,31 @@ const TEXTS = {
    {
     "he": [
      "בֵּינִי וּבֵין בְּנֵי יִשְׂרָאֵל",
-     "אוֹת הִיא לְעוֹלָם,",
-     "כִּי שֵׁשֶׁת יָמִים עָשָׂה יְיָ",
-     "אֶת הַשָּׁמַיִם וְאֶת הָאָרֶץ,",
-     "וּבַיּוֹם הַשְּׁבִיעִי",
-     "שָׁבַת וַיִּנָּפַשׁ."
+     "אוֹת הִיא לְעוֹלָם,"
     ],
     "tr": [
      "Beini uvein b’nei Yisrael",
-     "ot hi l’olam,",
-     "ki sheishet yamim asah Adonai",
-     "et hashamayim v’et ha’aretz,",
-     "uvayom hash’vi’i",
-     "shavat vayinafash."
+     "ot hi l’olam,"
     ],
-    "en": "It is a sign forever between Me and the people of Israel, that in six days Adonai made the heavens and the earth, and on the seventh day rested."
+    "en": "It is a sign forever between Me and the people of Israel,"
    }
   ]
+ },
+ "adonai-sfatai": {
+  "slides": [
+   {
+    "he": [
+     "אֲדֹנָי, שְׂפָתַי תִּפְתָּח,",
+     "וּפִי יַגִּיד תְּהִלָּתֶךָ."
+    ],
+    "tr": [
+     "Adonai, s’fatai tiftach,",
+     "ufi yagid t’hilatecha."
+    ],
+    "en": "Adonai, open my lips, that my mouth may declare Your praise."
+   }
+  ],
+  "layout": "center"
  },
  "avot-vimahot": {
   "slides": [
@@ -587,14 +597,11 @@ const TEXTS = {
   "slides": [
    {
     "he": [
-     "אַתָּה גִּבּוֹר לְעוֹלָם, אֲדֹנָי,",
-     "מְחַיֵּה הַכֹּל אַתָּה,",
-     "רַב לְהוֹשִׁיעַ."
+     "מַשִּׁיב הָרוּחַ",
+     "וּמוֹרִיד הַגָּשֶׁם."
     ],
     "tr": [
-     "Atah gibor l’olam, Adonai,",
-     "m’chayeih hakol atah,",
-     "rav l’hoshia."
+     "Mashiv haruach\u000bumorid hagashem."
     ],
     "en": "You are forever mighty, Adonai — the One who gives life to all, abundant in saving power."
    }
@@ -646,16 +653,20 @@ const TEXTS = {
   "slides": [
    {
     "he": [
-     "מוֹדִים אֲנַחְנוּ לָךְ,",
-     "שָׁאַתָּה הוּא יְיָ אֱלֹהֵינוּ",
-     "וֵאלֹהֵי אֲבוֹתֵינוּ וְאִמּוֹתֵינוּ,",
-     "צוּר חַיֵּינוּ, מָגֵן יִשְׁעֵנוּ."
+     "מוֹדִים אֲנַֽחְנוּ לָךְ,",
+     "שָׁאַתָּה הוּא יְיָ אֱלֹהֵֽינוּ",
+     "וֵאלֹהֵי אֲבוֹתֵֽינוּ וְאִמּוֹתֵֽינוּ",
+     "לְעוֹלָם וָעֶד.",
+     "צוּר חַיֵּֽינוּ, מָגֵן יִשְׁעֵֽנוּ,",
+     "אַתָּה הוּא לְדוֹר וָדוֹר."
     ],
     "tr": [
      "Modim anachnu lach,",
      "sha’atah hu Adonai Eloheinu",
      "vEilohei avoteinu v’imoteinu,",
-     "tzur chayeinu, magein yisheinu."
+     "le’olam va’ed.",
+     "Tzur chayeinu, magein yisheinu,",
+     "Atah hu l’dor vador."
     ],
     "en": "We give thanks to You, for You are Adonai our God and God of our ancestors, the Rock of our life and the Shield of our salvation."
    }
@@ -665,13 +676,15 @@ const TEXTS = {
   "slides": [
    {
     "he": [
-     "שָׁלוֹם רָב עַל יִשְׂרָאֵל עַמְּךָ",
+     "שָׁלוֹם רָב",
+     "עַל יִשְׂרָאֵל עַמְּךָ",
      "תָּשִׂים לְעוֹלָם,",
      "כִּי אַתָּה הוּא מֶלֶךְ אָדוֹן",
      "לְכָל הַשָּׁלוֹם."
     ],
     "tr": [
-     "Shalom rav al Yisrael am’cha",
+     "Shalom rav",
+     "al Yisrael am’cha",
      "tasim l’olam,",
      "ki atah hu melech adon",
      "l’chol hashalom."
@@ -684,18 +697,19 @@ const TEXTS = {
   "slides": [
    {
     "he": [
-     "מִי שֶׁבֵּרַךְ אֲבוֹתֵינוּ וְאִמּוֹתֵינוּ,",
-     "הוּא יְבָרֵךְ וִירַפֵּא",
-     "אֶת הַחוֹלִים בְּקִרְבֵּנוּ,",
-     "רְפוּאַת הַנֶּפֶשׁ וּרְפוּאַת הַגּוּף."
+     "מִי שֶׁבֵּרַךְ אֲבוֹתֵינוּ",
+     "מְקוֹר הַבְּרָכָה לְאִמוֹתֵינוּ."
     ],
     "tr": [
-     "Mi shebeirach avoteinu v’imoteinu,",
-     "hu y’vareich virapei",
-     "et hacholim b’kirbeinu,",
-     "r’fuat hanefesh ur’fuat haguf."
+     "Mi shebeirach avoteinu",
+     "M’kor habrachah l’imoteinu.",
+     "May the Source of strength",
+     "who blessed the ones before us",
+     "help us find the courage",
+     "to make our lives a blessing",
+     "and let us say, Amen."
     ],
-    "en": "May the One who blessed our ancestors bring blessing and healing to those who are ill among us — a healing of spirit and a healing of body."
+    "en": ""
    }
   ]
  },
@@ -739,13 +753,15 @@ const TEXTS = {
      "יִתְגַּדַּל וְיִתְקַדַּשׁ שְׁמֵהּ רַבָּא",
      "בְּעָלְמָא דִּי בְרָא כִרְעוּתֵיהּ,",
      "וְיַמְלִיךְ מַלְכוּתֵהּ",
-     "בְּחַיֵּיכוֹן וּבְיוֹמֵיכוֹן,"
+     "בְּחַיֵּיכוֹן וּבְיוֹמֵיכוֹן,",
+     "וּבְחַיֵּי דְכָל בֵּית יִשְׂרָאֵל,"
     ],
     "tr": [
      "Yitgadal v’yitkadash sh’meih raba",
      "b’al’ma di v’ra chir’uteih,",
      "v’yamlich malchuteih",
-     "b’chayeichon uv’yomeichon,"
+     "b’chayeichon uv’yomeichon,",
+     "uv’chayei d’chol beit Yisrael,"
     ],
     "en": "Magnified and sanctified be God’s great name in the world that God created, according to plan; may God’s majesty be revealed in our days and our lives,"
    }
