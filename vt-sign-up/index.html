@@ -223,7 +223,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.1</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.2</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -1101,7 +1101,7 @@ function openPrayer(id){
   backdrop.classList.add("show");
 
   const lr = q("#leaveRoomLink");
-  if(lr) lr.onclick = (e)=>{ e.preventDefault(); openGuide("guide-words"); };
+  if(lr) lr.onclick = (e)=>{ e.preventDefault(); openGuide("guide-words", id); };
   const pb = q("#previewBtn");
   if(pb) pb.onclick = () => openPreview(id);
 
@@ -1393,9 +1393,9 @@ function showGroupBar(){
 })();
 
 /* ---------- guide modal ---------- */
-function openGuide(scrollToId){
+function openGuide(scrollToId, returnId){
   modal.innerHTML = `
-    <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
+    <button class="close" id="guideClose"${returnId?' title="Back to prayer"':''}>&times;</button>
     <h2>Making your image</h2>
     <div class="guide">
       <p class="info">Your image becomes the background on the screen, and the words of the prayer rest on top of it. Here is how to choose it and frame it.</p>
@@ -1435,6 +1435,8 @@ function openGuide(scrollToId){
     </div>`;
   backdrop.classList.add("show");
   modal.scrollTop = 0;
+  const gc = q("#guideClose");
+  if(gc) gc.onclick = () => { if(returnId) openPrayer(returnId); else closeModal(); };
   if(scrollToId){
     const el=document.getElementById(scrollToId);
     if(el){ const mr=modal.getBoundingClientRect(), er=el.getBoundingClientRect(); modal.scrollTop += (er.top-mr.top)-12; }
