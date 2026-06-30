@@ -127,8 +127,7 @@
   .seg.sub button{padding:5px 13px; font-size:.82rem}
   .seg.sub button.on{background:#6b6358; color:#fff}
   .pvnote{font-size:.86rem; color:var(--muted); margin:2px 0 14px}
-  .pvdisclaimer{font-size:.8rem; color:var(--muted); font-style:italic; text-align:center;
-    margin:6px 0 2px; padding-top:12px; border-top:1px solid var(--line)}
+  .pvdisclaimer{font-size:.8rem; color:var(--muted); font-style:italic; margin:-6px 0 12px}
 
   /* Page (siddur) view */
   .pg-block{padding:12px 0; border-bottom:1px solid var(--line)}
@@ -1265,8 +1264,8 @@ function openGuide(scrollToId){
 document.getElementById("guideBtn").onclick = () => openGuide();
 
 /* ---------- prayer preview (Page / Screen) ---------- */
-let pvMode = "page", pvLayout = "columns";
-function openPreview(id){ pvMode = "page"; pvLayout = (TEXTS[id] && TEXTS[id].layout) || "columns"; renderPreview(id); }
+let pvMode = "screen", pvLayout = "columns";
+function openPreview(id){ pvMode = "screen"; pvLayout = (TEXTS[id] && TEXTS[id].layout) || "columns"; renderPreview(id); }
 
 function dots(cur, n){ let o=""; for(let k=0;k<n;k++) o += (k===cur ? "●" : "○"); return o; }
 
@@ -1327,8 +1326,8 @@ function renderPreview(id){
     </div>
     ${layoutSeg}
     <div class="pvnote">${note}</div>
-    ${pvMode==="page" ? pageHTML(t) : screenHTML(t, pvLayout)}
-    ${pvMode==="screen" ? `<div class="pvdisclaimer">This is a rough approximation of where the text will sit. The actual Visual T'filah may vary.</div>` : ""}`;
+    ${pvMode==="screen" ? `<div class="pvdisclaimer">Rough approximation. Actual VT may vary.</div>` : ""}
+    ${pvMode==="page" ? pageHTML(t) : screenHTML(t, pvLayout)}`;
   backdrop.classList.add("show");
   modal.scrollTop = 0;
   modal.querySelectorAll(".seg:not(.sub) button").forEach(b => b.onclick = () => { pvMode = b.dataset.m; renderPreview(id); });
