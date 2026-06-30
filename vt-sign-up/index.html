@@ -223,7 +223,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.9</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.1</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -890,7 +890,9 @@ async function makeFirebaseStore(){
         const batch = writeBatch(db);
         batch.set(sref(id), {token:tok, images:[], hasImage:false});          // public (up to 3 image options)
         batch.set(cref(id), {first:person.first, last:person.last,            // private
-          email:person.email.trim().toLowerCase(), at:Date.now(), imageAt:null});
+          email:person.email.trim().toLowerCase(),
+          attribution:(person.attribution||"").trim().slice(0,120),
+          at:Date.now(), imageAt:null});
         await batch.commit();
         return {ok:true, token:tok};
       }catch(e){ return {ok:false, reason: e && e.code==="permission-denied" ? "taken" : "error"}; }
@@ -1088,6 +1090,10 @@ function openPrayer(id){
       <div class="field"><label>Last name</label><input id="f_last" autocomplete="family-name"></div>
     </div>
     <div class="field"><label>Email</label><input id="f_email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Photo attribution <span style="color:#9a9388;font-weight:400">(optional)</span></label>
+      <input id="f_attr" list="attrlist" autocomplete="off" placeholder="How should we credit you on the screen?">
+      <datalist id="attrlist"></datalist>
+      <div class="hint" style="margin:6px 0 0">Leave blank for no credit. Tap the box for suggestions.</div></div>
     <div class="err" id="f_err"></div>
     <button class="btn primary" id="f_go">Claim this prayer</button>`;
   }
@@ -1100,7 +1106,10 @@ function openPrayer(id){
   if(pb) pb.onclick = () => openPreview(id);
 
   if(!mine){
-    if(me){ q("#f_first").value=me.first||""; q("#f_last").value=me.last||""; q("#f_email").value=me.email||""; }
+    if(me){ q("#f_first").value=me.first||""; q("#f_last").value=me.last||""; q("#f_email").value=me.email||""; if(me.attribution) q("#f_attr").value=me.attribution; }
+    refreshAttrList();
+    q("#f_first").oninput = refreshAttrList;
+    q("#f_last").oninput = refreshAttrList;
     q("#f_go").onclick = () => doClaim(id);
   }else{
     wireUpload(p, c);
@@ -1183,9 +1192,27 @@ async function doRelease(id){
   else alert("Couldn't release this one just now. Please try again.");
 }
 
+// Photo-credit suggestions built from the name the congregant is typing.
+function attrSuggestions(first, last){
+  first=(first||"").trim(); last=(last||"").trim();
+  const fi=first.charAt(0).toUpperCase(), li=last.charAt(0).toUpperCase();
+  const out=[];
+  if(first) out.push(first);                        // Dan
+  if(fi&&last) out.push(fi+". "+last);              // D. Medwin
+  if(first&&li) out.push(first+" "+li+".");         // Dan M.
+  if(first&&last) out.push(first+" "+last);         // Dan Medwin
+  return [...new Set(out)].filter(Boolean);
+}
+function refreshAttrList(){
+  const dl=q("#attrlist"); if(!dl) return;
+  const f=q("#f_first")?q("#f_first").value:"", l=q("#f_last")?q("#f_last").value:"";
+  dl.innerHTML = attrSuggestions(f,l).map(s=>`<option value="${esc(s)}"></option>`).join("");
+}
+
 async function doClaim(id){
   const first=q("#f_first").value.trim(), last=q("#f_last").value.trim();
   const email=q("#f_email").value.trim().toLowerCase();
+  const attribution=(q("#f_attr").value||"").trim().slice(0,120);
   const err = q("#f_err");
   if(!first||!last){ err.textContent="Please enter your first and last name."; return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent="Please enter a valid email."; return; }
@@ -1201,13 +1228,13 @@ async function doClaim(id){
     q("#goManage").onclick = (e)=>{ e.preventDefault(); openManage(); };
     q("#f_go").disabled = false; return;
   }
-  const r = await store.claim(id, {first,last,email});
+  const r = await store.claim(id, {first,last,email,attribution});
   if(!r.ok){
     if(r.reason==="taken"){ err.textContent="Sorry, someone just claimed this one. Please pick another."; setTimeout(closeModal, 1400); }
     else err.textContent="Something went wrong. Please try again.";
     q("#f_go").disabled = false; return;
   }
-  me = {first,last,email}; myToken = r.token || tok;
+  me = {first,last,email,attribution}; myToken = r.token || tok;
   localStorage.setItem("vt-me", JSON.stringify(me));
   emailOnClaim(byId[id], {first,last,email});   // notice to Dan now; congregant confirmation (or combo) shortly
   // optimistic: the Firestore snapshot arrives a beat later, so seed the status
@@ -1286,14 +1313,15 @@ function renderAdmin(){
       ? `<a href="#" class="adminRel" data-id="${p.id}" style="color:#b5402f">release</a>`
       : "&mdash;";
     return `<tr><td>${p.name}</td><td>${d?esc(d.first+" "+d.last):"&mdash;"}</td>
-      <td>${d?esc(d.email):"&mdash;"}</td><td>${d?fmt(d.at):"&mdash;"}</td>
+      <td>${d?esc(d.email):"&mdash;"}</td><td>${d&&d.attribution?esc(d.attribution):"&mdash;"}</td>
+      <td>${d?fmt(d.at):"&mdash;"}</td>
       <td>${img}</td><td>${d&&d.imageAt?fmt(d.imageAt):"&mdash;"}</td><td>${action}</td></tr>`;
   }).join("");
   const taken = Object.keys(claims).length;
   document.getElementById("adminMount").innerHTML =
     `<h2 style="margin-top:34px">Sign-ups (admin) &middot; ${taken}/${PRAYERS.length} taken</h2>
      <p class="hint">Signed in as ${esc(adminUser.email)} &middot; <a href="#" id="adminRefresh">refresh</a> &middot; <a href="#" id="adminOut">sign out</a></p>
-     <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Claimed</th><th>Image</th><th>Uploaded</th><th>Action</th></tr>${rows}</table>
+     <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Attribution</th><th>Claimed</th><th>Image</th><th>Uploaded</th><th>Action</th></tr>${rows}</table>
      <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
        <button class="btn ghost" id="csv">Download CSV</button>
        <button class="btn ghost" id="clearAll" style="color:#b5402f;border-color:#e3b5ad;margin-left:auto">Clear all sign-ups</button>
@@ -1323,8 +1351,8 @@ function renderAdmin(){
     renderAdmin();
   };
   document.getElementById("csv").onclick = () => {
-    const lines = [["Prayer","First","Last","Email","Claimed","Image","Uploaded"]];
-    PRAYERS.forEach(p=>{ const c=claims[p.id], d=pii[p.id]; if(d) lines.push([p.name,d.first,d.last,d.email,fmt(d.at),((c&&c.images)||[]).filter(Boolean).join(" | "),d.imageAt?fmt(d.imageAt):""]); });
+    const lines = [["Prayer","First","Last","Email","Attribution","Claimed","Image","Uploaded"]];
+    PRAYERS.forEach(p=>{ const c=claims[p.id], d=pii[p.id]; if(d) lines.push([p.name,d.first,d.last,d.email,d.attribution||"",fmt(d.at),((c&&c.images)||[]).filter(Boolean).join(" | "),d.imageAt?fmt(d.imageAt):""]); });
     const csv = lines.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
     a.download="vt-signups.csv"; a.click();
@@ -1467,7 +1495,7 @@ function renderPreview(id){
        </div>`
     : "";
   modal.innerHTML = `
-    <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
+    <button class="close" id="pvClose" title="Back to prayer">&times;</button>
     <div class="he" dir="rtl">${p.he}</div>
     <h2>${p.name}</h2>
     <div class="theme">${p.theme} &middot; <span style="color:#6b6358;font-weight:400">${p.tr}</span></div>
@@ -1483,6 +1511,7 @@ function renderPreview(id){
   modal.scrollTop = 0;
   modal.querySelectorAll(".seg:not(.sub) button").forEach(b => b.onclick = () => { pvMode = b.dataset.m; renderPreview(id); });
   modal.querySelectorAll(".seg.sub button").forEach(b => b.onclick = () => { pvLayout = b.dataset.l; renderPreview(id); });
+  const pvc = q("#pvClose"); if(pvc) pvc.onclick = () => openPrayer(id);
 }
 
 /* ---------- boot ---------- */
