@@ -22,6 +22,10 @@
   header.page{text-align:center; margin-bottom:8px}
   header.page h1{font-size:2.2rem; margin:.2em 0 .1em; letter-spacing:.2px}
   header.page .sub{color:var(--accent); font-size:1.05rem; font-weight:600}
+  .groupbar{margin:10px auto 0; display:inline-block; background:#fff; border:1px solid var(--line);
+    border-radius:999px; padding:6px 16px; font-size:.92rem; color:var(--ink)}
+  .groupbar b{color:var(--accent)}
+  .groupbar:empty{display:none}
   .intro{max-width:720px; margin:14px auto 8px; text-align:center; color:#3a342c}
   .statusbar{
     text-align:center; margin:18px auto 22px; font-size:.95rem; color:var(--muted);
@@ -190,10 +194,11 @@
   <header class="page">
     <h1>Visual T'filah&nbsp;&mdash;&nbsp;Sign Up for a Prayer</h1>
     <div class="sub">Help create our Shabbat together</div>
+    <div class="groupbar" id="groupbar"></div>
   </header>
   <p class="intro">Choose a prayer that speaks to you, then create an image to carry it on the screen
-  this Friday night. Tap any prayer to read its theme and sign up. Once you claim one, you can come
-  back anytime to upload your image. You may sign up for up to three prayers.</p>
+  this Friday night. Tap any prayer to read its theme and sign up. Once you claim it, you can come
+  back anytime to upload your image. You may sign up for one prayer.</p>
   <div style="text-align:center"><button class="guidebtn" id="guideBtn">&#128247;&nbsp; How to make your image</button></div>
 
   <div class="statusbar" id="statusbar">
@@ -205,7 +210,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.3</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.4</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -924,8 +929,12 @@ async function makeFirebaseStore(){
 }
 
 /* ---------- App ---------- */
-const MAX_PER_PERSON = 3;          // how many prayers one person may sign up for
-const GATE_WORD = "rtr";           // access word for the whole page (light gate)
+const MAX_PER_PERSON = 1;          // prayers one person may claim (phase 1: one each)
+/* Access word -> group config. The word both gates the page and identifies the group. */
+const GROUPS = {
+  rtr: { label: "Reform Temple of Rockland", deadline: "September 1, 2026" },
+};
+let currentGroup = null;           // {code, label, deadline}, set at the gate
 
 let store, claims = {};                 // claims = public status map {id:{token,image,hasImage}}
 let myToken = null;                      // sha-256 of my email, for "mine" detection
@@ -1093,8 +1102,10 @@ async function doClaim(id){
   const tok = await store.token(email);
   const existing = await store.findByToken(tok);
   if(existing.length >= MAX_PER_PERSON){
-    err.innerHTML = `You're already signed up for ${MAX_PER_PERSON} prayers, which is the limit. `
-      + `<a href="#" id="goManage">Manage or release one</a> to choose another.`;
+    err.innerHTML = (MAX_PER_PERSON===1
+        ? `You've already claimed a prayer. `
+        : `You're already signed up for ${MAX_PER_PERSON} prayers, which is the limit. `)
+      + `<a href="#" id="goManage">Manage or release ${MAX_PER_PERSON===1?"it":"one"}</a> to choose another.`;
     q("#goManage").onclick = (e)=>{ e.preventDefault(); openManage(); };
     q("#f_go").disabled = false; return;
   }
@@ -1233,14 +1244,26 @@ function maybeAdmin(){
   if(adminUser && adminUser.email === ADMIN_EMAIL) renderAdmin();   // refresh table on status change
 }
 
-/* ---------- access gate (light obscurity, not real security) ---------- */
+/* ---------- access gate + group identification (light obscurity, not real security) ---------- */
+function showGroupBar(){
+  const el = document.getElementById("groupbar");
+  if(el && currentGroup) el.innerHTML =
+    `<b>${esc(currentGroup.label)}</b> &middot; submissions due <b>${esc(currentGroup.deadline)}</b>`;
+}
 (function gate(){
   const g = document.getElementById("gate");
-  if(localStorage.getItem("vt-gate")==="1"){ g.classList.add("hide"); return; }
+  const apply = (code) => {
+    currentGroup = { code, ...GROUPS[code] };
+    localStorage.setItem("vt-group", code);
+    g.classList.add("hide"); showGroupBar();
+  };
+  const saved = localStorage.getItem("vt-group");
+  if(saved && GROUPS[saved]){ apply(saved); return; }
+  if(localStorage.getItem("vt-gate")==="1" && GROUPS.rtr){ apply("rtr"); return; }  // migrate old gate
   const go = () => {
-    if(document.getElementById("gatepass").value.trim().toLowerCase()===GATE_WORD){
-      localStorage.setItem("vt-gate","1"); g.classList.add("hide");
-    }else document.getElementById("gateerr").textContent="That's not the access word. Please try again.";
+    const w = document.getElementById("gatepass").value.trim().toLowerCase();
+    if(GROUPS[w]) apply(w);
+    else document.getElementById("gateerr").textContent="That's not the access word. Please try again.";
   };
   document.getElementById("gatego").onclick = go;
   document.getElementById("gatepass").addEventListener("keydown", e=>{ if(e.key==="Enter") go(); });
