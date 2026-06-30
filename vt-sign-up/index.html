@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=David+Libre:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
     --ink:#1c1c1c; --accent:#7a3b12; --accent2:#9a5424; --sky:#2f5d86;
@@ -222,7 +223,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.5</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.6</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -950,6 +951,38 @@ const GROUPS = {
 };
 let currentGroup = null;           // {code, label, deadline}, set at the gate
 
+/* ---------- Email (EmailJS — reuses the VT Image Helper account) ----------
+   Needs an EmailJS template (EMAILJS_TEMPLATE) whose "To Email" field is {{to_email}};
+   it receives: to_email, subject, name, prayer, description, group, deadline, manage_url, message. */
+const EMAILJS_PUBLIC_KEY   = "ZrMH6Kf4C6InKj7Cx";
+const EMAILJS_SERVICE      = "service_zyrpz4j";
+const EMAILJS_TEMPLATE     = "template_vtsignup";   // create this in the EmailJS dashboard
+const ADMIN_NOTIFY_EMAIL   = "rabbi.dan@medw.in";
+try { if(window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e){}
+
+function sendSignupEmails(prayer, person){
+  if(!window.emailjs) return;
+  const g = currentGroup || {}, url = location.origin + location.pathname;
+  const base = { prayer: prayer.name, description: prayer.info,
+                 group: g.label || "", deadline: g.deadline || "", manage_url: url };
+  // 1) confirmation to the congregant
+  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, Object.assign({
+    to_email: person.email, name: person.first,
+    subject: `Your Visual T'filah sign-up: ${prayer.name}`,
+    message: `Thank you for signing up to create an image for ${prayer.name} — ${prayer.theme}.\n\n`
+      + `${prayer.info}\n\nPlease upload your image option(s)`
+      + (g.deadline ? ` by ${g.deadline}` : "") + ` using the link below (choose “Manage your prayer” and enter this email). `
+      + `You may upload up to three options. Thanks for your submission — if we have any questions or trouble, we'll be in touch.`,
+  }, base)).catch(e => console.warn("user email failed", e));
+  // 2) notice to Dan
+  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, Object.assign({
+    to_email: ADMIN_NOTIFY_EMAIL, name: "Rabbi Dan",
+    subject: `[${g.label || g.code || "VT"}] New sign-up: ${prayer.name}`,
+    message: `${person.first} ${person.last} (${person.email}) signed up for ${prayer.name}.\n`
+      + `Group: ${g.label || g.code || "—"}. Deadline: ${g.deadline || "—"}.`,
+  }, base)).catch(e => console.warn("admin email failed", e));
+}
+
 let store, claims = {};                 // claims = public status map {id:{token,image,hasImage}}
 let myToken = null;                      // sha-256 of my email, for "mine" detection
 const byId = Object.fromEntries(PRAYERS.map(p=>[p.id,p]));
@@ -1141,9 +1174,10 @@ async function doClaim(id){
   }
   me = {first,last,email}; myToken = r.token || tok;
   localStorage.setItem("vt-me", JSON.stringify(me));
+  sendSignupEmails(byId[id], {first,last,email});   // confirmation to congregant + notice to Dan
   // optimistic: the Firestore snapshot arrives a beat later, so seed the status
   // locally now so the modal reopens on the upload step (not the form).
-  claims[id] = {token:myToken, image:null, hasImage:false};
+  claims[id] = {token:myToken, images:[], hasImage:false};
   render();
   openPrayer(id);
 }
