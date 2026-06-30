@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Visual T'filah Sign-Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=David+Libre:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#1c1c1c; --accent:#7a3b12; --accent2:#9a5424; --sky:#2f5d86;
@@ -110,6 +113,63 @@
   .guidebtn{display:inline-block; margin-top:6px; background:#fff; border:1px solid var(--accent); color:var(--accent);
     border-radius:999px; padding:8px 16px; font-weight:700; font-size:.92rem; cursor:pointer; font-family:inherit}
   .guidebtn:hover{background:#fbf3ea}
+
+  /* prayer preview */
+  .previewbtn{display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:#fff;
+    border:1px solid var(--sky); color:var(--sky); border-radius:999px; padding:7px 14px;
+    font-weight:700; font-size:.9rem; cursor:pointer; font-family:inherit}
+  .previewbtn:hover{background:#f1f7fc}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; margin:4px 0 14px}
+  .seg button{appearance:none; border:none; background:#fff; padding:8px 16px; font-size:.92rem; font-weight:700;
+    cursor:pointer; color:var(--muted); font-family:inherit}
+  .seg button.on{background:var(--sky); color:#fff}
+  .seg.sub{margin:0 0 12px}
+  .seg.sub button{padding:5px 13px; font-size:.82rem}
+  .seg.sub button.on{background:#6b6358; color:#fff}
+  .pvnote{font-size:.86rem; color:var(--muted); margin:2px 0 14px}
+  .pvdisclaimer{font-size:.8rem; color:var(--muted); font-style:italic; text-align:center;
+    margin:6px 0 2px; padding-top:12px; border-top:1px solid var(--line)}
+
+  /* Page (siddur) view */
+  .pg-block{padding:12px 0; border-bottom:1px solid var(--line)}
+  .pg-block:last-child{border-bottom:none}
+  .pg-cols{display:flex; gap:18px; align-items:flex-start}
+  .pg-tr{flex:1; min-width:0}
+  .pg-he{flex:1; min-width:0; direction:rtl; text-align:right;
+    font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.4rem; line-height:1.7; color:var(--ink)}
+  .pg-tr-line{font-size:1.02rem; line-height:1.7; color:#3a342c; font-style:italic}
+  .pg-en{margin-top:8px; color:var(--muted); font-size:.95rem}
+  @media (max-width:520px){
+    .pg-cols{flex-direction:column; gap:6px}
+    .pg-he{order:1} .pg-tr{order:2}
+  }
+
+  /* Screen (slide) view */
+  .slidewrap{margin:0 0 18px}
+  .slide{position:relative; aspect-ratio:16/9; width:100%; background:linear-gradient(135deg,#33506e,#22384d);
+    border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(20,40,60,.25); color:#fff}
+  .slide .zone{position:absolute; padding:3px 7px; border-radius:6px; background:rgba(255,255,255,.10);
+    box-shadow:0 0 0 1px rgba(255,255,255,.16) inset}
+  .slide .zone div{white-space:nowrap}
+  .slide .z-tr{top:6%; left:3.5%; max-width:48%; text-align:left;
+    font-size:clamp(.42rem,2vw,.82rem); line-height:1.35}
+  .slide .z-he{top:6%; right:3.5%; max-width:48%; text-align:right; direction:rtl;
+    font-family:"David Libre","Frank Ruhl Libre",Georgia,serif;
+    font-size:clamp(.5rem,2.5vw,1.02rem); line-height:1.35}
+  .slide .z-en{left:4%; right:4%; bottom:6.5%; text-align:center;
+    font-size:clamp(.42rem,1.9vw,.8rem); line-height:1.3; opacity:.95}
+  .slide .z-en div{white-space:normal}
+  .slide .dots{position:absolute; bottom:2.5%; left:50%; transform:translateX(-50%);
+    display:flex; gap:4px; font-size:.5rem; letter-spacing:1px; opacity:.8}
+  .slidecap{font-size:.82rem; color:var(--muted); text-align:center; margin:8px 0 18px}
+  /* centered slide variant */
+  .slide.center{display:flex; align-items:center; justify-content:center; padding:7% 6% 11%}
+  .slide .cstack{background:rgba(255,255,255,.10); box-shadow:0 0 0 1px rgba(255,255,255,.16) inset;
+    border-radius:8px; padding:4% 5%; max-width:88%; text-align:center}
+  .slide .c-he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; direction:rtl;
+    font-size:clamp(.5rem,2.5vw,1.02rem); line-height:1.4}
+  .slide .c-tr{font-size:clamp(.42rem,2vw,.82rem); line-height:1.35; margin-top:3%}
+  .slide .c-en{font-size:clamp(.4rem,1.8vw,.76rem); line-height:1.3; opacity:.9; margin-top:4%}
 </style>
 </head>
 <body>
@@ -252,6 +312,125 @@ const PRAYERS = [
    info:"Mourners rise to sanctify God's name, holding memory and praise together.",
    frame:"Think enduring light: candle flames, stars, names remembered, light that persists in the dark."}
 ];
+
+/* ---------- Prayer texts for the Preview feature ----------
+   Baked in (no API call). Each prayer is split into VT "slides" following the
+   layout rules: Hebrew upper-right, transliteration upper-left, translation
+   along the bottom; Hebrew + transliteration matched line-for-line; one
+   liturgical unit per slide. The Page view is derived from these same slides.
+   Translations are house-style (Adonai, Sovereign, ancestors). Proof of
+   concept = Mi Chamocha; add more entries keyed by prayer id to extend.        */
+const TEXTS = {
+  "candles": { slides: [
+    { he:["בָּרוּךְ אַתָּה יְיָ,","אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם,","אֲשֶׁר קִדְּשָׁנוּ בְּמִצְוֹתָיו","וְצִוָּנוּ לְהַדְלִיק נֵר שֶׁל שַׁבָּת."],
+      tr:["Baruch atah Adonai,","Eloheinu Melech ha'olam,","asher kid'shanu b'mitzvotav","v'tzivanu l'hadlik ner shel Shabbat."],
+      en:"Blessed are You, Adonai our God, Sovereign of the universe, who makes us holy with mitzvot and calls us to kindle the light of Shabbat." }
+  ]},
+  "lcha-dodi": { slides: [
+    { he:["לְכָה דוֹדִי לִקְרַאת כַּלָּה,","פְּנֵי שַׁבָּת נְקַבְּלָה."],
+      tr:["L'cha dodi likrat kallah,","p'nei Shabbat n'kab'lah."],
+      en:"Come, my beloved, to meet the bride; let us welcome the presence of Shabbat." },
+    { he:["שָׁמוֹר וְזָכוֹר בְּדִבּוּר אֶחָד,","הִשְׁמִיעָנוּ אֵל הַמְיֻחָד,","יְיָ אֶחָד וּשְׁמוֹ אֶחָד,","לְשֵׁם וּלְתִפְאֶרֶת וְלִתְהִלָּה."],
+      tr:["Shamor v'zachor b'dibur echad,","hishmianu El ham'yuchad,","Adonai echad ush'mo echad,","l'sheim ul'tiferet v'lit'hilah."],
+      en:"'Keep' and 'Remember' in a single word the one God caused us to hear: Adonai is One and God's name is One, for honor, glory, and praise." }
+  ]},
+  "barchu": { layout:"center", slides: [
+    { he:["בָּרְכוּ אֶת יְיָ הַמְבֹרָךְ!","בָּרוּךְ יְיָ הַמְבֹרָךְ לְעוֹלָם וָעֶד!"],
+      tr:["Bar'chu et Adonai ham'vorach!","Baruch Adonai ham'vorach l'olam va'ed!"],
+      en:"Bless Adonai, the Blessed One! Blessed is Adonai, the Blessed One, now and forever!" }
+  ]},
+  "maariv-aravim": { slides: [
+    { he:["בָּרוּךְ אַתָּה יְיָ","אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם,","אֲשֶׁר בִּדְבָרוֹ מַעֲרִיב עֲרָבִים,","בְּחָכְמָה פּוֹתֵחַ שְׁעָרִים."],
+      tr:["Baruch atah Adonai","Eloheinu Melech ha'olam,","asher bidvaro ma'ariv aravim,","b'chochmah potei'ach sh'arim."],
+      en:"Blessed are You, Adonai our God, Sovereign of the universe, whose word brings on the evening dusk, whose wisdom opens the gates of the sky." }
+  ]},
+  "ahavat-olam": { slides: [
+    { he:["אַהֲבַת עוֹלָם","בֵּית יִשְׂרָאֵל עַמְּךָ אָהָבְתָּ,","תּוֹרָה וּמִצְוֹת, חֻקִּים וּמִשְׁפָּטִים,","אוֹתָנוּ לִמַּדְתָּ."],
+      tr:["Ahavat olam","beit Yisrael am'cha ahavta,","Torah umitzvot, chukim umishpatim,","otanu limad'ta."],
+      en:"With everlasting love You have loved the house of Israel, Your people, teaching us Torah and mitzvot, laws and precepts." }
+  ]},
+  "shma": { layout:"center", slides: [
+    { he:["שְׁמַע יִשְׂרָאֵל, יְיָ אֱלֹהֵינוּ, יְיָ אֶחָד.","בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד."],
+      tr:["Sh'ma Yisrael, Adonai Eloheinu, Adonai Echad.","Baruch shem k'vod malchuto l'olam va'ed."],
+      en:"Listen, Israel: Adonai is our God, Adonai is One. Blessed is the name of God's glorious majesty for ever and ever." }
+  ]},
+  "vahavta": { slides: [
+    { he:["וְאָהַבְתָּ אֵת יְיָ אֱלֹהֶיךָ","בְּכׇל־לְבָבְךָ","וּבְכׇל־נַפְשְׁךָ","וּבְכׇל־מְאֹדֶךָ."],
+      tr:["V'ahavta et Adonai Elohecha","b'chol l'vav'cha","uv'chol nafsh'cha","uv'chol m'odecha."],
+      en:"You shall love Adonai your God with all your heart, with all your soul, and with all your might." }
+  ]},
+  "mi-chamocha": { slides: [
+    { he:["מִי כָמֹכָה","בָּאֵלִם יְיָ?","מִי כָּמֹכָה נֶאְדָּר בַּקֹּדֶשׁ,","נוֹרָא תְהִלֹּת עֹשֵׂה פֶלֶא?"],
+      tr:["Mi chamochah","ba'eilim, Adonai?","Mi kamochah, nedar bakodesh,","nora t'hilot, oseih feleh?"],
+      en:"Who is like You, Adonai, among the gods that are worshipped? Who is like You, majestic in holiness, awesome in praises, working wonders?" },
+    { he:["שִׁירָה חֲדָשָׁה שִׁבְּחוּ גְאוּלִים","לְשִׁמְךָ עַל שְׂפַת הַיָּם;","יַחַד כֻּלָּם הוֹדוּ וְהִמְלִיכוּ וְאָמְרוּ:","יְיָ יִמְלֹךְ לְעוֹלָם וָעֶד."],
+      tr:["Shirah chadashah shib'chu g'ulim","l'shimcha al s'fat hayam;","yachad kulam hodu v'himlichu v'am'ru:","Adonai yimloch l'olam va'ed."],
+      en:"A new song the redeemed sang to Your name at the shore of the sea; together they proclaimed Your sovereignty: Adonai will reign for ever and ever." }
+  ]},
+  "hashkiveinu": { slides: [
+    { he:["הַשְׁכִּיבֵנוּ, יְיָ אֱלֹהֵינוּ,","לְשָׁלוֹם, וְהַעֲמִידֵנוּ","שׁוֹמְרֵנוּ לְחַיִּים,","וּפְרֹשׂ עָלֵינוּ סֻכַּת שְׁלוֹמֶךָ."],
+      tr:["Hashkiveinu, Adonai Eloheinu,","l'shalom, v'ha'amideinu","shom'reinu l'chayim,","uf'ros aleinu sukkat sh'lomecha."],
+      en:"Grant that we lie down in peace, Adonai our God, and rise again to life; spread over us Your shelter of peace." }
+  ]},
+  "vshamru": { slides: [
+    { he:["וְשָׁמְרוּ בְנֵי יִשְׂרָאֵל","אֶת הַשַּׁבָּת,","לַעֲשׂוֹת אֶת הַשַּׁבָּת","לְדֹרֹתָם בְּרִית עוֹלָם."],
+      tr:["V'sham'ru v'nei Yisrael","et haShabbat,","la'asot et haShabbat","l'dorotam b'rit olam."],
+      en:"The people of Israel shall keep Shabbat, observing it through all generations as an everlasting covenant." },
+    { he:["בֵּינִי וּבֵין בְּנֵי יִשְׂרָאֵל","אוֹת הִיא לְעוֹלָם,","כִּי שֵׁשֶׁת יָמִים עָשָׂה יְיָ","אֶת הַשָּׁמַיִם וְאֶת הָאָרֶץ,","וּבַיּוֹם הַשְּׁבִיעִי","שָׁבַת וַיִּנָּפַשׁ."],
+      tr:["Beini uvein b'nei Yisrael","ot hi l'olam,","ki sheishet yamim asah Adonai","et hashamayim v'et ha'aretz,","uvayom hash'vi'i","shavat vayinafash."],
+      en:"It is a sign forever between Me and the people of Israel, that in six days Adonai made the heavens and the earth, and on the seventh day rested." }
+  ]},
+  "avot-vimahot": { slides: [
+    { he:["בָּרוּךְ אַתָּה יְיָ","אֱלֹהֵינוּ וֵאלֹהֵי אֲבוֹתֵינוּ וְאִמּוֹתֵינוּ,","אֱלֹהֵי אַבְרָהָם, אֱלֹהֵי יִצְחָק וֵאלֹהֵי יַעֲקֹב,","אֱלֹהֵי שָׂרָה, אֱלֹהֵי רִבְקָה, אֱלֹהֵי רָחֵל וֵאלֹהֵי לֵאָה."],
+      tr:["Baruch atah Adonai","Eloheinu vEilohei avoteinu v'imoteinu,","Elohei Avraham, Elohei Yitzchak vEilohei Ya'akov,","Elohei Sarah, Elohei Rivkah, Elohei Racheil vEilohei Leah."],
+      en:"Blessed are You, Adonai our God and God of our ancestors: God of Abraham, Isaac, and Jacob; God of Sarah, Rebecca, Rachel, and Leah." }
+  ]},
+  "gvurot": { slides: [
+    { he:["אַתָּה גִּבּוֹר לְעוֹלָם, אֲדֹנָי,","מְחַיֵּה הַכֹּל אַתָּה,","רַב לְהוֹשִׁיעַ."],
+      tr:["Atah gibor l'olam, Adonai,","m'chayeih hakol atah,","rav l'hoshia."],
+      en:"You are forever mighty, Adonai — the One who gives life to all, abundant in saving power." }
+  ]},
+  "kedushah": { slides: [
+    { he:["אַתָּה קָדוֹשׁ וְשִׁמְךָ קָדוֹשׁ,","וּקְדוֹשִׁים בְּכָל יוֹם","יְהַלְלוּךָ, סֶּלָה.","בָּרוּךְ אַתָּה יְיָ, הָאֵל הַקָּדוֹשׁ."],
+      tr:["Atah kadosh v'shimcha kadosh,","uk'doshim b'chol yom","y'hal'lucha, selah.","Baruch atah Adonai, ha'El hakadosh."],
+      en:"You are holy, Your name is holy, and the holy ones praise You each day. Blessed are You, Adonai, the holy God." }
+  ]},
+  "rtzei": { slides: [
+    { he:["רְצֵה, יְיָ אֱלֹהֵינוּ,","בְּעַמְּךָ יִשְׂרָאֵל,","וּתְפִלָּתָם בְּאַהֲבָה תְקַבֵּל,","וּתְהִי לְרָצוֹן תָּמִיד עֲבוֹדַת עַמֶּךָ."],
+      tr:["R'tzeih, Adonai Eloheinu,","b'am'cha Yisrael,","ut'filatam b'ahavah t'kabeil,","ut'hi l'ratzon tamid avodat amecha."],
+      en:"Be pleased, Adonai our God, with Your people Israel; receive their prayer with love. May the worship of Your people always be pleasing to You." }
+  ]},
+  "modim": { slides: [
+    { he:["מוֹדִים אֲנַחְנוּ לָךְ,","שָׁאַתָּה הוּא יְיָ אֱלֹהֵינוּ","וֵאלֹהֵי אֲבוֹתֵינוּ וְאִמּוֹתֵינוּ,","צוּר חַיֵּינוּ, מָגֵן יִשְׁעֵנוּ."],
+      tr:["Modim anachnu lach,","sha'atah hu Adonai Eloheinu","vEilohei avoteinu v'imoteinu,","tzur chayeinu, magein yisheinu."],
+      en:"We give thanks to You, for You are Adonai our God and God of our ancestors, the Rock of our life and the Shield of our salvation." }
+  ]},
+  "shalom-rav": { slides: [
+    { he:["שָׁלוֹם רָב עַל יִשְׂרָאֵל עַמְּךָ","תָּשִׂים לְעוֹלָם,","כִּי אַתָּה הוּא מֶלֶךְ אָדוֹן","לְכָל הַשָּׁלוֹם."],
+      tr:["Shalom rav al Yisrael am'cha","tasim l'olam,","ki atah hu melech adon","l'chol hashalom."],
+      en:"Grant abundant and lasting peace to Israel Your people, for You are the Sovereign, the Source of all peace." }
+  ]},
+  "mi-shebeirach": { slides: [
+    { he:["מִי שֶׁבֵּרַךְ אֲבוֹתֵינוּ וְאִמּוֹתֵינוּ,","הוּא יְבָרֵךְ וִירַפֵּא","אֶת הַחוֹלִים בְּקִרְבֵּנוּ,","רְפוּאַת הַנֶּפֶשׁ וּרְפוּאַת הַגּוּף."],
+      tr:["Mi shebeirach avoteinu v'imoteinu,","hu y'vareich virapei","et hacholim b'kirbeinu,","r'fuat hanefesh ur'fuat haguf."],
+      en:"May the One who blessed our ancestors bring blessing and healing to those who are ill among us — a healing of spirit and a healing of body." }
+  ]},
+  "silent": { layout:"center", slides: [
+    { he:["תְּפִלַּת הַלֵּב"],
+      tr:["T'filat HaLev"],
+      en:"A time for the prayers of the heart — words our own, or silence." }
+  ]},
+  "aleinu": { slides: [
+    { he:["עָלֵינוּ לְשַׁבֵּחַ","לַאֲדוֹן הַכֹּל,","לָתֵת גְּדֻלָּה","לְיוֹצֵר בְּרֵאשִׁית."],
+      tr:["Aleinu l'shabei'ach","la'adon hakol,","lateit g'dulah","l'yotzeir b'reishit."],
+      en:"It is ours to praise the Sovereign of all, to give greatness to the Author of creation." }
+  ]},
+  "kaddish": { slides: [
+    { he:["יִתְגַּדַּל וְיִתְקַדַּשׁ שְׁמֵהּ רַבָּא","בְּעָלְמָא דִּי בְרָא כִרְעוּתֵיהּ,","וְיַמְלִיךְ מַלְכוּתֵהּ","בְּחַיֵּיכוֹן וּבְיוֹמֵיכוֹן,"],
+      tr:["Yitgadal v'yitkadash sh'meih raba","b'al'ma di v'ra chir'uteih,","v'yamlich malchuteih","b'chayeichon uv'yomeichon,"],
+      en:"Magnified and sanctified be God's great name in the world that God created; may God's majesty be revealed in our days and our lives." }
+  ]}
+};
 
 /* ============================================================
    STORE  — common interface used by the UI
@@ -453,7 +632,8 @@ function openPrayer(id){
     <div class="info">${p.info}</div>
     <div class="frame"><b>Picturing it:</b> What is the prayer literally about? How does it make you feel?
       <div style="margin-top:6px">For example: ${p.frame.replace(/^Think\s+/i,"")}</div></div>
-    <div class="remember">Remember to <a href="#" id="leaveRoomLink"><i>leave room for the words</i></a>!</div>`;
+    <div class="remember">Remember to <a href="#" id="leaveRoomLink"><i>leave room for the words</i></a>!</div>
+    ${TEXTS[id] ? `<div><button class="previewbtn" id="previewBtn">&#128214; Preview this prayer</button></div>` : ""}`;
 
   if(mine){
     body += imageSection(p, c);
@@ -472,6 +652,8 @@ function openPrayer(id){
 
   const lr = q("#leaveRoomLink");
   if(lr) lr.onclick = (e)=>{ e.preventDefault(); openGuide("guide-words"); };
+  const pb = q("#previewBtn");
+  if(pb) pb.onclick = () => openPreview(id);
 
   if(!mine){
     if(me){ q("#f_first").value=me.first||""; q("#f_last").value=me.last||""; q("#f_email").value=me.email||""; }
@@ -760,6 +942,94 @@ function openGuide(scrollToId){
   }
 }
 document.getElementById("guideBtn").onclick = () => openGuide();
+
+/* ---------- prayer preview (Page / Screen) ---------- */
+let pvMode = "page", pvLayout = "columns";
+function openPreview(id){ pvMode = "page"; pvLayout = (TEXTS[id] && TEXTS[id].layout) || "columns"; renderPreview(id); }
+
+function dots(cur, n){ let o=""; for(let k=0;k<n;k++) o += (k===cur ? "●" : "○"); return o; }
+
+function pageHTML(t){
+  return t.slides.map(s => `
+    <div class="pg-block">
+      <div class="pg-cols">
+        <div class="pg-tr">${s.tr.map(l=>`<div class="pg-tr-line">${esc(l)}</div>`).join("")}</div>
+        <div class="pg-he" dir="rtl">${s.he.map(l=>`<div>${esc(l)}</div>`).join("")}</div>
+      </div>
+      <div class="pg-en">${esc(s.en)}</div>
+    </div>`).join("");
+}
+
+function screenHTML(t, layout){
+  const n = t.slides.length;
+  return t.slides.map((s,i)=>{
+    const dotsEl = n>1 ? `<div class="dots">${dots(i,n)}</div>` : "";
+    const inner = layout==="center"
+      ? `<div class="slide center">
+           <div class="cstack">
+             <div class="c-he" dir="rtl">${s.he.map(l=>`<div>${esc(l)}</div>`).join("")}</div>
+             <div class="c-tr">${s.tr.map(l=>`<div>${esc(l)}</div>`).join("")}</div>
+             <div class="c-en">${esc(s.en)}</div>
+           </div>${dotsEl}
+         </div>`
+      : `<div class="slide">
+           <div class="zone z-tr">${s.tr.map(l=>`<div>${esc(l)}</div>`).join("")}</div>
+           <div class="zone z-he" dir="rtl">${s.he.map(l=>`<div>${esc(l)}</div>`).join("")}</div>
+           <div class="zone z-en"><div>${esc(s.en)}</div></div>${dotsEl}
+         </div>`;
+    return `<div class="slidewrap">${inner}${n>1 ? `<div class="slidecap">Screen ${i+1} of ${n}</div>` : ""}</div>`;
+  }).join("");
+}
+
+// Shrink the two top columns by a shared factor so the longest no-wrap line
+// fits its box — keeps Hebrew/transliteration balanced and prevents the columns
+// from overflowing into each other on longer prayers.
+function fitScreen(){
+  modal.querySelectorAll(".slide:not(.center)").forEach(sl=>{
+    const zs = [sl.querySelector(".z-tr"), sl.querySelector(".z-he")].filter(Boolean);
+    let scale = 1;
+    zs.forEach(z=>{ if(z.scrollWidth > z.clientWidth + 1) scale = Math.min(scale, z.clientWidth / z.scrollWidth); });
+    if(scale < 1){ scale *= 0.97; zs.forEach(z=>{ const fs = parseFloat(getComputedStyle(z).fontSize); z.style.fontSize = (fs*scale).toFixed(2) + "px"; }); }
+  });
+}
+
+function renderPreview(id){
+  const p = byId[id], t = TEXTS[id];
+  if(!t) return;
+  const note = pvMode==="page"
+    ? "How the words read on the page, siddur-style."
+    : (pvLayout==="center"
+        ? "Words centered on the screen. Good when your image is symmetric or its subject sits at the edges — keep the middle calm so the words read, and let the picture breathe around them."
+        : "How the words land on the projected screen. The shaded boxes are where the words go — keep those corners and the bottom calm; the open space behind them is all yours for the image.");
+  const layoutSeg = pvMode==="screen"
+    ? `<div class="seg sub" id="layoutSeg">
+         <button data-l="columns" class="${pvLayout==="columns"?"on":""}">Corners</button>
+         <button data-l="center" class="${pvLayout==="center"?"on":""}">Centered</button>
+       </div>`
+    : "";
+  modal.innerHTML = `
+    <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
+    <div class="he" dir="rtl">${p.he}</div>
+    <h2>${p.name}</h2>
+    <div class="theme">${p.theme} &middot; <span style="color:#6b6358;font-weight:400">${p.tr}</span></div>
+    <div class="seg">
+      <button data-m="page" class="${pvMode==="page"?"on":""}">&#128214;&nbsp;Page</button>
+      <button data-m="screen" class="${pvMode==="screen"?"on":""}">&#128250;&nbsp;Screen</button>
+    </div>
+    ${layoutSeg}
+    <div class="pvnote">${note}</div>
+    ${pvMode==="page" ? pageHTML(t) : screenHTML(t, pvLayout)}
+    ${pvMode==="screen" ? `<div class="pvdisclaimer">This is a rough approximation of where the text will sit. The actual Visual T'filah may vary.</div>` : ""}`;
+  backdrop.classList.add("show");
+  modal.scrollTop = 0;
+  modal.querySelectorAll(".seg:not(.sub) button").forEach(b => b.onclick = () => { pvMode = b.dataset.m; renderPreview(id); });
+  modal.querySelectorAll(".seg.sub button").forEach(b => b.onclick = () => { pvLayout = b.dataset.l; renderPreview(id); });
+  if(pvMode==="screen"){
+    const run = () => { if(modal.querySelector(".slide")) fitScreen(); };
+    requestAnimationFrame(run);
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(run);   // re-fit once David Libre loads
+  }
+}
 
 /* ---------- boot ---------- */
 (async function init(){
