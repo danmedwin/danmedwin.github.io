@@ -449,8 +449,9 @@ function openPrayer(id){
 }
 
 function niceName(p, c){
-  // [Prayer name] - [First Last], stripped of characters that break filenames
-  return `${p.name} - ${c.first} ${c.last}`
+  // [Prayer name] - [First Name] [Last Initial], stripped of filename-breaking chars
+  const li = (c.last||"").trim().charAt(0).toUpperCase();
+  return `${p.name} - ${c.first}${li ? " " + li : ""}`
     .replace(/[\\/:*?"<>|]/g, "")
     .replace(/\s+/g, " ")
     .trim();
