@@ -307,52 +307,75 @@ function makeMockStore(){
   };
 }
 
+async function sha256hex(s){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s.trim().toLowerCase()));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
 async function makeFirebaseStore(){
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-  const { getFirestore, doc, onSnapshot, collection, runTransaction, query, where, getDocs, updateDoc, deleteDoc }
+  const { getFirestore, doc, onSnapshot, collection, query, where, getDocs, writeBatch }
     = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
   const { getStorage, ref, uploadBytes, getDownloadURL }
     = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const storage = getStorage(app);
-  const col = collection(db, "claims");
+  const statusCol = collection(db, "status");
+  const sref = id => doc(db, "status", id);
+  const cref = id => doc(db, "claims", id);
+  let authMod = null;
   return {
+    token: sha256hex,
+    // public, no-PII status map: {id: {token, image, hasImage}}
     subscribe(cb){
-      onSnapshot(col, snap => {
+      onSnapshot(statusCol, snap => {
         const m = {}; snap.forEach(d => m[d.id] = d.data()); cb(m);
       });
     },
     async claim(id, person){
       try{
-        await runTransaction(db, async tx => {
-          const r = doc(db, "claims", id);
-          const s = await tx.get(r);
-          if(s.exists()) throw new Error("taken");
-          tx.set(r, {...person, at:Date.now(), image:null});
-        });
-        return {ok:true};
-      }catch(e){ return {ok:false, reason:e.message==="taken"?"taken":"error"}; }
+        const tok = await sha256hex(person.email);
+        const batch = writeBatch(db);
+        batch.set(sref(id), {token:tok, image:null, hasImage:false});         // public
+        batch.set(cref(id), {first:person.first, last:person.last,            // private
+          email:person.email.trim().toLowerCase(), at:Date.now(), imageAt:null});
+        await batch.commit();
+        return {ok:true, token:tok};
+      }catch(e){ return {ok:false, reason: e && e.code==="permission-denied" ? "taken" : "error"}; }
     },
-    async findByEmail(email){
-      const qs = await getDocs(query(col, where("email","==",email.trim().toLowerCase())));
-      return qs.docs.map(d=>({id:d.id, ...d.data()}));
+    async findByToken(tok){
+      const qs = await getDocs(query(statusCol, where("token","==",tok)));
+      return qs.docs.map(d=>d.id);
     },
-    async attachImage(id, email, file, niceName){
+    async attachImage(id, file, niceName){
       const ext = (file.name.match(/\.[a-z0-9]+$/i)||[""])[0];
-      const sref = ref(storage, `prayer-images/${niceName}${ext}`);
-      // contentDisposition makes the download URL save the original file with a
-      // friendly name; no compression is applied (original bytes are stored).
+      const path = `prayer-images/${niceName}${ext}`;
       const meta = { contentType: file.type || "application/octet-stream",
                      contentDisposition: `attachment; filename="${niceName}${ext}"` };
-      await uploadBytes(sref, file, meta);
-      const url = await getDownloadURL(sref);
-      await updateDoc(doc(db,"claims",id), {image:url, imageAt:Date.now()});
-      return {ok:true, name:niceName + ext};
+      await uploadBytes(ref(storage, path), file, meta);
+      const url = await getDownloadURL(ref(storage, path));
+      const batch = writeBatch(db);
+      batch.update(sref(id), {image:url, hasImage:true});
+      batch.update(cref(id), {imageAt:Date.now()});
+      await batch.commit();
+      return {ok:true, name:niceName + ext, url};
     },
-    async release(id, email){
-      await deleteDoc(doc(db,"claims",id));
+    async release(id){
+      const batch = writeBatch(db);
+      batch.delete(sref(id));
+      batch.delete(cref(id));
+      await batch.commit();
       return {ok:true};
+    },
+    // ----- admin (Google sign-in; only Dan can read PII) -----
+    async adminAuth(){
+      if(!authMod) authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+      return { ...authMod, auth: authMod.getAuth(app) };
+    },
+    async adminLoadClaims(){
+      const qs = await getDocs(collection(db, "claims"));
+      const out = {}; qs.forEach(d => out[d.id] = d.data()); return out;
     }
   };
 }
@@ -361,14 +384,15 @@ async function makeFirebaseStore(){
 const MAX_PER_PERSON = 3;          // how many prayers one person may sign up for
 const GATE_WORD = "rtr";           // access word for the whole page (light gate)
 
-let store, claims = {};
+let store, claims = {};                 // claims = public status map {id:{token,image,hasImage}}
+let myToken = null;                      // sha-256 of my email, for "mine" detection
 const byId = Object.fromEntries(PRAYERS.map(p=>[p.id,p]));
 const grid = document.getElementById("grid");
 const backdrop = document.getElementById("backdrop");
 const modal = document.getElementById("modal");
-let me = JSON.parse(localStorage.getItem("vt-me")||"null"); // {first,last,email}
+let me = JSON.parse(localStorage.getItem("vt-me")||"null"); // {first?,last?,email}
 
-function isMine(c){ return me && c && (c.email||"").toLowerCase()===me.email.toLowerCase(); }
+function isMine(c){ return myToken && c && c.token === myToken; }
 
 function fmt(ts){
   if(!ts) return "";
@@ -392,14 +416,13 @@ function render(){
     el.className = "card" + (c ? (mine ? " mine" : " taken") : "");
     let foot;
     if(!c) foot = `<span class="pill open">Open</span><span class="cta">Sign up &rarr;</span>`;
-    else if(mine) foot = `<span class="pill mine">Yours</span><span class="cta">${c.image?"Image added":"Add image &rarr;"}</span>`;
+    else if(mine) foot = `<span class="pill mine">Yours</span><span class="cta">${c.hasImage?"Image added":"Add image &rarr;"}</span>`;
     else foot = `<span class="pill taken">Taken</span>`;
     el.innerHTML =
       `<div class="he" dir="rtl">${p.he}</div>
        <div class="name">${p.name}</div>
        <div class="theme">${p.theme}</div>
-       ${c && !mine ? `<div class="takenby">Taken by ${esc(c.first)} ${esc((c.last||"").charAt(0))}.</div>` : ""}
-       ${mine && c.image ? `<div class="imgflag">&#10003; your image is in</div>` : ""}
+       ${mine && c.hasImage ? `<div class="imgflag">&#10003; your image is in</div>` : ""}
        <div class="foot">${foot}</div>`;
     if(!c || mine) el.onclick = () => openPrayer(p.id);
     grid.appendChild(el);
@@ -448,33 +471,35 @@ function openPrayer(id){
   }
 }
 
-function niceName(p, c){
-  // [Prayer name] - [First Name] [Last Initial], stripped of filename-breaking chars
-  const li = (c.last||"").trim().charAt(0).toUpperCase();
-  return `${p.name} - ${c.first}${li ? " " + li : ""}`
+function niceName(p){
+  // [Prayer name] - [First Name] [Last Initial], from the signed-in user (me).
+  const f = (me && me.first || "").trim();
+  const li = (me && me.last || "").trim().charAt(0).toUpperCase();
+  const who = f ? f + (li ? " " + li : "") : "a congregant";
+  return `${p.name} - ${who}`
     .replace(/[\\/:*?"<>|]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function mailtoFallback(p, c){
-  const subj = `VT image: ${p.name} - ${c.first} ${c.last}`;
-  const body = `Hi Rabbi Dan,\n\nMy image for ${p.name} is attached.\n\n- ${c.first} ${c.last}`;
+function mailtoFallback(p){
+  const who = (me && me.first) ? `${me.first} ${me.last||""}`.trim() : "";
+  const subj = `VT image: ${p.name}${who ? " - " + who : ""}`;
+  const body = `Hi Rabbi Dan,\n\nMy image for ${p.name} is attached.\n\n${who ? "- " + who : ""}`;
   return `mailto:rabbi.dan@medw.in?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
 }
 
 function imageSection(p, c){
-  const nice = niceName(p, c);
+  const nice = niceName(p);
   return `
     <div style="margin-top:6px">
       <div class="ok" style="margin-bottom:8px">&#10003; You've claimed this prayer.</div>
-      ${c.at ? `<div class="hint" style="margin-top:-2px">Claimed ${esc(fmt(c.at))}${c.imageAt?` &middot; image added ${esc(fmt(c.imageAt))}`:""}.</div>` : ""}
-      <label class="uploadzone ${c.image?'has':''}" id="uz">
+      <label class="uploadzone ${c.hasImage?'has':''}" id="uz">
         <input type="file" id="f_file" accept="image/*,video/*">
-        <div id="uztext">${c.image ? "&#10003; "+esc(c.image)+" &middot; tap to replace" : "Tap to upload your image (or come back later)"}</div>
+        <div id="uztext">${c.hasImage ? "&#10003; Image uploaded &middot; tap to replace" : "Tap to upload your image (or come back later)"}</div>
       </label>
       <div class="hint">Saved as &ldquo;${esc(nice)}&rdquo;. Landscape works best; return anytime with your email to change it.</div>
-      <div class="hint" id="emailfallback">Trouble uploading? <a href="${mailtoFallback(p,c)}">Email it to rabbi.dan@medw.in</a> instead.</div>
+      <div class="hint" id="emailfallback">Trouble uploading? <a href="${mailtoFallback(p)}">Email it to rabbi.dan@medw.in</a> instead.</div>
       <div style="margin-top:18px;text-align:center">
         <button class="btn ghost" id="f_release">Release this prayer for someone else</button>
       </div>
@@ -482,15 +507,16 @@ function imageSection(p, c){
 }
 
 function wireUpload(p, c){
-  const input = q("#f_file"), nice = niceName(p, c);
+  const input = q("#f_file"), nice = niceName(p);
   input.onchange = async () => {
     const file = input.files[0]; if(!file) return;
     q("#uztext").innerHTML = "Uploading&hellip;";
     try{
-      const r = await store.attachImage(p.id, c.email, file, nice);
+      const r = await store.attachImage(p.id, file, nice);
       if(!r.ok) throw new Error(r.reason||"failed");
+      if(claims[p.id]) claims[p.id].hasImage = true;
       q("#uz").classList.add("has");
-      q("#uztext").innerHTML = "&#10003; "+esc(r.name)+" &middot; tap to replace";
+      q("#uztext").innerHTML = "&#10003; Image uploaded &middot; tap to replace";
     }catch(e){
       q("#uz").classList.remove("has");
       q("#uztext").innerHTML = "Upload didn't work &middot; tap to try again";
@@ -499,14 +525,14 @@ function wireUpload(p, c){
     }
   };
   const rel = q("#f_release");
-  if(rel) rel.onclick = () => doRelease(p.id, c.email);
+  if(rel) rel.onclick = () => doRelease(p.id);
 }
 
-async function doRelease(id, email){
+async function doRelease(id){
   const p = byId[id];
   if(!confirm(`Release ${p.name}? It opens up for someone else, and any image you added is unlinked.`)) return;
-  const r = await store.release(id, email);
-  if(r.ok) closeModal();
+  const r = await store.release(id);
+  if(r.ok){ delete claims[id]; render(); closeModal(); }
   else alert("Couldn't release this one just now. Please try again.");
 }
 
@@ -517,8 +543,9 @@ async function doClaim(id){
   if(!first||!last){ err.textContent="Please enter your first and last name."; return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent="Please enter a valid email."; return; }
   q("#f_go").disabled = true; err.textContent="";
-  // limit: at most MAX_PER_PERSON prayers per email
-  const existing = await store.findByEmail(email);
+  // limit: at most MAX_PER_PERSON prayers per person (matched by email hash)
+  const tok = await store.token(email);
+  const existing = await store.findByToken(tok);
   if(existing.length >= MAX_PER_PERSON){
     err.innerHTML = `You're already signed up for ${MAX_PER_PERSON} prayers, which is the limit. `
       + `<a href="#" id="goManage">Manage or release one</a> to choose another.`;
@@ -531,11 +558,11 @@ async function doClaim(id){
     else err.textContent="Something went wrong. Please try again.";
     q("#f_go").disabled = false; return;
   }
-  me = {first,last,email};
+  me = {first,last,email}; myToken = r.token || tok;
   localStorage.setItem("vt-me", JSON.stringify(me));
-  // optimistic: the Firestore snapshot arrives a beat later, so seed the claim
+  // optimistic: the Firestore snapshot arrives a beat later, so seed the status
   // locally now so the modal reopens on the upload step (not the form).
-  claims[id] = {first, last, email, at:Date.now(), image:null};
+  claims[id] = {token:myToken, image:null, hasImage:false};
   render();
   openPrayer(id);
 }
@@ -552,41 +579,83 @@ function openManage(){
   q("#m_go").onclick = async () => {
     const email = q("#m_email").value.trim().toLowerCase();
     if(!email){ q("#m_err").textContent="Please enter your email."; return; }
-    const mine = await store.findByEmail(email);
-    if(!mine.length){ q("#m_err").textContent="No prayer found for that email yet."; return; }
-    localStorage.setItem("vt-me", JSON.stringify({first:mine[0].first,last:mine[0].last,email}));
+    const tok = await store.token(email);
+    const ids = await store.findByToken(tok);
+    if(!ids.length){ q("#m_err").textContent="No prayer found for that email yet."; return; }
+    // keep any name we already have on this device; otherwise just the email
+    const prev = JSON.parse(localStorage.getItem("vt-me")||"null") || {};
+    localStorage.setItem("vt-me", JSON.stringify({first:prev.first, last:prev.last, email}));
     location.reload();
   };
 }
 
 function q(s){ return modal.querySelector(s); }
 
-/* ---------- Admin view  (?admin) ---------- */
-function maybeAdmin(){
-  if(!new URLSearchParams(location.search).has("admin")) return;
-  document.getElementById("demoflag").style.display="none";
-  const mount = document.getElementById("adminMount");
+/* ---------- Admin view (?admin) — Google sign-in; only the admin can read PII ---------- */
+const ADMIN_EMAIL = "dan.medwin@gmail.com";
+let adminInited = false, adminUser = null, adminPII = null;
+
+async function initAdmin(){
+  adminInited = true;
+  document.getElementById("adminMount").innerHTML =
+    `<h2 style="margin-top:34px">Sign-ups (admin)</h2><p class="hint">Loading&hellip;</p>`;
+  const A = await store.adminAuth();
+  A.onAuthStateChanged(A.auth, async user => {
+    adminUser = user;
+    if(user && user.email === ADMIN_EMAIL){
+      try{ adminPII = await store.adminLoadClaims(); }catch(e){ adminPII = {}; }
+      renderAdmin();
+    }else{ adminPII = null; renderAdminSignIn(user); }
+  });
+}
+
+function renderAdminSignIn(user){
+  const wrong = user && user.email !== ADMIN_EMAIL
+    ? `<p class="err">Signed in as ${esc(user.email)}, which isn't the admin account.</p>` : "";
+  document.getElementById("adminMount").innerHTML =
+    `<h2 style="margin-top:34px">Sign-ups (admin)</h2>
+     <p class="info">Sign in with the admin Google account to view and export sign-ups.</p>${wrong}
+     <p><button class="btn primary" id="adminSignIn" style="width:auto;padding:12px 22px">Sign in with Google</button></p>`;
+  document.getElementById("adminSignIn").onclick = async () => {
+    const A = await store.adminAuth();
+    try{ await A.signInWithPopup(A.auth, new A.GoogleAuthProvider()); }catch(e){}
+  };
+}
+
+function renderAdmin(){
+  const pii = adminPII || {};
   const rows = PRAYERS.map(p=>{
-    const c = claims[p.id];
-    const img = c&&c.image ? (String(c.image).startsWith("http")
-        ? `<a href="${c.image}" title="Download the file">&#11015;&nbsp;download</a>`
-          + `<br><img src="${c.image}" alt="" style="height:36px;border-radius:4px;margin-top:3px" onerror="this.style.display='none'">`
-        : esc(c.image)) : "&mdash;";
-    return `<tr><td>${p.name}</td><td>${c?esc(c.first+" "+c.last):"&mdash;"}</td>
-      <td>${c?esc(c.email):"&mdash;"}</td><td>${c?fmt(c.at):"&mdash;"}</td>
-      <td>${img}</td><td>${c&&c.imageAt?fmt(c.imageAt):"&mdash;"}</td></tr>`;
+    const c = claims[p.id], d = pii[p.id];          // c = public status (image); d = private (PII)
+    const img = c && c.image
+      ? `<a href="${c.image}" title="Download">&#11015;&nbsp;download</a>`
+        + `<br><img src="${c.image}" alt="" style="height:36px;border-radius:4px;margin-top:3px" onerror="this.style.display='none'">`
+      : "&mdash;";
+    return `<tr><td>${p.name}</td><td>${d?esc(d.first+" "+d.last):"&mdash;"}</td>
+      <td>${d?esc(d.email):"&mdash;"}</td><td>${d?fmt(d.at):"&mdash;"}</td>
+      <td>${img}</td><td>${d&&d.imageAt?fmt(d.imageAt):"&mdash;"}</td></tr>`;
   }).join("");
   const taken = Object.keys(claims).length;
-  mount.innerHTML = `<h2 style="margin-top:34px">Sign-ups (admin) &middot; ${taken}/${PRAYERS.length} taken</h2>
-    <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Claimed</th><th>Image</th><th>Uploaded</th></tr>${rows}</table>
-    <p><button class="btn ghost" id="csv">Download CSV</button></p>`;
+  document.getElementById("adminMount").innerHTML =
+    `<h2 style="margin-top:34px">Sign-ups (admin) &middot; ${taken}/${PRAYERS.length} taken</h2>
+     <p class="hint">Signed in as ${esc(adminUser.email)} &middot; <a href="#" id="adminRefresh">refresh</a> &middot; <a href="#" id="adminOut">sign out</a></p>
+     <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Claimed</th><th>Image</th><th>Uploaded</th></tr>${rows}</table>
+     <p><button class="btn ghost" id="csv">Download CSV</button></p>`;
+  document.getElementById("adminRefresh").onclick = async e => { e.preventDefault(); adminPII = await store.adminLoadClaims(); renderAdmin(); };
+  document.getElementById("adminOut").onclick = async e => { e.preventDefault(); const A = await store.adminAuth(); await A.signOut(A.auth); };
   document.getElementById("csv").onclick = () => {
     const lines = [["Prayer","First","Last","Email","Claimed","Image","Uploaded"]];
-    PRAYERS.forEach(p=>{ const c=claims[p.id]; if(c) lines.push([p.name,c.first,c.last,c.email,fmt(c.at),c.image||"",c.imageAt?fmt(c.imageAt):""]); });
+    PRAYERS.forEach(p=>{ const c=claims[p.id], d=pii[p.id]; if(d) lines.push([p.name,d.first,d.last,d.email,fmt(d.at),(c&&c.image)||"",d.imageAt?fmt(d.imageAt):""]); });
     const csv = lines.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
     a.download="vt-signups.csv"; a.click();
   };
+}
+
+function maybeAdmin(){
+  if(!new URLSearchParams(location.search).has("admin")) return;
+  document.getElementById("demoflag").style.display="none";
+  if(!adminInited){ initAdmin(); return; }
+  if(adminUser && adminUser.email === ADMIN_EMAIL) renderAdmin();   // refresh table on status change
 }
 
 /* ---------- access gate (light obscurity, not real security) ---------- */
@@ -657,6 +726,7 @@ document.getElementById("guideBtn").onclick = () => openGuide();
 (async function init(){
   store = USE_FIREBASE ? await makeFirebaseStore() : makeMockStore();
   if(USE_FIREBASE) document.getElementById("demoflag").style.display="none";
+  if(me && me.email){ try{ myToken = await store.token(me.email); }catch(e){} }
   store.subscribe(m => { claims = m; render(); maybeAdmin(); });
 })();
 </script>
