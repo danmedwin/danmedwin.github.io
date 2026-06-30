@@ -223,7 +223,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.6</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.7</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -952,35 +952,44 @@ const GROUPS = {
 let currentGroup = null;           // {code, label, deadline}, set at the gate
 
 /* ---------- Email (EmailJS — reuses the VT Image Helper account) ----------
-   Needs an EmailJS template (EMAILJS_TEMPLATE) whose "To Email" field is {{to_email}};
-   it receives: to_email, subject, name, prayer, description, group, deadline, manage_url, message. */
-const EMAILJS_PUBLIC_KEY   = "ZrMH6Kf4C6InKj7Cx";
-const EMAILJS_SERVICE      = "service_zyrpz4j";
-const EMAILJS_TEMPLATE     = "template_vtsignup";   // create this in the EmailJS dashboard
-const ADMIN_NOTIFY_EMAIL   = "rabbi.dan@medw.in";
+   One EmailJS template per scenario; each template's "To Email" field MUST be {{to_email}}.
+   The code passes data vars: name, prayer, theme, description, group, deadline, manage_url
+   (admin also gets signup_name, signup_email). All framing/subject text lives in the templates. */
+const EMAILJS_PUBLIC_KEY = "ZrMH6Kf4C6InKj7Cx";
+const EMAILJS_SERVICE    = "service_zyrpz4j";
+const EMAILJS_TPL = { claim:"template_vt_claim", upload:"template_vt_upload",
+                      combo:"template_vt_combo", admin:"template_vt_admin" };
+const ADMIN_NOTIFY_EMAIL = "rabbi.dan@medw.in";
 try { if(window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e){}
 
-function sendSignupEmails(prayer, person){
-  if(!window.emailjs) return;
-  const g = currentGroup || {}, url = location.origin + location.pathname;
-  const base = { prayer: prayer.name, description: prayer.info,
-                 group: g.label || "", deadline: g.deadline || "", manage_url: url };
-  // 1) confirmation to the congregant
-  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, Object.assign({
-    to_email: person.email, name: person.first,
-    subject: `Your Visual T'filah sign-up: ${prayer.name}`,
-    message: `Thank you for signing up to create an image for ${prayer.name} — ${prayer.theme}.\n\n`
-      + `${prayer.info}\n\nPlease upload your image option(s)`
-      + (g.deadline ? ` by ${g.deadline}` : "") + ` using the link below (choose “Manage your prayer” and enter this email). `
-      + `You may upload up to three options. Thanks for your submission — if we have any questions or trouble, we'll be in touch.`,
-  }, base)).catch(e => console.warn("user email failed", e));
-  // 2) notice to Dan
-  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, Object.assign({
-    to_email: ADMIN_NOTIFY_EMAIL, name: "Rabbi Dan",
-    subject: `[${g.label || g.code || "VT"}] New sign-up: ${prayer.name}`,
-    message: `${person.first} ${person.last} (${person.email}) signed up for ${prayer.name}.\n`
-      + `Group: ${g.label || g.code || "—"}. Deadline: ${g.deadline || "—"}.`,
-  }, base)).catch(e => console.warn("admin email failed", e));
+const _emailState = {};              // prayerId -> {person, claimTimer, uploadSent}
+const CLAIM_EMAIL_DELAY = 90000;     // hold the claim email briefly; an upload in the same session -> one "combo" email
+
+function _send(tpl, params){
+  if(window.emailjs) emailjs.send(EMAILJS_SERVICE, tpl, params).catch(e => console.warn("email failed", tpl, e));
+}
+function _prayerParams(prayer, person){
+  const g = currentGroup || {};
+  return { to_email: person.email, name: person.first || "", prayer: prayer.name,
+    theme: prayer.theme || "", description: prayer.info || "", group: g.label || "",
+    deadline: g.deadline || "", manage_url: location.origin + location.pathname };
+}
+function emailOnClaim(prayer, person){
+  const g = currentGroup || {};
+  _send(EMAILJS_TPL.admin, { to_email: ADMIN_NOTIFY_EMAIL, name: "Rabbi Dan",
+    prayer: prayer.name, group: g.label || g.code || "", deadline: g.deadline || "",
+    signup_name: `${person.first} ${person.last}`.trim(), signup_email: person.email,
+    manage_url: location.origin + location.pathname });
+  const st = _emailState[prayer.id] = { person };
+  st.claimTimer = setTimeout(() => { st.claimTimer = null; _send(EMAILJS_TPL.claim, _prayerParams(prayer, person)); }, CLAIM_EMAIL_DELAY);
+}
+function emailOnUpload(prayer){
+  const st = _emailState[prayer.id] || (_emailState[prayer.id] = {});
+  const person = st.person || me;
+  if(!person || !person.email || st.uploadSent) return;
+  st.uploadSent = true;
+  if(st.claimTimer){ clearTimeout(st.claimTimer); st.claimTimer = null; _send(EMAILJS_TPL.combo, _prayerParams(prayer, person)); }
+  else _send(EMAILJS_TPL.upload, _prayerParams(prayer, person));
 }
 
 let store, claims = {};                 // claims = public status map {id:{token,image,hasImage}}
@@ -1128,6 +1137,7 @@ function wireUpload(p, c){
         const r = await store.attachImage(p.id, file, nice, slot, cur);
         if(!r.ok) throw new Error(r.reason||"failed");
         if(claims[p.id]){ claims[p.id].images = r.images; claims[p.id].hasImage = true; }
+        emailOnUpload(p);   // upload (or combo) confirmation, once per session
         openPrayer(p.id);   // refresh the modal to show the new thumbnail
       }catch(e){
         cap.textContent = "didn't work — tap to retry";
@@ -1174,7 +1184,7 @@ async function doClaim(id){
   }
   me = {first,last,email}; myToken = r.token || tok;
   localStorage.setItem("vt-me", JSON.stringify(me));
-  sendSignupEmails(byId[id], {first,last,email});   // confirmation to congregant + notice to Dan
+  emailOnClaim(byId[id], {first,last,email});   // notice to Dan now; congregant confirmation (or combo) shortly
   // optimistic: the Firestore snapshot arrives a beat later, so seed the status
   // locally now so the modal reopens on the upload step (not the form).
   claims[id] = {token:myToken, images:[], hasImage:false};
