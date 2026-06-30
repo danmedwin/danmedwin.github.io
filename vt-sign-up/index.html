@@ -376,6 +376,16 @@ async function makeFirebaseStore(){
     async adminLoadClaims(){
       const qs = await getDocs(collection(db, "claims"));
       const out = {}; qs.forEach(d => out[d.id] = d.data()); return out;
+    },
+    // Wipe every claim + status doc (admin reset between events). Image files in
+    // Storage are not deletable from the client — clear those in the console.
+    async adminClearAll(){
+      const [s, c] = await Promise.all([getDocs(statusCol), getDocs(collection(db, "claims"))]);
+      const batch = writeBatch(db);
+      s.forEach(d => batch.delete(sref(d.id)));
+      c.forEach(d => batch.delete(cref(d.id)));
+      await batch.commit();
+      return {ok:true, count:s.size};
     }
   };
 }
@@ -626,22 +636,51 @@ function renderAdmin(){
   const pii = adminPII || {};
   const rows = PRAYERS.map(p=>{
     const c = claims[p.id], d = pii[p.id];          // c = public status (image); d = private (PII)
+    const claimed = !!(c || d);
     const img = c && c.image
       ? `<a href="${c.image}" title="Download">&#11015;&nbsp;download</a>`
         + `<br><img src="${c.image}" alt="" style="height:36px;border-radius:4px;margin-top:3px" onerror="this.style.display='none'">`
       : "&mdash;";
+    const action = claimed
+      ? `<a href="#" class="adminRel" data-id="${p.id}" style="color:#b5402f">release</a>`
+      : "&mdash;";
     return `<tr><td>${p.name}</td><td>${d?esc(d.first+" "+d.last):"&mdash;"}</td>
       <td>${d?esc(d.email):"&mdash;"}</td><td>${d?fmt(d.at):"&mdash;"}</td>
-      <td>${img}</td><td>${d&&d.imageAt?fmt(d.imageAt):"&mdash;"}</td></tr>`;
+      <td>${img}</td><td>${d&&d.imageAt?fmt(d.imageAt):"&mdash;"}</td><td>${action}</td></tr>`;
   }).join("");
   const taken = Object.keys(claims).length;
   document.getElementById("adminMount").innerHTML =
     `<h2 style="margin-top:34px">Sign-ups (admin) &middot; ${taken}/${PRAYERS.length} taken</h2>
      <p class="hint">Signed in as ${esc(adminUser.email)} &middot; <a href="#" id="adminRefresh">refresh</a> &middot; <a href="#" id="adminOut">sign out</a></p>
-     <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Claimed</th><th>Image</th><th>Uploaded</th></tr>${rows}</table>
-     <p><button class="btn ghost" id="csv">Download CSV</button></p>`;
+     <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Claimed</th><th>Image</th><th>Uploaded</th><th>Action</th></tr>${rows}</table>
+     <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+       <button class="btn ghost" id="csv">Download CSV</button>
+       <button class="btn ghost" id="clearAll" style="color:#b5402f;border-color:#e3b5ad;margin-left:auto">Clear all sign-ups</button>
+     </p>`;
   document.getElementById("adminRefresh").onclick = async e => { e.preventDefault(); adminPII = await store.adminLoadClaims(); renderAdmin(); };
   document.getElementById("adminOut").onclick = async e => { e.preventDefault(); const A = await store.adminAuth(); await A.signOut(A.auth); };
+  document.querySelectorAll("#adminMount .adminRel").forEach(a => a.onclick = async e => {
+    e.preventDefault();
+    const id = a.dataset.id, name = byId[id] ? byId[id].name : id;
+    if(!confirm(`Release "${name}"?\n\nThis deletes the sign-up and unlinks any image, and reopens the prayer for someone else. (An uploaded image file stays in Storage; remove it in the Firebase console if needed.)`)) return;
+    a.textContent = "releasing…";
+    try{ await store.release(id); }catch(err){ alert("Couldn't release that one. Please try again."); return; }
+    delete claims[id];
+    try{ adminPII = await store.adminLoadClaims(); }catch(err){}
+    renderAdmin();
+  });
+  document.getElementById("clearAll").onclick = async () => {
+    const n = Object.keys(claims).length;
+    if(!n){ alert("There are no sign-ups to clear."); return; }
+    if(!confirm(`Clear ALL ${n} sign-up${n===1?"":"s"}?\n\nThis permanently deletes every claim and unlinks every image, resetting the board to empty. This cannot be undone.`)) return;
+    if(!confirm(`Really clear all ${n}? Last chance — there's no undo.`)) return;
+    const btn = document.getElementById("clearAll");
+    btn.disabled = true; btn.textContent = "Clearing…";
+    try{ await store.adminClearAll(); }
+    catch(err){ alert("Clear-all didn't finish. Some sign-ups may remain — refresh and try again."); btn.disabled=false; btn.textContent="Clear all sign-ups"; return; }
+    claims = {}; adminPII = {};
+    renderAdmin();
+  };
   document.getElementById("csv").onclick = () => {
     const lines = [["Prayer","First","Last","Email","Claimed","Image","Uploaded"]];
     PRAYERS.forEach(p=>{ const c=claims[p.id], d=pii[p.id]; if(d) lines.push([p.name,d.first,d.last,d.email,fmt(d.at),(c&&c.image)||"",d.imageAt?fmt(d.imageAt):""]); });
