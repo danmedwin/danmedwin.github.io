@@ -223,7 +223,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.8</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v1.9</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -952,46 +952,69 @@ const GROUPS = {
 let currentGroup = null;           // {code, label, deadline}, set at the gate
 
 /* ---------- Email (EmailJS — reuses the VT Image Helper account) ----------
-   One EmailJS template per scenario; each template's "To Email" field MUST be {{to_email}}.
-   The code passes data vars: name, prayer, theme, description, group, deadline, manage_url
-   (admin also gets signup_name, signup_email). All framing/subject text lives in the templates. */
+   ONE template (free-plan friendly). Its "To Email" = {{to_email}}, Subject = {{subject}},
+   body renders {{message}} (white-space:pre-wrap) + a button to {{cta_url}} labeled {{cta_label}}.
+   All per-scenario wording is composed here in code. */
 const EMAILJS_PUBLIC_KEY = "ZrMH6Kf4C6InKj7Cx";
 const EMAILJS_SERVICE    = "service_zyrpz4j";
-const EMAILJS_TPL = { claim:"template_vt_claim", upload:"template_vt_upload",
-                      combo:"template_vt_combo", admin:"template_vt_admin" };
+const EMAILJS_TEMPLATE   = "template_vt";   // the single template (set this ID, or send me the auto-generated one)
 const ADMIN_NOTIFY_EMAIL = "rabbi.dan@medw.in";
 try { if(window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e){}
 
 const _emailState = {};              // prayerId -> {person, claimTimer, uploadSent}
 const CLAIM_EMAIL_DELAY = 90000;     // hold the claim email briefly; an upload in the same session -> one "combo" email
+const _appUrl = () => location.origin + location.pathname;
 
-function _send(tpl, params){
-  if(window.emailjs) emailjs.send(EMAILJS_SERVICE, tpl, params).catch(e => console.warn("email failed", tpl, e));
-}
-function _prayerParams(prayer, person){
-  const g = currentGroup || {};
-  return { to_email: person.email, name: person.first || "", prayer: prayer.name,
-    theme: prayer.theme || "", description: prayer.info || "", group: g.label || "",
-    deadline: g.deadline || "", manage_url: location.origin + location.pathname };
+function _send(to_email, subject, message, cta_label, cta_url){
+  if(window.emailjs) emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE,
+    { to_email, subject, message, cta_label, cta_url }).catch(e => console.warn("email failed", e));
 }
 function emailOnClaim(prayer, person){
-  // congregant confirmation only; Dan is notified on SUBMIT (upload), not on claim.
+  // congregant confirmation only (delayed); Dan is notified on SUBMIT, not on claim.
   const st = _emailState[prayer.id] = { person };
-  st.claimTimer = setTimeout(() => { st.claimTimer = null; _send(EMAILJS_TPL.claim, _prayerParams(prayer, person)); }, CLAIM_EMAIL_DELAY);
+  st.claimTimer = setTimeout(() => {
+    st.claimTimer = null;
+    const g = currentGroup || {};
+    _send(person.email, `You've signed up for ${prayer.name} — Visual T'filah`,
+      `Hi ${person.first||""},\n\n`
+      + `Thank you for signing up to create an image for ${prayer.name}`
+      + (g.label ? ` for our Visual T'filah at ${g.label}` : "") + `.\n\n${prayer.info||""}\n\n`
+      + `Your next step: create an image — you may upload up to three options — that brings this prayer to life on the screen.`
+      + (g.deadline ? ` Please upload by ${g.deadline}.` : "") + `\n\n`
+      + `Use the button below to upload or manage your prayer (choose “Already signed up? Manage your prayer” and enter this email).\n\n`
+      + `Thank you for helping create our Shabbat together.`,
+      "Upload / manage my prayer", _appUrl());
+  }, CLAIM_EMAIL_DELAY);
 }
 function emailOnUpload(prayer){
   const st = _emailState[prayer.id] || (_emailState[prayer.id] = {});
   const person = st.person || me;
   if(!person || !person.email || st.uploadSent) return;
   st.uploadSent = true;
-  if(st.claimTimer){ clearTimeout(st.claimTimer); st.claimTimer = null; _send(EMAILJS_TPL.combo, _prayerParams(prayer, person)); }
-  else _send(EMAILJS_TPL.upload, _prayerParams(prayer, person));
-  // notify Dan that a submission came in (once per session)
-  const g = currentGroup || {};
-  _send(EMAILJS_TPL.admin, { to_email: ADMIN_NOTIFY_EMAIL, name: "Rabbi Dan",
-    prayer: prayer.name, group: g.label || g.code || "", deadline: g.deadline || "",
-    signup_name: `${person.first||""} ${person.last||""}`.trim(), signup_email: person.email,
-    manage_url: location.origin + location.pathname });
+  const g = currentGroup || {}, hi = `Hi ${person.first||""},\n\n`, by = g.deadline ? ` before ${g.deadline}` : "";
+  if(st.claimTimer){   // claimed + uploaded in one session -> single "combo" email
+    clearTimeout(st.claimTimer); st.claimTimer = null;
+    _send(person.email, `You're all set for ${prayer.name} — image(s) received`,
+      hi + `Thank you for signing up for ${prayer.name} and uploading your image(s)`
+      + (g.label ? ` for our Visual T'filah at ${g.label}` : "") + ` — you're all set!\n\n`
+      + `We've received your submission. If we have any questions or trouble with your file(s), we'll be in touch. `
+      + `You can add or replace options (up to three) any time${by} using the button below.\n\n`
+      + `Thank you for helping create our Shabbat together.`,
+      "Upload / manage my prayer", _appUrl());
+  } else {
+    _send(person.email, `We received your image(s) for ${prayer.name}`,
+      hi + `We've received your image submission for ${prayer.name} — thank you!\n\n`
+      + `If we have any questions or trouble with your file(s), we'll be in touch. You can still add or replace options (up to three) any time${by} using the button below.\n\n`
+      + `Thank you for your submission` + (g.label ? ` and for helping create our Visual T'filah at ${g.label}` : "") + `.`,
+      "Upload / manage my prayer", _appUrl());
+  }
+  // notice to Dan on submit (once per session)
+  const who = `${person.first||""} ${person.last||""}`.trim() || "Someone";
+  _send(ADMIN_NOTIFY_EMAIL, `[${g.label||g.code||"VT"}] Image submitted: ${prayer.name}`,
+    `${who} (${person.email}) submitted image(s) for ${prayer.name}.\n\n`
+    + `Group: ${g.label||g.code||"—"}\nDeadline: ${g.deadline||"—"}\n\n`
+    + `Review all submissions using the button below.`,
+    "Review submissions", _appUrl() + "?admin");
 }
 
 let store, claims = {};                 // claims = public status map {id:{token,image,hasImage}}
