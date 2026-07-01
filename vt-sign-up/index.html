@@ -152,7 +152,7 @@
   .pg-cols{display:flex; gap:18px; align-items:flex-start}
   .pg-tr{flex:1; min-width:0}
   .pg-he{flex:1; min-width:0; direction:rtl; text-align:right;
-    font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.4rem; line-height:1.7; color:var(--ink)}
+    font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.4rem; line-height:1.25; color:var(--ink)}
   .pg-tr-line{font-size:1.02rem; line-height:1.7; color:#3a342c; font-style:italic}
   .pg-en{margin-top:8px; color:var(--muted); font-size:.95rem}
   @media (max-width:520px){
@@ -168,7 +168,7 @@
     border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(20,40,60,.25); color:#fff}
   .slide .zone{position:absolute; padding:0.3cqh 1cqh; border-radius:6px; background:rgba(255,255,255,.10);
     box-shadow:0 0 0 1px rgba(255,255,255,.16) inset}
-  .slide .zone div{white-space:nowrap}
+  .slide .zone div{white-space:normal}   /* wrap long lines within the corner column instead of overflowing into the center */
   .slide .z-tr{top:9.3%; left:4.1%; max-width:44.3%; text-align:left;
     font-size:5.56cqh; line-height:7.41cqh}            /* deck translit 30pt */
   .slide .z-he{top:9.3%; right:4.1%; max-width:44.3%; text-align:right; direction:rtl;
@@ -222,7 +222,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.5</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.6</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -552,25 +552,22 @@ const TEXTS = {
   "slides": [
    {
     "he": [
+     "וְשָׁמְרוּ בְנֵי יִשְׂרָאֵל",
+     "אֶת הַשַּׁבָּת,",
+     "לַעֲשׂוֹת אֶת הַשַּׁבָּת",
+     "לְדֹרֹתָם בְּרִית עוֹלָם.",
      "בֵּינִי וּבֵין בְּנֵי יִשְׂרָאֵל",
      "אוֹת הִיא לְעוֹלָם,"
     ],
     "tr": [
+     "V’sham’ru v’nei Yisrael",
+     "et haShabbat,",
+     "la’asot et haShabbat",
+     "l’dorotam b’rit olam.",
      "Beini uvein b’nei Yisrael",
      "ot hi l’olam,"
     ],
     "en": "The people of Israel shall keep Shabbat, observing it through all generations as an everlasting covenant."
-   },
-   {
-    "he": [
-     "כִּי שֵׁשֶׁת יָמִים עָשָׂה יְיָ",
-     "אֶת הַשָּׁמַיִם וְאֶת הָאָרֶץ,"
-    ],
-    "tr": [
-     "ki sheishet yamim asah Adonai",
-     "et hashamayim v’et ha’aretz,"
-    ],
-    "en": "that in six days Adonai made the heavens and the earth,"
    }
   ],
   "allowCenter": false
@@ -622,11 +619,18 @@ const TEXTS = {
   "slides": [
    {
     "he": [
+     "אַתָּה גִּבּוֹר לְעוֹלָם, אֲדֹנָי,",
+     "מְחַיֵּה הַכֹּל אַתָּה,",
+     "רַב לְהוֹשִׁיעַ.",
      "מַשִּׁיב הָרוּחַ",
      "וּמוֹרִיד הַגָּשֶׁם."
     ],
     "tr": [
-     "Mashiv haruach\u000bumorid hagashem."
+     "Atah gibor l’olam, Adonai,",
+     "m’chayeih hakol atah,",
+     "rav l’hoshia.",
+     "Mashiv haruach",
+     "umorid hagashem."
     ],
     "en": "You are forever mighty, Adonai — the One who gives life to all, abundant in saving power."
    }
@@ -653,7 +657,7 @@ const TEXTS = {
     "en": "You are holy, Your name is holy, and the holy ones praise You each day. Blessed are You, Adonai, the holy God."
    }
   ],
-  "allowCenter": true
+  "allowCenter": false
  },
  "rtzei": {
   "slides": [
@@ -675,7 +679,7 @@ const TEXTS = {
     "en": "Be pleased, Adonai our God, with Your people Israel; receive their prayer with love. May the worship of Your people always be pleasing to You."
    }
   ],
-  "allowCenter": true
+  "allowCenter": false
  },
  "modim": {
   "slides": [
@@ -699,7 +703,7 @@ const TEXTS = {
     "en": "We give thanks to You, for You are Adonai our God and God of our ancestors, the Rock of our life and the Shield of our salvation."
    }
   ],
-  "allowCenter": true
+  "allowCenter": false
  },
  "shalom-rav": {
   "slides": [
@@ -1323,6 +1327,7 @@ function renderAdmin(){
      <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Attribution</th><th>Claimed</th><th>Image</th><th>Uploaded</th><th>Action</th></tr>${rows}</table>
      <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
        <button class="btn ghost" id="csv">Download CSV</button>
+       <button class="btn ghost" id="zipAll">Download all images (zip)</button>
        <button class="btn ghost" id="clearAll" style="color:#b5402f;border-color:#e3b5ad;margin-left:auto">Clear all sign-ups</button>
      </p>`;
   document.getElementById("adminRefresh").onclick = async e => { e.preventDefault(); adminPII = await store.adminLoadClaims(); renderAdmin(); };
@@ -1356,6 +1361,51 @@ function renderAdmin(){
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
     a.download="vt-signups.csv"; a.click();
   };
+  document.getElementById("zipAll").onclick = e => downloadAllZip(e.currentTarget);
+}
+
+// Lazy-load JSZip only when the admin asks for a zip.
+let _jszipP;
+function loadJSZip(){
+  if(window.JSZip) return Promise.resolve(window.JSZip);
+  if(!_jszipP) _jszipP = new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    s.onload=()=>res(window.JSZip); s.onerror=()=>{ _jszipP=null; rej(new Error("zip-load")); };
+    document.head.appendChild(s);
+  });
+  return _jszipP;
+}
+// The Storage object path already carries the friendly filename we saved it under.
+function storageFilename(url, fallback){
+  try{ const m=url.match(/\/o\/([^?]+)/);
+    if(m){ const n=decodeURIComponent(m[1]).replace(/^prayer-images\//,""); if(n) return n; } }catch(e){}
+  return fallback;
+}
+async function downloadAllZip(btn){
+  const items=[];
+  PRAYERS.forEach(p=>{
+    ((claims[p.id]||{}).images||[]).filter(Boolean).forEach((u,i)=>
+      items.push({url:u, name:storageFilename(u, `${p.name} (${i+1}).jpg`)}));
+  });
+  if(!items.length){ alert("There are no uploaded images to download yet."); return; }
+  const orig=btn.textContent; btn.disabled=true;
+  try{
+    const JSZip=await loadJSZip(); const zip=new JSZip();
+    let done=0, failed=0;
+    for(const it of items){
+      btn.textContent=`Fetching ${done+failed+1} of ${items.length}…`;
+      try{ const r=await fetch(it.url); if(!r.ok) throw 0; zip.file(it.name, await r.blob()); done++; }
+      catch(e){ failed++; }
+    }
+    if(!done){ alert("Couldn't download the images (network error). Please try again."); return; }
+    btn.textContent="Building zip…";
+    const blob=await zip.generateAsync({type:"blob"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="vt-images.zip"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    if(failed) alert(`Zipped ${done} image${done===1?"":"s"}. ${failed} couldn't be fetched — try again for those.`);
+  }catch(e){ alert("Couldn't build the zip. Please check your connection and try again."); }
+  finally{ btn.disabled=false; btn.textContent=orig; }
 }
 
 function maybeAdmin(){
