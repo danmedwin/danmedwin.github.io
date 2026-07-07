@@ -10,9 +10,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
-    --ink:#1c1c1c; --accent:#7a3b12; --accent2:#9a5424; --sky:#2f5d86;
-    --amber:#f6d27a; --cream:#fbf7f0; --card:#ffffff; --line:#e2d8c9;
-    --muted:#7c7468; --taken-bg:#f0ece4; --good:#3c7a4a;
+    --ink:#1c1c1c; --ink-soft:#3a342c; --accent:#7a3b12; --accent2:#9a5424; --sky:#2f5d86;
+    --amber:#f6d27a; --cream:#fbf7f0; --card:#fffdfa; --line:#e2d8c9;
+    --muted:#7c7468; --stone:#6b6358; --faded:#9a9486; --faded2:#8a8275;
+    --taken-bg:#f0ece4; --good:#3c7a4a; --err:#b5402f;
+    --sky-tint:#f6fafd; --sky-soft:#eef4fa; --good-tint:#f1f8f2;
   }
   *{box-sizing:border-box}
   body{
@@ -21,15 +23,16 @@
   }
   .wrap{max-width:1040px; margin:0 auto; padding:28px 20px 64px}
   header.page{text-align:center; margin-bottom:8px}
-  header.page h1{font-size:2.2rem; margin:.2em 0 .1em; letter-spacing:.2px}
+  h1,h2{font-family:"David Libre",Georgia,serif}
+  header.page h1{font-size:1.9rem; margin:.2em 0 .1em; letter-spacing:.2px}
   header.page .sub{color:var(--accent); font-size:1.05rem; font-weight:600}
-  .groupbar{margin:10px auto 0; display:inline-block; background:#fff; border:1px solid var(--line);
+  .groupbar{margin:10px auto 0; display:inline-block; background:var(--card); border:1px solid var(--line);
     border-radius:999px; padding:6px 16px; font-size:.92rem; color:var(--ink)}
   .groupbar b{color:var(--accent)}
   .groupbar:empty{display:none}
-  .intro{max-width:720px; margin:14px auto 8px; text-align:center; color:#3a342c}
+  .intro{max-width:720px; margin:16px auto 8px; text-align:center; color:var(--ink-soft)}
   .statusbar{
-    text-align:center; margin:18px auto 22px; font-size:.95rem; color:var(--muted);
+    text-align:center; margin:16px auto 24px; font-size:.95rem; color:var(--muted);
   }
   .statusbar b{color:var(--accent)}
   .manage{display:inline-block; margin-left:10px; color:var(--sky); cursor:pointer; text-decoration:underline; font-size:.9rem}
@@ -42,36 +45,36 @@
   }
   .card:hover{transform:translateY(-2px); box-shadow:0 6px 18px rgba(90,60,20,.10); border-color:var(--accent)}
   .card .he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.5rem; color:var(--ink); direction:rtl; margin-bottom:2px}
-  .card .name{font-weight:700; font-size:1.08rem}
+  .card .name{font-family:"David Libre",Georgia,serif; font-weight:700; font-size:1.08rem}
   .card .theme{color:var(--accent); font-size:.9rem; margin-top:2px}
   .card .foot{margin-top:auto; padding-top:10px; display:flex; align-items:center; justify-content:space-between}
   .pill{font-size:.78rem; font-weight:700; padding:3px 9px; border-radius:999px}
-  .pill.open{background:#eef5ef; color:var(--good)}
-  .pill.taken{background:#eee; color:#8a8275}
+  .pill.open{background:var(--good-tint); color:var(--good)}
+  .pill.taken{background:#eee; color:var(--faded2)}
   .pill.mine{background:#eaf1f8; color:var(--sky)}
   .cta{font-size:.85rem; color:var(--sky); font-weight:600}
 
   .card.taken{cursor:default; background:var(--taken-bg); border-style:dashed}
   .card.taken:hover{transform:none; box-shadow:none; border-color:var(--line)}
-  .card.taken .he,.card.taken .name{color:#9a9486}
-  .card.taken .theme{color:#a89a86}
-  .card .takenby{font-size:.82rem; color:#8a8275; margin-top:6px}
-  .card.mine{border-color:var(--sky); border-style:solid; background:#f7fafd}
+  .card.taken .he,.card.taken .name{color:var(--faded)}
+  .card.taken .theme{color:var(--faded)}
+  .card .takenby{font-size:.82rem; color:var(--faded2); margin-top:6px}
+  .card.mine{border-color:var(--sky); border-style:solid; background:var(--sky-tint)}
   .card .imgflag{font-size:.78rem;color:var(--good);margin-top:4px}
 
   /* modal */
-  .backdrop{position:fixed; inset:0; background:rgba(30,24,16,.5); display:none; align-items:center; justify-content:center; padding:18px; z-index:50}
+  .backdrop{position:fixed; inset:0; background:rgba(30,24,16,.5); display:none; align-items:center; justify-content:center; padding:16px; z-index:50}
   .backdrop.show{display:flex}
-  .modal{background:#fff; border-radius:16px; max-width:520px; width:100%; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,.3); max-height:90vh; overflow:auto}
+  .modal{background:var(--card); border-radius:16px; max-width:520px; width:100%; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,.3); max-height:90vh; overflow:auto}
   .modal .he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:2rem; direction:rtl; text-align:right; color:var(--ink)}
   .modal h2{margin:.1em 0 .1em; font-size:1.5rem}
   .modal .theme{color:var(--accent); font-weight:600; margin-bottom:10px}
-  .modal .info{color:#37312a; margin:6px 0 4px}
-  .modal .frame{background:#eef4fa; border:1px solid #d4e2ef; border-radius:10px; padding:10px 12px; font-size:.92rem; color:#28435f; margin:12px 0}
+  .modal .info{color:var(--ink-soft); margin:6px 0 4px}
+  .modal .frame{background:var(--sky-soft); border:1px solid #d4e2ef; border-radius:10px; padding:10px 12px; font-size:.92rem; color:#28435f; margin:12px 0}
   .modal .frame b{color:var(--sky)}
   .field{margin:10px 0}
-  .field label{display:block; font-size:.85rem; font-weight:600; margin-bottom:4px; color:#4a4338}
-  .field input{width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:9px; font-size:1rem; font-family:inherit}
+  .field label{display:block; font-size:.85rem; font-weight:600; margin-bottom:4px; color:var(--ink-soft)}
+  .field input{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:1rem; font-family:inherit}
   .field input:focus{outline:none; border-color:var(--sky); box-shadow:0 0 0 3px rgba(47,93,134,.12)}
   .row2{display:flex; gap:10px}
   .row2 .field{flex:1}
@@ -80,19 +83,19 @@
   .btn.primary:hover{background:var(--accent2)}
   .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line)}
   .btn[disabled]{opacity:.5; cursor:not-allowed}
-  .modal .close{position:sticky; top:-8px; float:right; z-index:10; background:#fff; border:none; font-size:1.5rem; cursor:pointer; color:#999; width:32px; height:32px; line-height:30px; text-align:center; border-radius:50%; margin:-10px -10px 0 0; box-shadow:0 1px 5px rgba(0,0,0,.16)}
-  .modal .close:hover{color:#444}
+  .modal .close{position:sticky; top:-8px; float:right; z-index:10; background:var(--card); border:none; font-size:1.5rem; cursor:pointer; color:var(--muted); width:32px; height:32px; line-height:30px; text-align:center; border-radius:50%; margin:-10px -10px 0 0; box-shadow:0 1px 5px rgba(0,0,0,.16)}
+  .modal .close:hover{color:var(--ink)}
   .modal .remember{margin-top:12px; color:var(--accent); font-size:.96rem}
   .modal .remember a{color:var(--accent); font-weight:600}
-  .err{color:#b5402f; font-size:.85rem; margin-top:6px; min-height:1em}
+  .err{color:var(--err); font-size:.85rem; margin-top:6px; min-height:1em}
   .ok{color:var(--good); font-weight:600}
-  .takennote{background:var(--taken-bg); border-radius:10px; padding:12px; color:#6c6557; text-align:center}
-  .uploadzone{display:block; border:2px dashed var(--sky); border-radius:12px; padding:18px; text-align:center; color:var(--sky); cursor:pointer; background:#f6fafd}
-  .uploadzone.has{border-style:solid; color:var(--good); border-color:var(--good); background:#f1f8f2}
+  .takennote{background:var(--taken-bg); border-radius:10px; padding:12px; color:var(--stone); text-align:center}
+  .uploadzone{display:block; border:2px dashed var(--sky); border-radius:12px; padding:16px; text-align:center; color:var(--sky); cursor:pointer; background:var(--sky-tint)}
+  .uploadzone.has{border-style:solid; color:var(--good); border-color:var(--good); background:var(--good-tint)}
   .uploadzone input{display:none}
   .slots{display:flex; gap:8px}
   .slot{flex:1 1 0; min-width:0; aspect-ratio:4/3; border:2px dashed var(--sky); border-radius:10px;
-    background:#f6fafd; color:var(--sky); cursor:pointer; position:relative; overflow:hidden;
+    background:var(--sky-tint); color:var(--sky); cursor:pointer; position:relative; overflow:hidden;
     display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center}
   .slot.has{border-style:solid; border-color:var(--good)}
   .slot input{display:none}
@@ -103,7 +106,7 @@
   .slot.has .slotcap{position:absolute; bottom:0; left:0; right:0; margin:0; padding:2px;
     background:rgba(0,0,0,.5); color:#fff}
   .hint{font-size:.85rem; color:var(--muted); text-align:center; margin-top:8px}
-  footer.page{text-align:center; margin-top:40px; color:#a59a89; font-size:.85rem}
+  footer.page{text-align:center; margin-top:40px; color:var(--faded); font-size:.85rem}
   footer.page a{color:inherit; text-decoration:underline}
   .demoflag{position:fixed; bottom:10px; right:10px; background:#fff3cd; border:1px solid #e6cf7a; color:#7a5a12; font-size:.75rem; padding:5px 9px; border-radius:8px; z-index:60}
 
@@ -117,43 +120,43 @@
   #gate.hide{display:none}
   .gatebox{max-width:380px; width:100%; text-align:center}
   .gatebox h2{margin:.2em 0 .1em; font-size:1.6rem}
-  .gatebox .sub{color:var(--accent); font-weight:600; margin-bottom:18px}
-  .gatebox input{width:100%; padding:12px 13px; border:1px solid var(--line); border-radius:10px; font-size:1.05rem; text-align:center; margin-bottom:10px; font-family:inherit}
+  .gatebox .sub{color:var(--accent); font-weight:600; margin-bottom:16px}
+  .gatebox input{width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:1.05rem; text-align:center; margin-bottom:10px; font-family:inherit}
   .gatebox input:focus{outline:none; border-color:var(--sky); box-shadow:0 0 0 3px rgba(47,93,134,.12)}
 
   /* guide modal content */
-  .guide h3{color:var(--accent); margin:18px 0 6px; font-size:1.05rem}
+  .guide h3{color:var(--accent); margin:16px 0 6px; font-size:1.05rem}
   .guide h3:first-of-type{margin-top:6px}
   .guide ul{margin:6px 0 6px 1.1em; padding:0}
   .guide li{margin:3px 0}
   .guide .opt{background:#f7f4ef; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0}
   .guide .opt b{color:var(--sky)}
-  .guidebtn{display:inline-block; margin-top:6px; background:#fff; border:1px solid var(--accent); color:var(--accent);
+  .guidebtn{display:inline-block; margin-top:6px; background:var(--card); border:1px solid var(--accent); color:var(--accent);
     border-radius:999px; padding:8px 16px; font-weight:700; font-size:.92rem; cursor:pointer; font-family:inherit}
   .guidebtn:hover{background:#fbf3ea}
 
   /* prayer preview */
-  .previewbtn{display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:#fff;
-    border:1px solid var(--sky); color:var(--sky); border-radius:999px; padding:7px 14px;
+  .previewbtn{display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:var(--card);
+    border:1px solid var(--sky); color:var(--sky); border-radius:999px; padding:8px 16px;
     font-weight:700; font-size:.9rem; cursor:pointer; font-family:inherit}
-  .previewbtn:hover{background:#f1f7fc}
+  .previewbtn:hover{background:var(--sky-tint)}
   .seg{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; margin:4px 0 14px}
-  .seg button{appearance:none; border:none; background:#fff; padding:8px 16px; font-size:.92rem; font-weight:700;
+  .seg button{appearance:none; border:none; background:var(--card); padding:8px 16px; font-size:.92rem; font-weight:700;
     cursor:pointer; color:var(--muted); font-family:inherit}
   .seg button.on{background:var(--sky); color:#fff}
   .seg.sub{margin:0 0 12px}
-  .seg.sub button{padding:5px 13px; font-size:.82rem}
-  .seg.sub button.on{background:#6b6358; color:#fff}
+  .seg.sub button{padding:4px 12px; font-size:.82rem}
+  .seg.sub button.on{background:var(--stone); color:#fff}
   .pvnote{font-size:.86rem; color:var(--muted); margin:2px 0 14px}
   .pvdisclaimer{font-size:.8rem; color:var(--muted); font-style:italic; margin:-6px 0 12px}
 
   /* Page (siddur) view */
   .pg-block{padding:10px 0}
-  .pg-cols{display:flex; gap:18px; align-items:flex-start}
+  .pg-cols{display:flex; gap:16px; align-items:flex-start}
   .pg-tr{flex:1; min-width:0}
   .pg-he{flex:1; min-width:0; direction:rtl; text-align:right;
     font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.4rem; line-height:1.25; color:var(--ink)}
-  .pg-tr-line{font-size:1.02rem; line-height:1.7; color:#3a342c; font-style:italic}
+  .pg-tr-line{font-size:1.02rem; line-height:1.7; color:var(--ink-soft); font-style:italic}
   .pg-en{margin-top:8px; color:var(--muted); font-size:.95rem}
   @media (max-width:520px){
     .pg-cols{flex-direction:column; gap:6px; align-items:stretch}
@@ -161,7 +164,7 @@
   }
 
   /* Screen (slide) view */
-  .slidewrap{margin:0 0 18px}
+  .slidewrap{margin:0 0 16px}
   /* container-query context so text scales with the slide (cqh = 1% of slide height),
      using the real deck's proportions: pt size ÷ 540pt (7.5in) slide height. No JS resizing. */
   .slide{position:relative; aspect-ratio:16/9; width:100%; container-type:size; background:linear-gradient(135deg,#33506e,#22384d);
@@ -179,7 +182,7 @@
   .slide .z-en div{white-space:normal}
   .slide .dots{position:absolute; bottom:3.3%; left:50%; transform:translateX(-50%);
     display:flex; gap:1cqh; font-size:2.6cqh; letter-spacing:1px; opacity:.8}
-  .slidecap{font-size:.82rem; color:var(--muted); text-align:center; margin:8px 0 18px}
+  .slidecap{font-size:.82rem; color:var(--muted); text-align:center; margin:8px 0 16px}
   /* centered: Hebrew + translit each its own box, clustered at top; translation full-width at bottom */
   .slide .ctop{position:absolute; top:9%; left:50%; transform:translateX(-50%); width:86%;
     display:flex; flex-direction:column; align-items:center; gap:1cqh}
@@ -211,7 +214,7 @@
   <p class="intro">Choose a prayer that speaks to you, then create an image to carry it on the screen
   this Friday night. Tap any prayer to read its theme and sign up. Once you claim it, you can come
   back anytime to upload your image. You may sign up for one prayer.</p>
-  <div style="text-align:center"><button class="guidebtn" id="guideBtn">&#128247;&nbsp; How to make your image</button></div>
+  <div style="text-align:center"><button class="guidebtn" id="guideBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>&nbsp;How to make your image</button></div>
 
   <div class="statusbar" id="statusbar">
     Loading prayers&hellip;
@@ -222,7 +225,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.6</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.9</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -249,6 +252,10 @@ const firebaseConfig = {
   messagingSenderId: "454872788801",
   appId: "1:454872788801:web:d18328eb3f678bf6e8fbc0"
 };
+
+/* localStorage can be blocked (sandboxed previews, strict privacy modes) — never let it kill the app */
+const lsGet = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsSet = (k,v) => { try{ localStorage.setItem(k,v); }catch(e){} };
 
 /* ---------- Prayer list (edit freely) ---------- */
 const PRAYERS = [
@@ -820,8 +827,8 @@ function makeMockStore(){
   const KEY = "vt-claims-v1";
   const chan = ("BroadcastChannel" in self) ? new BroadcastChannel("vt-claims") : null;
   let subs = [];
-  const read = () => { try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch{ return {}; } };
-  const write = (m) => { localStorage.setItem(KEY, JSON.stringify(m)); };
+  const read = () => { try{ return JSON.parse(lsGet(KEY)||"{}"); }catch{ return {}; } };
+  const write = (m) => { lsSet(KEY, JSON.stringify(m)); };
   const emit = () => { const m=read(); subs.forEach(cb=>cb(m)); };
   if(chan) chan.onmessage = () => emit();
   window.addEventListener("storage", e => { if(e.key===KEY) emit(); });
@@ -1028,7 +1035,7 @@ const byId = Object.fromEntries(PRAYERS.map(p=>[p.id,p]));
 const grid = document.getElementById("grid");
 const backdrop = document.getElementById("backdrop");
 const modal = document.getElementById("modal");
-let me = JSON.parse(localStorage.getItem("vt-me")||"null"); // {first?,last?,email}
+let me = JSON.parse(lsGet("vt-me")||"null"); // {first?,last?,email}
 
 function isMine(c){ return myToken && c && c.token === myToken; }
 
@@ -1077,12 +1084,12 @@ function openPrayer(id){
     <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
     <div class="he" dir="rtl">${p.he}</div>
     <h2>${p.name}</h2>
-    <div class="theme">${p.theme} &middot; <span style="color:#6b6358;font-weight:400">${p.tr}</span></div>
+    <div class="theme">${p.theme} &middot; <span style="color:var(--stone);font-weight:400">${p.tr}</span></div>
     <div class="info">${p.info}</div>
     <div class="frame"><b>Picturing it:</b> What is the prayer literally about? How does it make you feel?
       <div style="margin-top:6px">For example: ${p.frame.replace(/^Think\s+/i,"")}</div></div>
     <div class="remember">Remember to <a href="#" id="leaveRoomLink"><i>leave room for the words</i></a>!</div>
-    ${TEXTS[id] ? `<div><button class="previewbtn" id="previewBtn">&#128214; Preview this prayer</button></div>` : ""}`;
+    ${TEXTS[id] ? `<div><button class="previewbtn" id="previewBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Preview this prayer</button></div>` : ""}`;
 
   if(mine){
     body += imageSection(p, c);
@@ -1156,7 +1163,7 @@ function imageSection(p, c){
       <div class="slots">${tiles}</div>
       <div class="hint">Saved with your name. Landscape works best; return anytime with your email to change them.</div>
       <div class="hint" id="emailfallback">Trouble uploading? <a href="${mailtoFallback(p)}">Email it to rabbi.dan@medw.in</a> instead.</div>
-      <div style="margin-top:18px;text-align:center">
+      <div style="margin-top:16px;text-align:center">
         <button class="btn ghost" id="f_release">Release this prayer for someone else</button>
       </div>
     </div>`;
@@ -1238,7 +1245,7 @@ async function doClaim(id){
     q("#f_go").disabled = false; return;
   }
   me = {first,last,email,attribution}; myToken = r.token || tok;
-  localStorage.setItem("vt-me", JSON.stringify(me));
+  lsSet("vt-me", JSON.stringify(me));
   emailOnClaim(byId[id], {first,last,email});   // notice to Dan now; congregant confirmation (or combo) shortly
   // optimistic: the Firestore snapshot arrives a beat later, so seed the status
   // locally now so the modal reopens on the upload step (not the form).
@@ -1263,8 +1270,8 @@ function openManage(){
     const ids = await store.findByToken(tok);
     if(!ids.length){ q("#m_err").textContent="No prayer found for that email yet."; return; }
     // keep any name we already have on this device; otherwise just the email
-    const prev = JSON.parse(localStorage.getItem("vt-me")||"null") || {};
-    localStorage.setItem("vt-me", JSON.stringify({first:prev.first, last:prev.last, email}));
+    const prev = JSON.parse(lsGet("vt-me")||"null") || {};
+    lsSet("vt-me", JSON.stringify({first:prev.first, last:prev.last, email}));
     location.reload();
   };
 }
@@ -1278,7 +1285,7 @@ let adminInited = false, adminUser = null, adminPII = null;
 async function initAdmin(){
   adminInited = true;
   document.getElementById("adminMount").innerHTML =
-    `<h2 style="margin-top:34px">Sign-ups (admin)</h2><p class="hint">Loading&hellip;</p>`;
+    `<h2 style="margin-top:32px">Sign-ups (admin)</h2><p class="hint">Loading&hellip;</p>`;
   const A = await store.adminAuth();
   A.onAuthStateChanged(A.auth, async user => {
     adminUser = user;
@@ -1293,9 +1300,9 @@ function renderAdminSignIn(user){
   const wrong = user && user.email !== ADMIN_EMAIL
     ? `<p class="err">Signed in as ${esc(user.email)}, which isn't the admin account.</p>` : "";
   document.getElementById("adminMount").innerHTML =
-    `<h2 style="margin-top:34px">Sign-ups (admin)</h2>
+    `<h2 style="margin-top:32px">Sign-ups (admin)</h2>
      <p class="info">Sign in with the admin Google account to view and export sign-ups.</p>${wrong}
-     <p><button class="btn primary" id="adminSignIn" style="width:auto;padding:12px 22px">Sign in with Google</button></p>`;
+     <p><button class="btn primary" id="adminSignIn" style="width:auto;padding:12px 24px">Sign in with Google</button></p>`;
   document.getElementById("adminSignIn").onclick = async () => {
     const A = await store.adminAuth();
     try{ await A.signInWithPopup(A.auth, new A.GoogleAuthProvider()); }catch(e){}
@@ -1313,7 +1320,7 @@ function renderAdmin(){
           + `<img src="${u}" alt="" style="height:34px;border-radius:4px;margin:3px 0 0 4px;vertical-align:middle" onerror="this.style.display='none'">`).join("<br>")
       : "&mdash;";
     const action = claimed
-      ? `<a href="#" class="adminRel" data-id="${p.id}" style="color:#b5402f">release</a>`
+      ? `<a href="#" class="adminRel" data-id="${p.id}" style="color:var(--err)">release</a>`
       : "&mdash;";
     return `<tr><td>${p.name}</td><td>${d?esc(d.first+" "+d.last):"&mdash;"}</td>
       <td>${d?esc(d.email):"&mdash;"}</td><td>${d&&d.attribution?esc(d.attribution):"&mdash;"}</td>
@@ -1322,13 +1329,13 @@ function renderAdmin(){
   }).join("");
   const taken = Object.keys(claims).length;
   document.getElementById("adminMount").innerHTML =
-    `<h2 style="margin-top:34px">Sign-ups (admin) &middot; ${taken}/${PRAYERS.length} taken</h2>
+    `<h2 style="margin-top:32px">Sign-ups (admin) &middot; ${taken}/${PRAYERS.length} taken</h2>
      <p class="hint">Signed in as ${esc(adminUser.email)} &middot; <a href="#" id="adminRefresh">refresh</a> &middot; <a href="#" id="adminOut">sign out</a></p>
      <table class="admin"><tr><th>Prayer</th><th>Name</th><th>Email</th><th>Attribution</th><th>Claimed</th><th>Image</th><th>Uploaded</th><th>Action</th></tr>${rows}</table>
      <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
        <button class="btn ghost" id="csv">Download CSV</button>
        <button class="btn ghost" id="zipAll">Download all images (zip)</button>
-       <button class="btn ghost" id="clearAll" style="color:#b5402f;border-color:#e3b5ad;margin-left:auto">Clear all sign-ups</button>
+       <button class="btn ghost" id="clearAll" style="color:var(--err);border-color:#e3b5ad;margin-left:auto">Clear all sign-ups</button>
      </p>`;
   document.getElementById("adminRefresh").onclick = async e => { e.preventDefault(); adminPII = await store.adminLoadClaims(); renderAdmin(); };
   document.getElementById("adminOut").onclick = async e => { e.preventDefault(); const A = await store.adminAuth(); await A.signOut(A.auth); };
@@ -1425,12 +1432,12 @@ function showGroupBar(){
   const g = document.getElementById("gate");
   const apply = (code) => {
     currentGroup = { code, ...GROUPS[code] };
-    localStorage.setItem("vt-group", code);
+    lsSet("vt-group", code);
     g.classList.add("hide"); showGroupBar();
   };
-  const saved = localStorage.getItem("vt-group");
+  const saved = lsGet("vt-group");
   if(saved && GROUPS[saved]){ apply(saved); return; }
-  if(localStorage.getItem("vt-gate")==="1" && GROUPS.rtr){ apply("rtr"); return; }  // migrate old gate
+  if(lsGet("vt-gate")==="1" && GROUPS.rtr){ apply("rtr"); return; }  // migrate old gate
   const go = () => {
     const w = document.getElementById("gatepass").value.trim().toLowerCase();
     if(GROUPS[w]) apply(w);
@@ -1477,9 +1484,9 @@ function openGuide(scrollToId, returnId){
         <li>Simpler is stronger, and send the highest resolution you can.</li>
       </ul>
 
-      <p style="text-align:center;margin-top:18px">
+      <p style="text-align:center;margin-top:16px">
         <a class="btn primary" href="VT-Image-Guide.pdf" download
-           style="display:inline-block;text-decoration:none;width:auto;padding:12px 22px">Download the printable PDF</a>
+           style="display:inline-block;text-decoration:none;width:auto;padding:12px 24px">Download the printable PDF</a>
       </p>
     </div>`;
   backdrop.classList.add("show");
@@ -1549,10 +1556,10 @@ function renderPreview(id){
     <button class="close" id="pvClose" title="Back to prayer">&times;</button>
     <div class="he" dir="rtl">${p.he}</div>
     <h2>${p.name}</h2>
-    <div class="theme">${p.theme} &middot; <span style="color:#6b6358;font-weight:400">${p.tr}</span></div>
+    <div class="theme">${p.theme} &middot; <span style="color:var(--stone);font-weight:400">${p.tr}</span></div>
     <div class="seg">
-      <button data-m="page" class="${pvMode==="page"?"on":""}">&#128214;&nbsp;Page</button>
-      <button data-m="screen" class="${pvMode==="screen"?"on":""}">&#128250;&nbsp;Screen</button>
+      <button data-m="page" class="${pvMode==="page"?"on":""}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>&nbsp;Page</button>
+      <button data-m="screen" class="${pvMode==="screen"?"on":""}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>&nbsp;Screen</button>
     </div>
     ${layoutSeg}
     <div class="pvnote">${note}</div>
