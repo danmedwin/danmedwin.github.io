@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found — TechRabbi</title>
+<style>
+  body { font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+         color: #2a2a2a; text-align: center; padding: 80px 20px; }
+  h1 { color: #1e3a5f; }
+  a { color: #1e3a5f; font-weight: 700; }
+</style>
+<script>
+  // Anything resembling "mensch" forwards to the Digital Mensches page.
+  if (/mensch/i.test(location.pathname)) {
+    location.replace("/digital-mensches/");
+  }
+</script>
+</head>
+<body>
+  <h1>Page not found</h1>
+  <p>Looking for <a href="/digital-mensches/">Digital Mensches</a>? Or head back to <a href="/">techrabbi.org</a>.</p>
+</body>
+</html>

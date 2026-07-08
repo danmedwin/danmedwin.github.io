@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Mensches — The Ten Commandments of Ethical Online Behavior</title>
+<meta name="description" content="A Jewish digital-ethics program for teens: download the materials and share your feedback.">
+<style>
+  :root {
+    --navy: #1e3a5f; --navy-deep: #16293f; --gold: #b8963e; --gold-light: #d4b96a;
+    --cream: #f7f1e2; --ink: #2a2a2a; --gray: #5a6472; --bg: #fdfcf9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; }
+  a { color: var(--navy); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  header.hero { background: linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%); color: #fff; padding: 48px 0 40px 0; text-align: center; }
+  .hero .brand { color: var(--gold-light); font-weight: 700; letter-spacing: 3px; font-size: 14px; }
+  .hero h1 { font-size: clamp(26px, 5vw, 40px); font-weight: 800; margin: 10px 0 6px 0; }
+  .hero .tagline { color: var(--gold-light); font-style: italic; font-size: clamp(13px, 2.5vw, 16px); }
+  .hero p.intro { max-width: 640px; margin: 18px auto 0 auto; color: #dbe3ee; font-size: 15px; }
+
+  section { padding: 40px 0; }
+  h2 { color: var(--navy); font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .sub { color: var(--gray); margin-bottom: 22px; }
+  h3.group { color: var(--gold); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin: 22px 0 10px 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  a.dl { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e3e0d6; border-left: 4px solid var(--gold); border-radius: 8px; padding: 13px 15px; text-decoration: none; transition: box-shadow .15s, transform .15s; }
+  a.dl:hover { box-shadow: 0 4px 14px rgba(30,58,95,.12); transform: translateY(-1px); }
+  a.dl .icon { font-size: 22px; }
+  a.dl .t { font-weight: 700; color: var(--navy); font-size: 15px; }
+  a.dl .d { font-size: 12.5px; color: var(--gray); }
+
+  #feedback { background: var(--cream); border-top: 3px solid var(--gold); }
+  .rolebar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .rolebar button { border: 1.5px solid var(--navy); background: #fff; color: var(--navy); padding: 9px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .rolebar button.on { background: var(--navy); color: var(--gold-light); }
+
+  .modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .mode { background: #fff; border: 1px solid #e3e0d6; border-radius: 10px; padding: 18px 16px; text-align: center; cursor: pointer; transition: box-shadow .15s, transform .15s; }
+  .mode:hover { box-shadow: 0 4px 14px rgba(30,58,95,.12); transform: translateY(-1px); }
+  .mode .icon { font-size: 30px; }
+  .mode .t { font-weight: 700; color: var(--navy); margin-top: 6px; }
+  .mode .d { font-size: 12.5px; color: var(--gray); margin-top: 3px; }
+
+  .panel { display: none; background: #fff; border: 1px solid #e3e0d6; border-radius: 10px; padding: 20px; margin-top: 16px; }
+  .panel.open { display: block; }
+  .panel h4 { color: var(--navy); margin-bottom: 10px; }
+  .panel label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin: 10px 0 3px 0; }
+  .panel input[type=text], .panel textarea { width: 100%; border: 1px solid #cfd6de; border-radius: 6px; padding: 9px 10px; font-size: 15px; font-family: inherit; }
+  .panel textarea { min-height: 140px; resize: vertical; }
+  .filepick { border: 2px dashed var(--gold-light); border-radius: 8px; padding: 20px; text-align: center; color: var(--gray); cursor: pointer; margin-top: 8px; font-size: 14px; }
+  .filelist { font-size: 13px; color: var(--gray); margin-top: 8px; }
+  .btn { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 11px 22px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 14px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.alt { background: #fff; color: var(--navy); border: 1.5px solid var(--navy); }
+  .note { font-size: 12.5px; color: var(--gray); margin-top: 8px; }
+  .ok { color: #2e7d32; font-weight: 700; margin-top: 12px; }
+  .err { color: #b3261e; font-weight: 700; margin-top: 12px; }
+
+  #recbtn.recording { background: #b3261e; }
+  #chatlog { border: 1px solid #e3e0d6; border-radius: 8px; padding: 14px; height: 340px; overflow-y: auto; background: var(--bg); }
+  .bubble { max-width: 85%; padding: 9px 13px; border-radius: 12px; margin-bottom: 9px; font-size: 14.5px; white-space: pre-wrap; }
+  .bubble.ai { background: #fff; border: 1px solid #e3e0d6; }
+  .bubble.me { background: var(--navy); color: #fff; margin-left: auto; }
+  .chatrow { display: flex; gap: 8px; margin-top: 10px; }
+  .chatrow input { flex: 1; border: 1px solid #cfd6de; border-radius: 8px; padding: 10px 12px; font-size: 15px; }
+
+  footer { background: var(--navy-deep); color: #9fb0c4; text-align: center; padding: 26px 20px; font-size: 12.5px; }
+  footer .v { color: var(--gold-light); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand">DIGITAL MENSCHES</div>
+    <h1>The Ten Commandments of Ethical Online Behavior</h1>
+    <div class="tagline">Rooted in Jewish Values • Informed by Youth Voices • Calibrated for the AI Era</div>
+    <p class="intro">A guide for Jewish communities, camps, youth groups, schools, and families navigating the digital age with wisdom, compassion, and intention. A project of URJ 6 Points Sci-Tech Academy, guided by Rabbi Dan Medwin, supported by Sinai and Synapses, CLAL, and The Templeton Foundation.</p>
+  </div>
+</header>
+
+<section id="downloads">
+  <div class="wrap">
+    <h2>Download the Materials</h2>
+    <div class="sub">Everything you need to run Digital Mensches with your community. Free to use; we ask only that you <a href="#feedback">share your feedback</a> afterward.</div>
+
+    <h3 class="group">Core Documents</h3>
+    <div class="grid">
+      <a class="dl" href="files/Ten_Commandments_of_Ethical_Online_Behavior_v7.pdf"><span class="icon">📜</span><span><span class="t">The Ten Commandments</span><br><span class="d">The full document with Jewish sources and research (v7)</span></span></a>
+      <a class="dl" href="files/Study_Guide_Ten_Commandments_v7.pdf"><span class="icon">📖</span><span><span class="t">Study Guide &amp; Discussion Companion</span><br><span class="d">For counselors, educators, parents, and leaders (v7)</span></span></a>
+    </div>
+
+    <h3 class="group">Program Guides — three ways to run a session</h3>
+    <div class="grid">
+      <a class="dl" href="files/Digital_Mensches_Program_Poster_Gallery.pdf"><span class="icon">🖼️</span><span><span class="t">I. Poster Gallery</span><br><span class="d">Choice-driven: browse the posters, claim a commandment</span></span></a>
+      <a class="dl" href="files/Digital_Mensches_Program_Text_Study_Circle.pdf"><span class="icon">🪑</span><span><span class="t">II. Text Study Circle</span><br><span class="d">Seated chevrutah study; every commandment gets a voice</span></span></a>
+      <a class="dl" href="files/Digital_Mensches_Program_Scenarios_First.pdf"><span class="icon">🧭</span><span><span class="t">III. Scenarios First</span><br><span class="d">Discovery: wrestle with scenarios, then meet the ten</span></span></a>
+    </div>
+
+    <h3 class="group">Handouts &amp; Print Materials</h3>
+    <div class="grid">
+      <a class="dl" href="files/Digital_Mensches_Camper_Handout.pdf"><span class="icon">📄</span><span><span class="t">Camper Handout</span><br><span class="d">All ten commandments + chevrutah questions (4 pages)</span></span></a>
+      <a class="dl" href="files/Digital_Mensches_Commandment_Posters.pdf"><span class="icon">🎨</span><span><span class="t">Commandment Posters</span><br><span class="d">One poster per commandment, for the gallery walk</span></span></a>
+      <a class="dl" href="files/Digital_Mensches_Reference_Sheet.pdf"><span class="icon">🗒️</span><span><span class="t">Reference Sheet</span><br><span class="d">All ten on a single page</span></span></a>
+      <a class="dl" href="files/Digital_Mensches_Scenario_Cards.pdf"><span class="icon">🃏</span><span><span class="t">Scenario Cards</span><br><span class="d">Ten real-life dilemmas, ready to cut apart</span></span></a>
+    </div>
+
+    <h3 class="group">Feedback Forms (printable)</h3>
+    <div class="grid">
+      <a class="dl" href="files/Digital_Mensches_Feedback_Participant.pdf"><span class="icon">✏️</span><span><span class="t">Participant Slips</span><br><span class="d">Two quick questions, two slips per page</span></span></a>
+      <a class="dl" href="files/Digital_Mensches_Feedback_Facilitator.pdf"><span class="icon">📋</span><span><span class="t">Facilitator Form</span><br><span class="d">One page: report back on the session you ran</span></span></a>
+      <a class="dl" href="files/Digital_Mensches_Feedback_Educator.pdf"><span class="icon">🧐</span><span><span class="t">Educator Review Worksheet</span><br><span class="d">In-depth review of the full document</span></span></a>
+    </div>
+  </div>
+</section>
+
+<section id="feedback">
+  <div class="wrap">
+    <h2>Share Your Feedback</h2>
+    <div class="sub">Digital Mensches is a living draft. Your experience shapes the next version. First, who are you?</div>
+
+    <div class="rolebar" id="rolebar">
+      <button data-role="participant">I was a participant</button>
+      <button data-role="facilitator">I ran a session</button>
+      <button data-role="educator">I'm reviewing the materials</button>
+      <button data-role="other">Other</button>
+    </div>
+
+    <div class="modes" id="modes" style="opacity:.45; pointer-events:none;">
+      <div class="mode" data-mode="photos"><div class="icon">📸</div><div class="t">Snap Photos</div><div class="d">Photograph paper forms or notes with your camera</div></div>
+      <div class="mode" data-mode="files"><div class="icon">📎</div><div class="t">Upload Files</div><div class="d">PDFs or images of completed forms</div></div>
+      <div class="mode" data-mode="text"><div class="icon">✍️</div><div class="t">Type Notes</div><div class="d">Rough thoughts welcome; no structure needed</div></div>
+      <div class="mode" data-mode="voice"><div class="icon">🎙️</div><div class="t">Record Voice</div><div class="d">Talk it through; two minutes is plenty</div></div>
+      <div class="mode" data-mode="interview"><div class="icon">💬</div><div class="t">AI Interview</div><div class="d">Claude asks you questions, one at a time</div></div>
+    </div>
+
+    <!-- Photos / Files -->
+    <div class="panel" id="panel-upload">
+      <h4 id="upload-title">Upload</h4>
+      <label>Name (optional)</label><input type="text" id="up-name">
+      <label>Camp / congregation / organization (optional)</label><input type="text" id="up-org">
+      <div class="filepick" id="filepick">Tap to choose files or take photos</div>
+      <input type="file" id="fileinput" multiple style="display:none">
+      <div class="filelist" id="filelist"></div>
+      <button class="btn" id="upload-send" disabled>Send Files</button>
+      <div class="note">Photos, PDFs, and audio up to 30 MB each. Submissions go directly and privately to Rabbi Dan Medwin.</div>
+      <div id="upload-status"></div>
+    </div>
+
+    <!-- Text -->
+    <div class="panel" id="panel-text">
+      <h4>Type Your Feedback</h4>
+      <label>Name (optional)</label><input type="text" id="tx-name">
+      <label>Camp / congregation / organization (optional)</label><input type="text" id="tx-org">
+      <label>Your thoughts</label>
+      <textarea id="tx-notes" placeholder="What happened? What worked? What would you change about the program or the commandments?"></textarea>
+      <button class="btn" id="text-send">Send Feedback</button>
+      <div id="text-status"></div>
+    </div>
+
+    <!-- Voice -->
+    <div class="panel" id="panel-voice">
+      <h4>Record a Voice Memo</h4>
+      <label>Name (optional)</label><input type="text" id="vc-name">
+      <label>Camp / congregation / organization (optional)</label><input type="text" id="vc-org">
+      <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
+        <button class="btn" id="recbtn">● Start Recording</button>
+        <span id="rectime" style="color:var(--gray); font-size:14px;"></span>
+      </div>
+      <audio id="playback" controls style="display:none; width:100%; margin-top:12px;"></audio>
+      <button class="btn" id="voice-send" disabled>Send Recording</button>
+      <button class="btn alt" id="voice-file">…or upload an audio file</button>
+      <input type="file" id="voiceinput" accept="audio/*" style="display:none">
+      <div id="voice-status"></div>
+    </div>
+
+    <!-- Interview -->
+    <div class="panel" id="panel-interview">
+      <h4>Feedback Interview</h4>
+      <div class="note" style="margin:0 0 10px 0;">Claude, an AI assistant, will ask you a few questions about your experience. One at a time, about five minutes total. Please don't share personal details like full names or contact info.</div>
+      <div id="chatlog"></div>
+      <div class="chatrow">
+        <input type="text" id="chatinput" placeholder="Type your answer…" maxlength="2000">
+        <button class="btn" id="chatsend" style="margin-top:0;">Send</button>
+      </div>
+      <button class="btn alt" id="chatend">End interview</button>
+      <div id="chat-status"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Digital Mensches: The Ten Commandments of Ethical Online Behavior<br>
+  A project of URJ 6 Points Sci-Tech Academy • Guided by Rabbi Dan Medwin<br>
+  Supported by Sinai and Synapses, CLAL, and The Templeton Foundation<br>
+  <span class="v">techrabbi.org/digital-mensches • v1.0</span>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAIbW8ixH5ZcbDrxJrq66-I9tUK0398aA",
+  authDomain: "digital-mensches.firebaseapp.com",
+  projectId: "digital-mensches",
+  storageBucket: "digital-mensches-feedback",
+  messagingSenderId: "957109442160",
+  appId: "1:957109442160:web:03b53a3210eef14d11c6b5",
+};
+const INTERVIEW_URL = "https://us-central1-digital-mensches.cloudfunctions.net/interview";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app, "gs://digital-mensches-feedback");
+
+// ---------- role + mode selection ----------
+let role = null;
+const rolebar = document.getElementById("rolebar");
+const modes = document.getElementById("modes");
+rolebar.addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  role = b.dataset.role;
+  [...rolebar.children].forEach((x) => x.classList.toggle("on", x === b));
+  modes.style.opacity = "1"; modes.style.pointerEvents = "auto";
+});
+
+const panels = {
+  photos: "panel-upload", files: "panel-upload", text: "panel-text",
+  voice: "panel-voice", interview: "panel-interview",
+};
+let currentMode = null;
+modes.addEventListener("click", (e) => {
+  const m = e.target.closest(".mode"); if (!m || !role) return;
+  currentMode = m.dataset.mode;
+  document.querySelectorAll(".panel").forEach((p) => p.classList.remove("open"));
+  const panel = document.getElementById(panels[currentMode]);
+  panel.classList.add("open");
+  if (currentMode === "photos") {
+    document.getElementById("upload-title").textContent = "Snap or Choose Photos";
+    fileinput.setAttribute("accept", "image/*");
+    fileinput.setAttribute("capture", "environment");
+  } else if (currentMode === "files") {
+    document.getElementById("upload-title").textContent = "Upload Files";
+    fileinput.setAttribute("accept", "application/pdf,image/*");
+    fileinput.removeAttribute("capture");
+  }
+  if (currentMode === "interview") startInterview();
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+// ---------- shared submit helper ----------
+async function submitFeedback(fields, files) {
+  const uploadId = crypto.randomUUID();
+  const names = [];
+  if (files && files.length) {
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const safe = (f.name || "file").replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 80);
+      const path = `uploads/${uploadId}/${String(i + 1).padStart(2, "0")}-${safe}`;
+      await uploadBytes(ref(storage, path), f, { contentType: f.type || "application/octet-stream" });
+      names.push(safe);
+    }
+  }
+  await addDoc(collection(db, "feedback"), {
+    ...fields,
+    role,
+    uploadId: files && files.length ? uploadId : null,
+    files: names,
+    page: "techrabbi.org/digital-mensches v1.0",
+    createdAt: serverTimestamp(),
+  });
+}
+
+// ---------- photos / files ----------
+const fileinput = document.getElementById("fileinput");
+let picked = [];
+document.getElementById("filepick").addEventListener("click", () => fileinput.click());
+fileinput.addEventListener("change", () => {
+  picked = [...fileinput.files].filter((f) => f.size < 30 * 1024 * 1024);
+  document.getElementById("filelist").textContent =
+    picked.length ? picked.map((f) => f.name).join(", ") : "No files selected.";
+  document.getElementById("upload-send").disabled = picked.length === 0;
+});
+document.getElementById("upload-send").addEventListener("click", async () => {
+  const btn = document.getElementById("upload-send"), st = document.getElementById("upload-status");
+  btn.disabled = true; st.className = ""; st.textContent = "Sending…";
+  try {
+    await submitFeedback(
+      { type: currentMode === "photos" ? "photos" : "files",
+        name: document.getElementById("up-name").value.trim(),
+        org: document.getElementById("up-org").value.trim() },
+      picked
+    );
+    st.className = "ok"; st.textContent = "Received. Thank you!";
+    picked = []; fileinput.value = ""; document.getElementById("filelist").textContent = "";
+  } catch (err) {
+    console.error(err); st.className = "err"; st.textContent = "Something went wrong. Please try again.";
+    btn.disabled = false;
+  }
+});
+
+// ---------- text ----------
+document.getElementById("text-send").addEventListener("click", async () => {
+  const notes = document.getElementById("tx-notes").value.trim();
+  const st = document.getElementById("text-status");
+  if (!notes) { st.className = "err"; st.textContent = "Write a little something first."; return; }
+  st.className = ""; st.textContent = "Sending…";
+  try {
+    await submitFeedback(
+      { type: "text", notes,
+        name: document.getElementById("tx-name").value.trim(),
+        org: document.getElementById("tx-org").value.trim() },
+      null
+    );
+    st.className = "ok"; st.textContent = "Received. Thank you!";
+    document.getElementById("tx-notes").value = "";
+  } catch (err) {
+    console.error(err); st.className = "err"; st.textContent = "Something went wrong. Please try again.";
+  }
+});
+
+// ---------- voice ----------
+let recorder = null, chunks = [], recBlob = null, recTimer = null, recSecs = 0;
+const recbtn = document.getElementById("recbtn");
+recbtn.addEventListener("click", async () => {
+  if (recorder && recorder.state === "recording") { recorder.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+    recorder = new MediaRecorder(stream, { mimeType: mime });
+    chunks = [];
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.onstop = () => {
+      stream.getTracks().forEach((t) => t.stop());
+      clearInterval(recTimer);
+      recBlob = new Blob(chunks, { type: mime });
+      const player = document.getElementById("playback");
+      player.src = URL.createObjectURL(recBlob);
+      player.style.display = "block";
+      document.getElementById("voice-send").disabled = false;
+      recbtn.classList.remove("recording"); recbtn.textContent = "● Re-record";
+    };
+    recorder.start();
+    recSecs = 0;
+    document.getElementById("rectime").textContent = "0:00";
+    recTimer = setInterval(() => {
+      recSecs++;
+      document.getElementById("rectime").textContent =
+        Math.floor(recSecs / 60) + ":" + String(recSecs % 60).padStart(2, "0");
+      if (recSecs >= 600) recorder.stop();
+    }, 1000);
+    recbtn.classList.add("recording"); recbtn.textContent = "■ Stop";
+  } catch {
+    document.getElementById("voice-status").className = "err";
+    document.getElementById("voice-status").textContent = "Microphone unavailable. Try uploading an audio file instead.";
+  }
+});
+document.getElementById("voice-file").addEventListener("click", () => document.getElementById("voiceinput").click());
+document.getElementById("voiceinput").addEventListener("change", (e) => {
+  if (e.target.files[0]) { recBlob = e.target.files[0]; document.getElementById("voice-send").disabled = false; }
+});
+document.getElementById("voice-send").addEventListener("click", async () => {
+  const st = document.getElementById("voice-status");
+  st.className = ""; st.textContent = "Sending…";
+  try {
+    const extension = (recBlob.type || "").includes("mp4") ? "m4a" : "webm";
+    const named = new File([recBlob], recBlob.name || `voice-memo.${extension}`, { type: recBlob.type || "audio/webm" });
+    await submitFeedback(
+      { type: "voice",
+        name: document.getElementById("vc-name").value.trim(),
+        org: document.getElementById("vc-org").value.trim() },
+      [named]
+    );
+    st.className = "ok"; st.textContent = "Received. Thank you!";
+    document.getElementById("voice-send").disabled = true;
+  } catch (err) {
+    console.error(err); st.className = "err"; st.textContent = "Something went wrong. Please try again.";
+  }
+});
+
+// ---------- AI interview ----------
+let chat = [], sessionId = null, interviewBusy = false;
+const chatlog = document.getElementById("chatlog");
+function addBubble(text, who) {
+  const d = document.createElement("div");
+  d.className = "bubble " + who;
+  d.textContent = text;
+  chatlog.appendChild(d);
+  chatlog.scrollTop = chatlog.scrollHeight;
+}
+async function callInterview() {
+  const st = document.getElementById("chat-status");
+  interviewBusy = true; st.className = ""; st.textContent = "Claude is thinking…";
+  try {
+    const r = await fetch(INTERVIEW_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, role, messages: chat }),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const { reply } = await r.json();
+    chat.push({ role: "assistant", content: reply });
+    addBubble(reply, "ai");
+    st.textContent = "";
+  } catch (err) {
+    console.error(err); st.className = "err";
+    st.textContent = "The interview is unavailable right now. Try one of the other feedback options.";
+  }
+  interviewBusy = false;
+}
+function startInterview() {
+  if (sessionId) return; // keep an in-progress interview
+  sessionId = crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+  chat = [{ role: "user", content: `(The interview begins. My role: ${role}.)` }];
+  callInterview();
+}
+document.getElementById("chatsend").addEventListener("click", sendChat);
+document.getElementById("chatinput").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
+function sendChat() {
+  const input = document.getElementById("chatinput");
+  const text = input.value.trim();
+  if (!text || interviewBusy || !sessionId) return;
+  input.value = "";
+  chat.push({ role: "user", content: text });
+  addBubble(text, "me");
+  callInterview();
+}
+document.getElementById("chatend").addEventListener("click", () => {
+  if (!sessionId || interviewBusy) return;
+  chat.push({ role: "user", content: "(I need to go now. Please wrap up the interview.)" });
+  callInterview();
+});
+</script>
+</body>
+</html>
