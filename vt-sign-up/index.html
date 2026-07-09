@@ -6,66 +6,85 @@
 <title>Visual T'filah Sign-Up</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=David+Libre:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=David+Libre:wght@400;500;700&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
+    /* night sky (page) — deepens as the service progresses */
+    --night-hi:#2d4f72; --night:#1b3450; --night-mid:#122438; --night-low:#0a1420; --night-deep:#03060b;
+    --star:#fdfbf5; --moon:#f4f1ea; --amber:#f6d27a; --dim:#9fb8d0; --link:#9fc0e8;
+    --mist:#c9d4e2; --sand:#e8dfc8;
+    --panel:rgba(255,255,255,.07); --panel-hi:rgba(255,255,255,.12);
+    --ring:rgba(255,255,255,.14); --ring-amber:rgba(246,210,122,.55);
+    /* paper (modal, gate card, admin) */
     --ink:#1c1c1c; --ink-soft:#3a342c; --accent:#7a3b12; --accent2:#9a5424; --sky:#2f5d86;
-    --amber:#f6d27a; --cream:#fbf7f0; --card:#fffdfa; --line:#e2d8c9;
+    --cream:#fbf7f0; --card:#fffdfa; --line:#e2d8c9;
     --muted:#7c7468; --stone:#6b6358; --faded:#9a9486; --faded2:#8a8275;
     --taken-bg:#f0ece4; --good:#3c7a4a; --err:#b5402f;
     --sky-tint:#f6fafd; --sky-soft:#eef4fa; --good-tint:#f1f8f2;
   }
   *{box-sizing:border-box}
+  html{background:var(--night-deep)}
   body{
-    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    color:var(--ink); background:var(--cream); line-height:1.5;
+    margin:0; font-family:"Heebo",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    color:var(--moon); line-height:1.5;
+    background:linear-gradient(180deg,var(--night-hi) 0%,var(--night) 26%,var(--night-mid) 52%,var(--night-low) 76%,var(--night-deep) 100%);
   }
   .wrap{max-width:1040px; margin:0 auto; padding:28px 20px 64px}
   header.page{text-align:center; margin-bottom:8px}
   h1,h2{font-family:"David Libre",Georgia,serif}
-  header.page h1{font-size:1.9rem; margin:.2em 0 .1em; letter-spacing:.2px}
-  header.page .sub{color:var(--accent); font-size:1.05rem; font-weight:600}
-  .groupbar{margin:10px auto 0; display:inline-block; background:var(--card); border:1px solid var(--line);
-    border-radius:999px; padding:6px 16px; font-size:.92rem; color:var(--ink)}
-  .groupbar b{color:var(--accent)}
+  header.page h1{font-size:1.9rem; margin:.2em 0 .1em; letter-spacing:.2px; color:var(--star)}
+  header.page .sub{color:var(--amber); font-size:1rem; font-weight:300; letter-spacing:.02em}
+  .groupbar{margin:14px auto 0; display:inline-block; background:transparent; border:1px solid rgba(246,210,122,.4);
+    border-radius:999px; padding:5px 16px; font-size:.88rem; color:var(--sand)}
+  .groupbar b{color:var(--amber); font-weight:500}
   .groupbar:empty{display:none}
-  .intro{max-width:720px; margin:16px auto 8px; text-align:center; color:var(--ink-soft)}
+  .intro{max-width:700px; margin:18px auto 8px; text-align:center; color:var(--mist); font-weight:300}
+  .intro b{color:var(--amber); font-weight:500}
+  .horizon{max-width:360px; height:2px; margin:18px auto 0;
+    background:linear-gradient(90deg,transparent,var(--amber) 30%,var(--amber) 70%,transparent)}
   .statusbar{
-    text-align:center; margin:16px auto 24px; font-size:.95rem; color:var(--muted);
+    text-align:center; margin:16px auto 8px; font-size:.95rem; color:var(--dim); font-weight:300;
   }
-  .statusbar b{color:var(--accent)}
-  .manage{display:inline-block; margin-left:10px; color:var(--sky); cursor:pointer; text-decoration:underline; font-size:.9rem}
+  .statusbar b{color:var(--amber); font-weight:500}
+  .manage{display:inline-block; margin-left:10px; color:var(--link); cursor:pointer; text-decoration:underline; font-size:.9rem}
 
-  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px}
+  /* service-order sections — inter-section spacing is the grid's own padding-bottom
+     (sticky headers ride only within the wrapper's CONTENT box, so the gap must be
+     content, not wrapper padding/margin) → each incoming header pushes the last one off */
+  .sechead{display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+    margin:0; padding:10px 8px 8px; border-bottom:1px solid rgba(246,210,122,.35);
+    position:sticky; top:0; z-index:5; background:rgba(10,20,32,.35);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-radius:0 0 8px 8px}
+  .sechead .sen{font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--amber); font-weight:700}
+  .sechead .she{font-family:"David Libre",serif; font-size:1.3rem; direction:rtl; color:var(--star)}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; padding-top:12px; padding-bottom:30px}
   .card{
-    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 16px 14px;
-    cursor:pointer; transition:transform .08s ease, box-shadow .12s ease, border-color .12s;
-    display:flex; flex-direction:column; min-height:128px; position:relative;
+    background:var(--panel); box-shadow:0 0 0 1px var(--ring) inset; border-radius:12px; padding:18px 18px 14px;
+    cursor:pointer; transition:background .2s ease, box-shadow .2s ease;
+    display:flex; flex-direction:column; min-height:140px; position:relative;
   }
-  .card:hover{transform:translateY(-2px); box-shadow:0 6px 18px rgba(90,60,20,.10); border-color:var(--accent)}
-  .card .he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.5rem; color:var(--ink); direction:rtl; margin-bottom:2px}
-  .card .name{font-family:"David Libre",Georgia,serif; font-weight:700; font-size:1.08rem}
-  .card .theme{color:var(--accent); font-size:.9rem; margin-top:2px}
-  .card .foot{margin-top:auto; padding-top:10px; display:flex; align-items:center; justify-content:space-between}
-  .pill{font-size:.78rem; font-weight:700; padding:3px 9px; border-radius:999px}
-  .pill.open{background:var(--good-tint); color:var(--good)}
-  .pill.taken{background:#eee; color:var(--faded2)}
-  .pill.mine{background:#eaf1f8; color:var(--sky)}
-  .cta{font-size:.85rem; color:var(--sky); font-weight:600}
+  .card:hover{background:var(--panel-hi); box-shadow:0 0 0 1px var(--ring-amber) inset}
+  .card .he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:1.6rem; color:var(--star); direction:rtl; text-align:right; margin-bottom:2px}
+  .card .name{font-weight:700; font-size:1.05rem; color:var(--star)}
+  .card .theme{color:var(--amber); font-size:.85rem; font-weight:300; letter-spacing:.02em; margin-top:1px}
+  .card .foot{margin-top:auto; padding-top:12px; display:flex; align-items:center; justify-content:space-between}
+  .stat{font-size:.8rem; color:var(--amber); font-weight:500}
+  .stat .sdot{font-size:.65rem; vertical-align:1px}
+  .stat.t{color:var(--dim); font-weight:300}
+  .cta{font-size:.82rem; color:var(--link); font-weight:500}
 
-  .card.taken{cursor:default; background:var(--taken-bg); border-style:dashed}
-  .card.taken:hover{transform:none; box-shadow:none; border-color:var(--line)}
-  .card.taken .he,.card.taken .name{color:var(--faded)}
-  .card.taken .theme{color:var(--faded)}
-  .card .takenby{font-size:.82rem; color:var(--faded2); margin-top:6px}
-  .card.mine{border-color:var(--sky); border-style:solid; background:var(--sky-tint)}
-  .card .imgflag{font-size:.78rem;color:var(--good);margin-top:4px}
+  .card.taken{cursor:default; opacity:.45}
+  .card.taken:hover{background:var(--panel); box-shadow:0 0 0 1px var(--ring) inset}
+  .card.mine{box-shadow:0 0 0 2px var(--amber) inset}
+  .card.mine:hover{background:var(--panel-hi); box-shadow:0 0 0 2px var(--amber) inset}
+  .card .imgflag{font-size:.78rem;color:var(--amber);margin-top:4px}
 
   /* modal */
   .backdrop{position:fixed; inset:0; background:rgba(30,24,16,.5); display:none; align-items:center; justify-content:center; padding:16px; z-index:50}
   .backdrop.show{display:flex}
-  .modal{background:var(--card); border-radius:16px; max-width:520px; width:100%; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,.3); max-height:90vh; overflow:auto}
+  .modal{background:var(--card); color:var(--ink); border-radius:16px; max-width:520px; width:100%; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,.45); max-height:90vh; overflow:auto}
   .modal .he{font-family:"David Libre","Frank Ruhl Libre",Georgia,serif; font-size:2rem; direction:rtl; text-align:right; color:var(--ink)}
   .modal h2{margin:.1em 0 .1em; font-size:1.5rem}
   .modal .theme{color:var(--accent); font-weight:600; margin-bottom:10px}
@@ -106,19 +125,22 @@
   .slot.has .slotcap{position:absolute; bottom:0; left:0; right:0; margin:0; padding:2px;
     background:rgba(0,0,0,.5); color:#fff}
   .hint{font-size:.85rem; color:var(--muted); text-align:center; margin-top:8px}
-  footer.page{text-align:center; margin-top:40px; color:var(--faded); font-size:.85rem}
+  footer.page{text-align:center; margin-top:40px; color:var(--dim); font-size:.85rem; font-weight:300}
   footer.page a{color:inherit; text-decoration:underline}
   .demoflag{position:fixed; bottom:10px; right:10px; background:#fff3cd; border:1px solid #e6cf7a; color:#7a5a12; font-size:.75rem; padding:5px 9px; border-radius:8px; z-index:60}
 
-  /* admin */
+  /* admin — a paper panel over the night sky */
+  #adminMount:not(:empty){background:var(--card); color:var(--ink); border-radius:14px; padding:8px 22px 20px; margin-top:34px}
   table.admin{width:100%; border-collapse:collapse; margin-top:14px; font-size:.9rem}
   table.admin th,table.admin td{border:1px solid var(--line); padding:6px 8px; text-align:left}
   table.admin th{background:#f3ede3}
 
   /* access gate */
-  #gate{position:fixed; inset:0; background:var(--cream); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px}
+  #gate{position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:linear-gradient(180deg,var(--night-hi),var(--night-mid) 60%,var(--night-low))}
   #gate.hide{display:none}
-  .gatebox{max-width:380px; width:100%; text-align:center}
+  .gatebox{max-width:400px; width:100%; text-align:center; background:var(--card); color:var(--ink);
+    border-radius:16px; padding:28px 24px; box-shadow:0 20px 50px rgba(0,0,0,.45)}
   .gatebox h2{margin:.2em 0 .1em; font-size:1.6rem}
   .gatebox .sub{color:var(--accent); font-weight:600; margin-bottom:16px}
   .gatebox input{width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:1.05rem; text-align:center; margin-bottom:10px; font-family:inherit}
@@ -131,15 +153,31 @@
   .guide li{margin:3px 0}
   .guide .opt{background:#f7f4ef; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0}
   .guide .opt b{color:var(--sky)}
-  .guidebtn{display:inline-block; margin-top:6px; background:var(--card); border:1px solid var(--accent); color:var(--accent);
-    border-radius:999px; padding:8px 16px; font-weight:700; font-size:.92rem; cursor:pointer; font-family:inherit}
-  .guidebtn:hover{background:#fbf3ea}
+  /* mini layout figures — echo the diagrams on page 2 of the printable guide */
+  .mf{position:relative; aspect-ratio:16/9; max-width:300px; margin:10px auto 2px;
+    background:var(--sky-soft); border:2px solid var(--ink-soft); border-radius:8px; overflow:hidden;
+    font-size:.58rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent)}
+  .mf .mfz{position:absolute; background:rgba(246,210,122,.65); display:flex; align-items:center; justify-content:center; text-align:center}
+  .mf .mf-tl{top:4.5%; left:3%; width:46%; height:25%}
+  .mf .mf-tr{top:4.5%; right:3%; width:31%; height:25%}
+  .mf .mf-bt{left:3%; right:3%; bottom:4.5%; height:17%}
+  .mf .mfsub{position:absolute; border:2px dashed var(--sky); border-radius:6px; color:var(--sky);
+    display:flex; flex-direction:column; align-items:center; justify-content:center}
+  .mf .mfsub i{font-style:italic; font-weight:400; text-transform:none; letter-spacing:0; font-size:.55rem}
+  .mf .mf-c{left:19%; right:19%; top:35%; bottom:25%}
+  .mf .mf-left{top:6%; bottom:6%; left:3%; width:45%}
+  .mf .mf-right{top:0; bottom:0; right:0; width:46%; flex-direction:column; justify-content:space-between; padding:5% 0}
+  .guidebtn{display:inline-block; margin-top:8px; background:transparent; border:1px solid var(--amber); color:var(--amber);
+    border-radius:999px; padding:8px 16px; font-weight:500; font-size:.92rem; cursor:pointer; font-family:inherit}
+  .guidebtn:hover{background:rgba(246,210,122,.12)}
 
   /* prayer preview */
   .previewbtn{display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:var(--card);
     border:1px solid var(--sky); color:var(--sky); border-radius:999px; padding:8px 16px;
     font-weight:700; font-size:.9rem; cursor:pointer; font-family:inherit}
   .previewbtn:hover{background:var(--sky-tint)}
+  .pvrow{margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:.92rem; color:var(--ink-soft)}
+  .pvrow .previewbtn{margin-top:0}
   .seg{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; margin:4px 0 14px}
   .seg button{appearance:none; border:none; background:var(--card); padding:8px 16px; font-size:.92rem; font-weight:700;
     cursor:pointer; color:var(--muted); font-family:inherit}
@@ -208,24 +246,24 @@
 <div class="wrap">
   <header class="page">
     <h1>Visual T'filah&nbsp;&mdash;&nbsp;Sign Up for a Prayer</h1>
-    <div class="sub">Help create our Shabbat together</div>
     <div class="groupbar" id="groupbar"></div>
   </header>
-  <p class="intro">Choose a prayer that speaks to you, then create an image to carry it on the screen
-  this Friday night. Tap any prayer to read its theme and sign up. Once you claim it, you can come
-  back anytime to upload your image. You may sign up for one prayer.</p>
+  <p class="intro">Look through the prayers below to find one that speaks to you. Sign up to create
+  an image or photo to carry it on screen during our Visual T'filah. Tap a prayer to learn more and
+  then sign up. Once you claim it, you can come back to upload it anytime<span id="dueDate"></span>.</p>
   <div style="text-align:center"><button class="guidebtn" id="guideBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>&nbsp;How to make your image</button></div>
+  <div class="horizon"></div>
 
   <div class="statusbar" id="statusbar">
     Loading prayers&hellip;
     <span class="manage" id="manageLink" style="display:none">Already signed up? Manage your prayer</span>
   </div>
 
-  <div class="grid" id="grid"></div>
+  <div id="grid"></div>
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v2.9</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v3.5</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -343,6 +381,18 @@ const PRAYERS = [
    theme:"Memory and praise",
    info:"Mourners rise to sanctify God's name, holding memory and praise together.",
    frame:"Think enduring light: candle flames, stars, names remembered, light that persists in the dark."}
+];
+
+/* Order of the service — the sign-up board renders prayers in these sections.
+   A prayer whose id appears in no section still renders, in a final unlabeled group. */
+const SECTIONS = [
+ {he:"קַבָּלַת שַׁבָּת", en:"Kabbalat Shabbat", ids:["candles","lcha-dodi"]},
+ {he:"שְׁמַע וּבִרְכוֹתֶיהָ", en:"The Sh'ma & Its Blessings",
+  ids:["barchu","maariv-aravim","ahavat-olam","shma","vahavta","mi-chamocha","hashkiveinu","vshamru"]},
+ {he:"עֲמִידָה", en:"The Amidah",
+  ids:["adonai-sfatai","avot-vimahot","gvurot","kedushah","rtzei","modim","shalom-rav"]},
+ {he:"תְּפִלּוֹת הַלֵּב", en:"Prayers of the Heart", ids:["mi-shebeirach","silent"]},
+ {he:"סִיּוּם", en:"Concluding Prayers", ids:["aleinu","kaddish"]}
 ];
 
 /* ---------- Prayer texts for the Preview feature ----------
@@ -1046,32 +1096,58 @@ function fmt(ts){
   catch{ return ""; }
 }
 
+function cardEl(p){
+  const c = claims[p.id];
+  const mine = isMine(c);
+  const el = document.createElement("div");
+  el.className = "card" + (c ? (mine ? " mine" : " taken") : "");
+  let foot;
+  if(!c) foot = `<span class="stat"><span class="sdot">&#9679;</span> Available</span><span class="cta">Learn more &rarr;</span>`;
+  else if(mine) foot = `<span class="stat"><span class="sdot">&#9679;</span> Yours</span><span class="cta">${c.hasImage?"Image added":"Add image &rarr;"}</span>`;
+  else foot = `<span class="stat t">Taken</span>`;
+  el.innerHTML =
+    `<div class="he" dir="rtl">${p.he}</div>
+     <div class="name">${p.name}</div>
+     <div class="theme">${p.theme}</div>
+     ${mine && c.hasImage ? `<div class="imgflag">&#10003; your image is in</div>` : ""}
+     <div class="foot">${foot}</div>`;
+  if(!c || mine) el.onclick = () => openPrayer(p.id);
+  return el;
+}
+
 function render(){
   const taken = Object.keys(claims).length;
   document.getElementById("statusbar").innerHTML =
-    `<b>${PRAYERS.length-taken}</b> of ${PRAYERS.length} prayers still open` +
+    `<b>${PRAYERS.length-taken}</b> of ${PRAYERS.length} prayers still available` +
     `<span class="manage" id="manageLink">Already signed up? Manage your prayer</span>`;
   document.getElementById("manageLink").onclick = openManage;
 
   grid.innerHTML = "";
-  PRAYERS.forEach(p => {
-    const c = claims[p.id];
-    const mine = isMine(c);
-    const el = document.createElement("div");
-    el.className = "card" + (c ? (mine ? " mine" : " taken") : "");
-    let foot;
-    if(!c) foot = `<span class="pill open">Open</span><span class="cta">Sign up &rarr;</span>`;
-    else if(mine) foot = `<span class="pill mine">Yours</span><span class="cta">${c.hasImage?"Image added":"Add image &rarr;"}</span>`;
-    else foot = `<span class="pill taken">Taken</span>`;
-    el.innerHTML =
-      `<div class="he" dir="rtl">${p.he}</div>
-       <div class="name">${p.name}</div>
-       <div class="theme">${p.theme}</div>
-       ${mine && c.hasImage ? `<div class="imgflag">&#10003; your image is in</div>` : ""}
-       <div class="foot">${foot}</div>`;
-    if(!c || mine) el.onclick = () => openPrayer(p.id);
-    grid.appendChild(el);
+  const placed = new Set();
+  SECTIONS.forEach((s, si) => {
+    const ids = s.ids.filter(id => byId[id]);
+    if(!ids.length) return;
+    const sec = document.createElement("div");   /* wrapper bounds the sticky header to its own section */
+    sec.className = "svcsec";
+    const head = document.createElement("div");
+    head.className = "sechead";
+    /* the amber rule dims section by section as night deepens */
+    head.style.borderBottomColor = `rgba(246,210,122,${(0.5 - si*0.09).toFixed(2)})`;
+    head.innerHTML = `<span class="sen">${s.en}</span><span class="she" dir="rtl">${s.he}</span>`;
+    sec.appendChild(head);
+    const g = document.createElement("div");
+    g.className = "grid";
+    ids.forEach(id => { placed.add(id); g.appendChild(cardEl(byId[id])); });
+    sec.appendChild(g);
+    grid.appendChild(sec);
   });
+  const rest = PRAYERS.filter(p => !placed.has(p.id));
+  if(rest.length){
+    const g = document.createElement("div");
+    g.className = "grid";
+    rest.forEach(p => g.appendChild(cardEl(p)));
+    grid.appendChild(g);
+  }
 }
 
 function esc(s){ return (s||"").replace(/[&<>"]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
@@ -1089,7 +1165,10 @@ function openPrayer(id){
     <div class="frame"><b>Picturing it:</b> What is the prayer literally about? How does it make you feel?
       <div style="margin-top:6px">For example: ${p.frame.replace(/^Think\s+/i,"")}</div></div>
     <div class="remember">Remember to <a href="#" id="leaveRoomLink"><i>leave room for the words</i></a>!</div>
-    ${TEXTS[id] ? `<div><button class="previewbtn" id="previewBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Preview this prayer</button></div>` : ""}`;
+    ${TEXTS[id] ? `<div class="pvrow">See ${p.name} on the:
+      <button class="previewbtn" id="pvPage"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Page</button>
+      <button class="previewbtn" id="pvScreen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Screen</button>
+    </div>` : ""}`;
 
   if(mine){
     body += imageSection(p, c);
@@ -1105,15 +1184,17 @@ function openPrayer(id){
       <datalist id="attrlist"></datalist>
       <div class="hint" style="margin:6px 0 0">Leave blank for no credit. Tap the box for suggestions.</div></div>
     <div class="err" id="f_err"></div>
-    <button class="btn primary" id="f_go">Claim this prayer</button>`;
+    <button class="btn primary" id="f_go">Sign up for ${p.name}</button>
+    ${currentGroup && currentGroup.deadline ? `<div class="hint" style="margin-top:8px">Images are due by <b>${esc(currentGroup.deadline)}</b>.</div>` : ""}`;
   }
   modal.innerHTML = body;
   backdrop.classList.add("show");
 
   const lr = q("#leaveRoomLink");
   if(lr) lr.onclick = (e)=>{ e.preventDefault(); openGuide("guide-words", id); };
-  const pb = q("#previewBtn");
-  if(pb) pb.onclick = () => openPreview(id);
+  const pp = q("#pvPage"), ps = q("#pvScreen");
+  if(pp) pp.onclick = () => openPreview(id, "page");
+  if(ps) ps.onclick = () => openPreview(id, "screen");
 
   if(!mine){
     if(me){ q("#f_first").value=me.first||""; q("#f_last").value=me.last||""; q("#f_email").value=me.email||""; if(me.attribution) q("#f_attr").value=me.attribution; }
@@ -1427,6 +1508,9 @@ function showGroupBar(){
   const el = document.getElementById("groupbar");
   if(el && currentGroup) el.innerHTML =
     `<b>${esc(currentGroup.label)}</b> &middot; submissions due <b>${esc(currentGroup.deadline)}</b>`;
+  const dd = document.getElementById("dueDate");
+  if(dd && currentGroup && currentGroup.deadline)
+    dd.innerHTML = ` before the due date: <b>${esc(currentGroup.deadline)}</b>`;
 }
 (function gate(){
   const g = document.getElementById("gate");
@@ -1473,8 +1557,21 @@ function openGuide(scrollToId, returnId){
 
       <h3 id="guide-words">Leave room for the words</h3>
       <p>The prayer text sits over your image: Hebrew in the upper right, transliteration in the upper left, and the translation along the bottom. Keep those areas calm and open so the words stay readable. Two easy ways:</p>
-      <div class="opt"><b>Words around the edges:</b> keep the top corners and the bottom strip plain, with your subject in the open middle, a little low.</div>
-      <div class="opt"><b>Words down one side:</b> keep one whole half of the frame calm for the words, with your subject on the other half.</div>
+      <div class="opt"><b>Words around the edges:</b> keep the top corners and the bottom strip plain, with your subject in the open middle, a little low.
+        <div class="mf" aria-hidden="true">
+          <span class="mfz mf-tl">Translit.</span>
+          <span class="mfz mf-tr">Hebrew</span>
+          <span class="mfz mf-bt">Translation</span>
+          <span class="mfsub mf-c">Your subject<i>a little low</i></span>
+        </div>
+      </div>
+      <div class="opt"><b>Words down one side:</b> keep one whole half of the frame calm for the words, with your subject on the other half.
+        <div class="mf" aria-hidden="true">
+          <span class="mfsub mf-left">Your subject</span>
+          <span class="mfz mf-right"><span>Hebrew</span><span>Translit.</span><span>Translation</span></span>
+        </div>
+      </div>
+      <div class="hint" style="margin:2px 0 0">Amber = calm space for the words &middot; dashed = room for your subject. Either half can hold the words.</div>
 
       <h3>A few framing tips</h3>
       <ul>
@@ -1502,7 +1599,7 @@ document.getElementById("guideBtn").onclick = () => openGuide();
 
 /* ---------- prayer preview (Page / Screen) ---------- */
 let pvMode = "screen", pvLayout = "columns";
-function openPreview(id){ pvMode = "screen"; const t = TEXTS[id]; pvLayout = (t && t.allowCenter && t.layout) || "columns"; renderPreview(id); }
+function openPreview(id, mode){ pvMode = mode || "screen"; const t = TEXTS[id]; pvLayout = (t && t.allowCenter && t.layout) || "columns"; renderPreview(id); }
 
 function dots(cur, n){ let o=""; for(let k=0;k<n;k++) o += (k===cur ? "●" : "○"); return o; }
 
