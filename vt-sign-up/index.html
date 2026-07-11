@@ -263,7 +263,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v3.5</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v3.6</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -1360,7 +1360,7 @@ function openManage(){
 function q(s){ return modal.querySelector(s); }
 
 /* ---------- Admin view (?admin) — Google sign-in; only the admin can read PII ---------- */
-const ADMIN_EMAIL = "dan.medwin@gmail.com";
+const ADMIN_EMAIL = ["dan.medwin", "gmail.com"].join("@"); // assembled from parts so scrapers can't harvest the plaintext address
 let adminInited = false, adminUser = null, adminPII = null;
 
 async function initAdmin(){
