@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apps — Rabbi Dan Medwin | Tech Rabbi</title>
+<meta name="description" content="Tools, games, and experiments built by Rabbi Dan Medwin. Visual T'filah tools, Jewish educational resources, browser games, and a few things that got out of hand.">
+<link rel="canonical" href="https://www.techrabbi.org/apps/">
+<link rel="icon" href="logo.png" type="image/png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Apps — Rabbi Dan Medwin">
+<meta property="og:description" content="Tools, games, and experiments built by Rabbi Dan Medwin.">
+<meta property="og:url" content="https://www.techrabbi.org/apps/">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy:      #0f1b2d;
+  --navy-card: #162440;
+  --navy-deep: #0b1422;
+  --gold:      #d4a853;
+  --gold-soft: #e8c97a;
+  --cream:     #eee8db;
+  --slate:     #9aa3b4;
+
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+  --space-2xl: 64px;
+
+  --radius-sm: 4px;
+  --radius-md: 12px;
+
+  --line: rgba(255, 255, 255, 0.08);
+  --line-gold: rgba(212, 168, 83, 0.25);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--navy);
+  color: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------- header ---- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
+  background: var(--navy);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.site-header .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.site-header .logo img { height: 36px; width: auto; }
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+.logo-text span { color: var(--cream); font-weight: 400; }
+.site-header nav { display: flex; gap: 1.8rem; }
+.site-header nav a {
+  color: var(--slate);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+}
+.site-header nav a:hover,
+.site-header nav a:focus-visible { color: var(--gold); }
+.site-header nav a[aria-current="page"] { color: var(--cream); }
+.cta-btn {
+  background: var(--gold);
+  color: var(--navy);
+  padding: 0.55rem 1.3rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+.cta-btn:hover, .cta-btn:focus-visible { background: var(--gold-soft); }
+
+/* --------------------------------------------------------------- page ---- */
+
+main { max-width: 1280px; margin: 0 auto; padding: var(--space-2xl) var(--space-xl) var(--space-xl); }
+
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-sm);
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  margin: 0 0 var(--space-md);
+  line-height: 1.15;
+}
+h1 em { font-style: italic; color: var(--gold); }
+.lede {
+  max-width: 62ch;
+  color: var(--slate);
+  font-size: 1.05rem;
+  margin: 0 0 var(--space-xl);
+  text-wrap: pretty;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-xl);
+}
+.count { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--slate); }
+.count b { color: var(--cream); font-weight: 500; }
+
+.ghost-btn {
+  background: transparent;
+  color: var(--slate);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.ghost-btn:hover, .ghost-btn:focus-visible { color: var(--gold); border-color: var(--line-gold); }
+
+/* ------------------------------------------------------------ sections --- */
+
+section { margin-bottom: var(--space-2xl); }
+section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 var(--space-lg);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--line-gold);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+}
+section h2 .n {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--gold);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* --------------------------------------------------------------- card ---- */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--navy-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--line-gold);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.card:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 168, 83, 0.35);
+}
+
+.card .shot {
+  display: block;
+  width: 100%;
+  height: auto;           /* let aspect-ratio win over the width/height attributes */
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top center;
+  background: var(--navy-deep);
+  border-bottom: 1px solid var(--line);
+}
+
+.card-body { padding: var(--space-md); display: flex; flex-direction: column; gap: var(--space-sm); flex: 1; }
+
+.card h3 { font-size: 1.05rem; font-weight: 700; margin: 0; line-height: 1.3; }
+.card h3 a {
+  color: var(--cream);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.card h3 a::after { content: ""; position: absolute; inset: 0; }
+.card:hover h3 a, .card h3 a:focus-visible { color: var(--gold); }
+
+.card p { margin: 0; color: var(--slate); font-size: 0.9rem; line-height: 1.55; text-wrap: pretty; }
+
+.meta {
+  margin-top: auto;
+  padding-top: var(--space-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--slate);
+  border-top: 1px solid var(--line);
+}
+.source {
+  position: relative;
+  z-index: 2;
+  color: var(--slate);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.source:hover, .source:focus-visible { color: var(--gold); background: rgba(212, 168, 83, 0.1); }
+.source svg { width: 13px; height: 13px; }
+
+.labels { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  line-height: 1.4;
+}
+.label[data-kind="staff"]    { color: #e0a3a3; }
+.label[data-kind="wip"]      { color: var(--gold); }
+.label[data-kind="new"]      { color: #7fc9a4; }
+.label[data-kind="archived"] { color: var(--slate); }
+.label[data-kind="hidden"]   { color: #c58fd6; }
+.label[data-kind="custom"]   { color: #8fb3d6; }
+
+/* Admin-only view of a hidden entry. */
+.card.is-hidden { opacity: 0.55; border-style: dashed; }
+.card.is-hidden:hover { opacity: 1; }
+
+.admin-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  background: rgba(212, 168, 83, 0.1);
+  border: 1px solid var(--line-gold);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-xl);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--gold);
+}
+body.is-admin .admin-bar { display: flex; }
+
+.empty {
+  color: var(--slate);
+  font-size: 0.9rem;
+  padding: var(--space-xl);
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  padding: var(--space-lg) var(--space-xl);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--slate);
+}
+footer a { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+footer a:hover, footer a:focus-visible { color: var(--gold); }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+@media (max-width: 720px) {
+  .site-header { padding: var(--space-md); }
+  .site-header nav { display: none; }
+  main { padding: var(--space-xl) var(--space-md); }
+  footer { padding: var(--space-lg) var(--space-md); }
+  .grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="logo">
+    <img src="logo.png" alt="">
+    <span class="logo-text">Tech<span>Rabbi</span></span>
+  </a>
+  <nav aria-label="Main">
+    <a href="/#ABOUT">ABOUT</a>
+    <a href="/#SERVICES">SERVICES</a>
+    <a href="/apps/" aria-current="page">APPS</a>
+    <a href="/#CONTACT">CONTACT</a>
+  </nav>
+  <a href="/#CONTACT" class="cta-btn">Let's Talk</a>
+</header>
+
+<main>
+  <p class="eyebrow">Built at Tech Rabbi</p>
+  <h1>Things I <em>made</em></h1>
+  <p class="lede">
+    Everything on this page I built, most of it to solve a problem sitting in front of me at the time.
+    Some are tools for Jewish life, some are games, and a few are experiments that got out of hand.
+    All of them run in a browser, and all of them are free.
+  </p>
+
+  <div class="admin-bar" role="status">
+    <span id="adminNote">Signed in as admin. Hidden entries are shown dimmed.</span>
+    <a class="ghost-btn" href="admin.html" style="text-decoration:none">Open admin</a>
+  </div>
+
+  <div class="toolbar">
+    <p class="count" id="count">Loading…</p>
+    <a class="ghost-btn" href="admin.html" id="adminLink" style="text-decoration:none">Admin</a>
+  </div>
+
+  <div id="sections"></div>
+</main>
+
+<footer>
+  <span>Rabbi Dan Medwin &middot; <a href="/">techrabbi.org</a></span>
+  <span id="version">apps directory v0.1.0</span>
+</footer>
+
+<script type="module">
+import { storeReady, merge } from './store.js';
+
+const LABEL_KIND = {
+  'staff only': 'staff',
+  'work in progress': 'wip',
+  'new': 'new',
+  'archived': 'archived',
+  'experiment': 'custom',
+};
+
+const kindFor = (label) => LABEL_KIND[label.trim().toLowerCase()] || 'custom';
+
+const monthYear = (iso) =>
+  new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const GITHUB_ICON =
+  '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>';
+
+function cardHTML(app) {
+  const labels = app.labels.map((l) =>
+    `<span class="label" data-kind="${kindFor(l)}">${esc(l)}</span>`).join('');
+  const hiddenChip = app.hidden
+    ? '<span class="label" data-kind="hidden">Hidden</span>' : '';
+  const dates = app.created === app.updated
+    ? monthYear(app.created)
+    : `${monthYear(app.created)} &rarr; ${monthYear(app.updated)}`;
+  const source = app.repo
+    ? `<a class="source" href="https://github.com/${esc(app.repo)}" target="_blank" rel="noopener"
+          title="Source on GitHub">${GITHUB_ICON}<span>source</span></a>`
+    : '';
+
+  return `
+  <article class="card${app.hidden ? ' is-hidden' : ''}">
+    <img class="shot" src="shots/${esc(app.shot || app.id)}.webp" alt="Screenshot of ${esc(app.name)}"
+         loading="lazy" width="1200" height="750">
+    <div class="card-body">
+      <h3><a href="${esc(app.url)}" target="_blank" rel="noopener">${esc(app.name)}</a></h3>
+      ${labels || hiddenChip ? `<div class="labels">${hiddenChip}${labels}</div>` : ''}
+      <p>${esc(app.desc)}</p>
+      <div class="meta"><span>${dates}</span>${source}</div>
+    </div>
+  </article>`;
+}
+
+function render(catalog, overrides, isAdmin) {
+  const all = merge(catalog, overrides);
+  const visible = all.filter((a) => isAdmin || !a.hidden);
+  const root = document.getElementById('sections');
+
+  root.innerHTML = catalog.categories.map((cat) => {
+    const apps = visible.filter((a) => a.cat === cat.id);
+    if (!apps.length) return '';
+    return `<section aria-labelledby="cat-${cat.id}">
+      <h2 id="cat-${cat.id}">${esc(cat.name)} <span class="n">${apps.length}</span></h2>
+      <div class="grid">${apps.map(cardHTML).join('')}</div>
+    </section>`;
+  }).join('') || '<p class="empty">Nothing to show yet.</p>';
+
+  const shown = all.filter((a) => !a.hidden).length;
+  document.getElementById('count').innerHTML = isAdmin
+    ? `<b>${all.length}</b> entries &middot; ${all.length - shown} hidden from visitors`
+    : `<b>${shown}</b> apps, games, and experiments`;
+
+  document.body.classList.toggle('is-admin', isAdmin);
+  document.getElementById('adminLink').hidden = isAdmin;
+}
+
+(async function init() {
+  const [catalog, store] = await Promise.all([
+    fetch('apps.json').then((r) => r.json()),
+    storeReady,
+  ]);
+
+  document.getElementById('version').textContent = `apps directory v${catalog.version}`;
+
+  let overrides = {};
+  let isAdmin = false;
+  const paint = () => render(catalog, overrides, isAdmin);
+
+  store.onData((next) => { overrides = next || {}; paint(); });
+  store.onAuth((user) => { isAdmin = !!user; paint(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+{
+  "version": "0.1.0",
+  "categories": [
+    { "id": "jewish", "name": "Jewish Tools and Worship" },
+    { "id": "games",  "name": "Games and Toys" },
+    { "id": "tools",  "name": "Tools and Utilities" },
+    { "id": "claude", "name": "Made by Claude" }
+  ],
+  "apps": [
+    {
+      "id": "vt-image-helper",
+      "name": "VT Image Helper",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/VT-Image-Helper/",
+      "repo": "danmedwin/VT-Image-Helper",
+      "desc": "Find beautiful, text ready images for the slides behind your service, and share the good ones with everyone else.",
+      "created": "2026-06-12",
+      "updated": "2026-07-12"
+    },
+    {
+      "id": "vt-signup",
+      "name": "Visual T'filah Sign-Up",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/vt-sign-up/",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "Congregants claim a prayer and bring their own image to carry it on screen during the service.",
+      "created": "2026-06-29",
+      "updated": "2026-07-10"
+    },
+    {
+      "id": "siddur-ocr",
+      "name": "Siddur OCR",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/JBI/",
+      "repo": "danmedwin/JBI",
+      "desc": "Turn scanned prayer book pages into clean Word documents for blind and low vision worshipers.",
+      "created": "2026-04-14",
+      "updated": "2026-07-20",
+      "labels": ["Staff Only"]
+    },
+    {
+      "id": "layout-lab",
+      "name": "Layout Lab",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/JBI/LayoutLab.html",
+      "repo": "danmedwin/JBI",
+      "desc": "Mark up the anatomy of a prayer book page so the next scan reads it in the right order.",
+      "created": "2026-07-20",
+      "updated": "2026-07-27",
+      "labels": ["Staff Only"]
+    },
+    {
+      "id": "digital-mensches",
+      "name": "Digital Mensches",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/digital-mensches/",
+      "repo": "danmedwin/digital-mensches",
+      "desc": "Ten guidelines for ethical online behavior, with the programs a camp or school needs to teach them.",
+      "created": "2026-07-08",
+      "updated": "2026-08-04"
+    },
+    {
+      "id": "torah-nav",
+      "name": "Torah Navigator",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/torah-nav/",
+      "repo": "danmedwin/torah-nav",
+      "desc": "Point a camera at the open scroll and find your place in the Torah reading.",
+      "created": "2026-03-16",
+      "updated": "2026-03-17",
+      "labels": ["Work in Progress"]
+    },
+
+    {
+      "id": "glyphrush",
+      "name": "Glyph Rush",
+      "cat": "games",
+      "url": "https://techrabbi.org/glyphrush/",
+      "repo": "danmedwin/glyphrush",
+      "desc": "A daily minute of symbol speed. Find the twin, spot the impostor, scan the row.",
+      "created": "2026-07-12",
+      "updated": "2026-07-12"
+    },
+    {
+      "id": "blacktop",
+      "name": "Blacktop",
+      "cat": "games",
+      "url": "https://techrabbi.org/blacktop/",
+      "repo": "danmedwin/blacktop",
+      "desc": "A racing game drawn entirely in black lines on paper white.",
+      "created": "2026-07-11",
+      "updated": "2026-07-18"
+    },
+    {
+      "id": "race-car-simulator",
+      "name": "Race Car Simulator",
+      "cat": "games",
+      "url": "https://techrabbi.org/race-car-simulator/",
+      "repo": "danmedwin/race-car-simulator",
+      "desc": "My father's 1985 Macintosh racing game, possibly the first 3D racer on the Mac, rebuilt to run in a browser.",
+      "created": "2026-08-05",
+      "updated": "2026-08-05"
+    },
+    {
+      "id": "alien-world",
+      "name": "Alien World",
+      "cat": "games",
+      "url": "https://techrabbi.org/alien-world/",
+      "repo": "danmedwin/alien-world",
+      "desc": "Walk out into an endless landscape of crystal spires, bioluminescent flora, and purple highlands.",
+      "created": "2026-06-18",
+      "updated": "2026-06-27"
+    },
+    {
+      "id": "alien-device-builder",
+      "name": "Device Builder",
+      "cat": "games",
+      "url": "https://techrabbi.org/alien-world/device-builder.html",
+      "repo": "danmedwin/alien-world",
+      "desc": "A slider workshop for shaping the handheld device you carry through Alien World.",
+      "created": "2026-06-21",
+      "updated": "2026-06-21",
+      "hidden": true
+    },
+    {
+      "id": "alien-fob-builder",
+      "name": "Fob Builder",
+      "cat": "games",
+      "url": "https://techrabbi.org/alien-world/fob-builder.html",
+      "repo": "danmedwin/alien-world",
+      "desc": "A slider workshop for shaping the fob you carry through Alien World.",
+      "created": "2026-06-21",
+      "updated": "2026-06-21",
+      "hidden": true
+    },
+    {
+      "id": "cosmic-drift",
+      "name": "Cosmic Drift",
+      "cat": "games",
+      "url": "https://cosmicdriftapp.com/",
+      "repo": "danmedwin/cosmic-drift",
+      "desc": "Clear waves of drifting blocks, then spend what you salvage on a better ship.",
+      "created": "2026-05-07",
+      "updated": "2026-05-26"
+    },
+    {
+      "id": "cosmic-workshop",
+      "name": "Cosmic Workshop",
+      "cat": "games",
+      "url": "https://cosmicdriftapp.com/workshop.html",
+      "repo": "danmedwin/cosmic-drift",
+      "desc": "Build your own levels, blocks, ships, and effects for Cosmic Drift.",
+      "created": "2026-05-13",
+      "updated": "2026-05-25"
+    },
+    {
+      "id": "streams",
+      "name": "Streams",
+      "cat": "games",
+      "url": "https://techrabbi.org/streams/",
+      "repo": "danmedwin/streams",
+      "desc": "A living aquarium painted in three inks. Click the water to feed the fish.",
+      "created": "2026-07-12",
+      "updated": "2026-07-21"
+    },
+    {
+      "id": "thread-hiker",
+      "name": "Thread Hiker",
+      "cat": "games",
+      "url": "https://techrabbi.org/thread-hiker/",
+      "repo": "danmedwin/thread-hiker",
+      "desc": "Take a walk across the surface of Passages, a fiber art piece by my father, Steve Medwin.",
+      "created": "2026-07-20",
+      "updated": "2026-07-20"
+    },
+    {
+      "id": "threads",
+      "name": "Threads",
+      "cat": "tools",
+      "url": "https://techrabbi.org/threads/",
+      "repo": "danmedwin/threads",
+      "desc": "Look up any Madeira Polyneon embroidery thread and find its closest Pantone match.",
+      "created": "2026-05-05",
+      "updated": "2026-05-10"
+    },
+
+    {
+      "id": "binah",
+      "name": "Binah",
+      "cat": "tools",
+      "url": "https://techrabbi.org/binah/",
+      "repo": "danmedwin/binah",
+      "desc": "A daily digest of the artificial intelligence news that matters for faith, ethics, and Jewish life.",
+      "created": "2026-07-10",
+      "updated": "2026-07-13"
+    },
+    {
+      "id": "family-dinners",
+      "name": "Family Dinner Planner",
+      "cat": "tools",
+      "url": "https://techrabbi.org/family-dinners/",
+      "repo": "danmedwin/family-dinners",
+      "desc": "Plan the week's dinners together so nobody ends up staring into the fridge at six o'clock.",
+      "created": "2026-06-27",
+      "updated": "2026-08-02"
+    },
+    {
+      "id": "family-dinners-guide",
+      "name": "Family Dinner Planner Guide",
+      "cat": "tools",
+      "url": "https://techrabbi.org/family-dinners/guide.html",
+      "repo": "danmedwin/family-dinners",
+      "desc": "How the dinner planner works, from the first sign in to a full week of meals.",
+      "created": "2026-07-31",
+      "updated": "2026-08-02",
+      "hidden": true
+    },
+    {
+      "id": "mailbox-lab",
+      "name": "Mailbox Lab",
+      "cat": "tools",
+      "url": "https://techrabbi.org/mailbox-lab/",
+      "repo": "danmedwin/mailbox-lab",
+      "desc": "Design a laser cut mailbox for the hallway board, then export the sheets to cut.",
+      "created": "2026-08-10",
+      "updated": "2026-08-10"
+    },
+    {
+      "id": "techrabbi-home",
+      "name": "Tech Rabbi",
+      "cat": "tools",
+      "url": "https://techrabbi.org/",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "The main site. Who I am, what I do, and how to reach me.",
+      "created": "2026-03-24",
+      "updated": "2026-03-25",
+      "hidden": true
+    },
+
+    {
+      "id": "palimpsest",
+      "name": "Palimpsest",
+      "cat": "claude",
+      "url": "https://techrabbi.org/palimpsest/",
+      "repo": "danmedwin/palimpsest",
+      "desc": "A manuscript that fades instead of vanishing, written and rewritten as you watch.",
+      "created": "2026-07-19",
+      "updated": "2026-07-19"
+    },
+    {
+      "id": "latent-sky",
+      "name": "Latent Sky",
+      "cat": "claude",
+      "url": "https://techrabbi.org/latent-sky/",
+      "repo": "danmedwin/latent-sky",
+      "desc": "The space inside a language model, drawn as a night sky you can fly through.",
+      "created": "2026-07-19",
+      "updated": "2026-07-19"
+    }
+  ]
+}

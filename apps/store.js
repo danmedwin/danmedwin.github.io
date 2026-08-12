@@ -1,0 +1,143 @@
+/* Shared data layer for the apps directory.
+ *
+ * Two interchangeable back ends behind one interface:
+ *   mock     - localStorage, so the page is fully clickable before Firebase exists
+ *   firebase - Realtime Database + email/password auth
+ *
+ * Flip USE_FIREBASE once the project is created and CONFIG is filled in.
+ */
+const USE_FIREBASE = false;
+
+const CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+};
+
+const LS_OVERRIDES = "techrabbi.apps.overrides";
+const LS_ADMIN = "techrabbi.apps.admin";
+
+function emit(listeners, value) {
+  listeners.forEach((fn) => {
+    try { fn(value); } catch (err) { console.error(err); }
+  });
+}
+
+/* ---------------------------------------------------------------- mock ---- */
+
+function mockStore() {
+  const dataListeners = new Set();
+  const authListeners = new Set();
+  const read = () => {
+    try { return JSON.parse(localStorage.getItem(LS_OVERRIDES)) || {}; }
+    catch { return {}; }
+  };
+  const write = (obj) => {
+    localStorage.setItem(LS_OVERRIDES, JSON.stringify(obj));
+    emit(dataListeners, obj);
+  };
+
+  // Another tab edited things: keep this one in step.
+  window.addEventListener("storage", (e) => {
+    if (e.key === LS_OVERRIDES) emit(dataListeners, read());
+    if (e.key === LS_ADMIN) emit(authListeners, currentUser());
+  });
+
+  const currentUser = () => {
+    const v = localStorage.getItem(LS_ADMIN);
+    return v ? { email: v } : null;
+  };
+
+  return {
+    mode: "mock",
+    async init() { return read(); },
+    overrides: read,
+    onData(fn) { dataListeners.add(fn); fn(read()); return () => dataListeners.delete(fn); },
+    async save(id, patch) {
+      const all = read();
+      const next = { ...(all[id] || {}), ...patch };
+      Object.keys(next).forEach((k) => {
+        const v = next[k];
+        if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) delete next[k];
+      });
+      if (Object.keys(next).length) all[id] = next; else delete all[id];
+      write(all);
+    },
+    async reset() { write({}); },
+    onAuth(fn) { authListeners.add(fn); fn(currentUser()); return () => authListeners.delete(fn); },
+    user: currentUser,
+    async signIn(email) {
+      localStorage.setItem(LS_ADMIN, email || "demo@techrabbi.org");
+      emit(authListeners, currentUser());
+    },
+    async signOut() {
+      localStorage.removeItem(LS_ADMIN);
+      emit(authListeners, null);
+    },
+  };
+}
+
+/* ------------------------------------------------------------ firebase ---- */
+
+async function firebaseStore() {
+  const [{ initializeApp }, auth, db] = await Promise.all([
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"),
+  ]);
+
+  const app = initializeApp(CONFIG);
+  const authRef = auth.getAuth(app);
+  const dbRef = db.getDatabase(app);
+  const root = db.ref(dbRef, "apps");
+
+  let cache = {};
+  const dataListeners = new Set();
+  db.onValue(root, (snap) => {
+    cache = snap.val() || {};
+    emit(dataListeners, cache);
+  });
+
+  return {
+    mode: "firebase",
+    async init() { return cache; },
+    overrides: () => cache,
+    onData(fn) { dataListeners.add(fn); fn(cache); return () => dataListeners.delete(fn); },
+    async save(id, patch) {
+      const next = { ...(cache[id] || {}), ...patch };
+      Object.keys(next).forEach((k) => {
+        const v = next[k];
+        if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) delete next[k];
+      });
+      await db.set(db.ref(dbRef, "apps/" + id), Object.keys(next).length ? next : null);
+    },
+    async reset() { await db.set(root, null); },
+    onAuth(fn) { return auth.onAuthStateChanged(authRef, fn); },
+    user: () => authRef.currentUser,
+    async signIn(email, password) {
+      await auth.signInWithEmailAndPassword(authRef, email, password);
+    },
+    async signOut() { await auth.signOut(authRef); },
+  };
+}
+
+export const storeReady = USE_FIREBASE ? firebaseStore() : Promise.resolve(mockStore());
+
+/* Merge the committed catalog with whatever admin has changed. */
+export function merge(catalog, overrides) {
+  return catalog.apps.map((app, i) => {
+    const o = overrides[app.id] || {};
+    return {
+      ...app,
+      ...o,
+      labels: o.labels || app.labels || [],
+      hidden: o.hidden !== undefined ? o.hidden : !!app.hidden,
+      order: o.order !== undefined ? o.order : i,
+      edited: Object.keys(o).length > 0,
+    };
+  }).sort((a, b) => a.order - b.order);
+}
