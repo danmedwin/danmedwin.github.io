@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "categories": [
     { "id": "jewish", "name": "Jewish Tools and Worship" },
     { "id": "games",  "name": "Games and Toys" },
@@ -87,7 +87,7 @@
       "cat": "games",
       "url": "https://techrabbi.org/blacktop/",
       "repo": "danmedwin/blacktop",
-      "desc": "A racing game drawn entirely in black lines on paper white.",
+      "desc": "A racing game drawn entirely in black lines on paper white, built as an homage to my father's Race Car Simulator.",
       "created": "2026-07-11",
       "updated": "2026-07-18"
     },

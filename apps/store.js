@@ -69,6 +69,13 @@ function mockStore() {
       if (Object.keys(next).length) all[id] = next; else delete all[id];
       write(all);
     },
+    async saveMany(map) {
+      const all = read();
+      Object.entries(map).forEach(([id, patch]) => {
+        all[id] = { ...(all[id] || {}), ...patch };
+      });
+      write(all);
+    },
     async reset() { write({}); },
     onAuth(fn) { authListeners.add(fn); fn(currentUser()); return () => authListeners.delete(fn); },
     user: currentUser,
@@ -125,6 +132,13 @@ async function firebaseStore() {
       });
       await db.set(db.ref(dbRef, "apps/" + id), Object.keys(next).length ? next : null);
     },
+    async saveMany(map) {
+      const updates = {};
+      Object.entries(map).forEach(([id, patch]) => {
+        Object.entries(patch).forEach(([k, v]) => { updates[`${id}/${k}`] = v; });
+      });
+      await db.update(root, updates);
+    },
     async reset() { await db.set(root, null); },
     onAuth(fn) { return auth.onAuthStateChanged(authRef, fn); },
     user: () => authRef.currentUser,
@@ -147,7 +161,8 @@ export function merge(catalog, overrides) {
       labels: o.labels || app.labels || [],
       hidden: o.hidden !== undefined ? o.hidden : !!app.hidden,
       order: o.order !== undefined ? o.order : i,
-      edited: Object.keys(o).length > 0,
+      // Reordering touches every entry, so it should not flag them all as edited.
+      edited: Object.keys(o).some((k) => k !== 'order'),
     };
   }).sort((a, b) => a.order - b.order);
 }

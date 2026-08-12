@@ -79,6 +79,11 @@ textarea { resize: vertical; min-height: 62px; line-height: 1.5; }
 h2.cat {
   font-family: 'Playfair Display', serif; font-size: 1.15rem; margin: var(--space-xl) 0 var(--space-md);
   padding-bottom: var(--space-xs); border-bottom: 1px solid var(--line-gold);
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md);
+}
+.cat-hint {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  color: var(--slate); font-weight: 400; letter-spacing: 0.04em;
 }
 .row {
   display: grid; grid-template-columns: 132px 1fr auto; gap: var(--space-md);
@@ -109,6 +114,8 @@ h2.cat {
 .chip.edited { color: var(--gold); }
 .row .controls { display: flex; flex-direction: column; gap: var(--space-xs); align-items: stretch; }
 .row .controls button { font-size: 0.75rem; padding: 0.35rem 0.8rem; white-space: nowrap; }
+.row .move { display: flex; gap: var(--space-xs); }
+.row .move button { flex: 1; padding: 0.35rem 0; font-size: 0.9rem; line-height: 1; }
 
 /* ------------------------------------------------------------ editor ---- */
 
@@ -218,7 +225,33 @@ function toast(msg) {
 /* Current effective values for one app, catalog plus overrides. */
 const effective = (id) => merge(catalog, overrides).find((a) => a.id === id);
 
-function rowHTML(app) {
+/* Move one app up or down within its own section.
+ *
+ * Sort order is a single global sequence that the public page filters into
+ * sections, so a move means swapping this app's slot with its section
+ * neighbour's, then renumbering the whole list 0..n-1 so the values stay
+ * clean no matter how many times things get shuffled. */
+async function reorder(id, dir) {
+  const all = merge(catalog, overrides);
+  const app = all.find((a) => a.id === id);
+  const section = all.filter((a) => a.cat === app.cat);
+  const at = section.findIndex((a) => a.id === id);
+  const neighbour = section[dir === 'up' ? at - 1 : at + 1];
+  if (!neighbour) return;
+
+  const from = all.findIndex((a) => a.id === id);
+  const to = all.findIndex((a) => a.id === neighbour.id);
+  all.splice(to, 0, all.splice(from, 1)[0]);
+
+  const patch = {};
+  all.forEach((a, i) => { if (a.order !== i) patch[a.id] = { order: i }; });
+  if (Object.keys(patch).length) await store.saveMany(patch);
+}
+
+/* Called via list.map, so i and list describe this app's slot in its section. */
+function rowHTML(app, i, list) {
+  const first = i === 0;
+  const last = i === list.length - 1;
   const chips = [];
   if (app.hidden) chips.push('<span class="chip" data-kind="hidden">Hidden</span>');
   app.labels.forEach((l) => chips.push(`<span class="chip" data-kind="${kindFor(l)}">${esc(l)}</span>`));
@@ -233,6 +266,12 @@ function rowHTML(app) {
       <div class="chips">${chips.join('')}</div>
     </div>
     <div class="controls">
+      <div class="move">
+        <button class="btn btn-ghost" data-act="up" ${first ? 'disabled' : ''}
+                aria-label="Move ${esc(app.name)} up">&uarr;</button>
+        <button class="btn btn-ghost" data-act="down" ${last ? 'disabled' : ''}
+                aria-label="Move ${esc(app.name)} down">&darr;</button>
+      </div>
       <button class="btn btn-ghost" data-act="toggle">${app.hidden ? 'Show' : 'Hide'}</button>
       <button class="btn btn-ghost" data-act="edit">${openId === app.id ? 'Close' : 'Edit'}</button>
     </div>
@@ -291,7 +330,9 @@ function paint() {
   document.getElementById('rows').innerHTML = catalog.categories.map((cat) => {
     const apps = all.filter((a) => a.cat === cat.id);
     if (!apps.length) return '';
-    return `<h2 class="cat">${esc(cat.name)}</h2>${apps.map(rowHTML).join('')}`;
+    return `<h2 class="cat">${esc(cat.name)}
+      <span class="cat-hint">arrows reorder cards on the live page</span>
+    </h2>${apps.map(rowHTML).join('')}`;
   }).join('');
 }
 
@@ -305,6 +346,10 @@ document.getElementById('rows').addEventListener('click', async (e) => {
   const id = row.dataset.id;
   const app = effective(id);
 
+  if (btn.dataset.act === 'up' || btn.dataset.act === 'down') {
+    await reorder(id, btn.dataset.act);
+    return;
+  }
   if (btn.dataset.act === 'toggle') {
     await store.save(id, { hidden: !app.hidden || null });
     toast(app.hidden ? `${app.name} is visible` : `${app.name} is hidden`);
