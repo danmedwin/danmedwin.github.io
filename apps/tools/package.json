@@ -1,0 +1,9 @@
+{
+  "name": "techrabbi-apps-capture",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Screenshot capture for the techrabbi.org/apps directory",
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}
