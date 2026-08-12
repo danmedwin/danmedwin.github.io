@@ -6,16 +6,18 @@
  *
  * Flip USE_FIREBASE once the project is created and CONFIG is filled in.
  */
-const USE_FIREBASE = false;
+const USE_FIREBASE = true;
 
+/* Firebase web config is public by design. It identifies the project, it does
+ * not grant access. Everything is gated by database.rules.json plus auth. */
 const CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyDVNSnYB8KVNFD-4DkQ3oQqsoV_DBcEzSM",
+  authDomain: "tech-rabbi-apps.firebaseapp.com",
+  databaseURL: "https://tech-rabbi-apps-default-rtdb.firebaseio.com",
+  projectId: "tech-rabbi-apps",
+  storageBucket: "tech-rabbi-apps.firebasestorage.app",
+  messagingSenderId: "352405899450",
+  appId: "1:352405899450:web:6d9ca77145302212b15a83",
 };
 
 const LS_OVERRIDES = "techrabbi.apps.overrides";
@@ -99,6 +101,14 @@ async function firebaseStore() {
   const dataListeners = new Set();
   db.onValue(root, (snap) => {
     cache = snap.val() || {};
+    emit(dataListeners, cache);
+  }, (err) => {
+    // Almost always means database.rules.json has not been published yet.
+    // The catalog still renders from apps.json, just without any admin edits.
+    console.error(
+      "Could not read /apps from Firebase (" + err.code + "). " +
+      "Publish apps/database.rules.json in the Realtime Database Rules tab.",
+    );
     emit(dataListeners, cache);
   });
 

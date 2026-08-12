@@ -384,9 +384,19 @@ document.getElementById('signinForm').addEventListener('submit', async (e) => {
       document.getElementById('password').value,
     );
   } catch (ex) {
-    err.textContent = ex && ex.code === 'auth/invalid-credential'
-      ? 'That email and password did not match.'
-      : (ex.message || 'Sign in failed.');
+    const SAY = {
+      'auth/invalid-credential': 'That email and password did not match.',
+      'auth/invalid-email': 'That does not look like an email address.',
+      'auth/too-many-requests': 'Too many attempts. Wait a minute and try again.',
+      'auth/network-request-failed': 'No connection to Firebase. Check the network.',
+      'auth/configuration-not-found':
+        'Email sign in is not switched on for this Firebase project yet. ' +
+        'Authentication → Sign-in method → Email/Password → Enable.',
+      'auth/unauthorized-domain':
+        'This domain is not on the Firebase allow list. ' +
+        'Authentication → Settings → Authorized domains → add it.',
+    };
+    err.textContent = SAY[ex && ex.code] || ex.message || 'Sign in failed.';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Sign in';
