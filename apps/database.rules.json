@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "apps": {
+      ".read": true,
+      ".write": "auth != null",
+      "$appId": {
+        ".validate": "newData.hasChildren() || !newData.exists()",
+        "hidden": { ".validate": "newData.isBoolean()" },
+        "cat": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "desc": { ".validate": "newData.isString() && newData.val().length <= 400" },
+        "shot": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "order": { ".validate": "newData.isNumber()" },
+        "labels": {
+          ".validate": "newData.hasChildren()",
+          "$i": { ".validate": "newData.isString() && newData.val().length <= 40" }
+        },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}
