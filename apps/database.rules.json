@@ -8,6 +8,7 @@
         "hidden": { ".validate": "newData.isBoolean()" },
         "cat": { ".validate": "newData.isString() && newData.val().length <= 40" },
         "desc": { ".validate": "newData.isString() && newData.val().length <= 400" },
+        "note": { ".validate": "newData.isString() && newData.val().length <= 300" },
         "shot": { ".validate": "newData.isString() && newData.val().length <= 80" },
         "order": { ".validate": "newData.isNumber()" },
         "labels": {

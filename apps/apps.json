@@ -1,10 +1,22 @@
 {
-  "version": "0.3.1",
+  "version": "0.4.0",
   "categories": [
-    { "id": "jewish", "name": "Jewish Tools and Worship" },
-    { "id": "games",  "name": "Games and Toys" },
-    { "id": "tools",  "name": "Tools and Utilities" },
-    { "id": "claude", "name": "Made by Claude" }
+    {
+      "id": "jewish",
+      "name": "Jewish Tools and Worship"
+    },
+    {
+      "id": "games",
+      "name": "Games and Toys"
+    },
+    {
+      "id": "tools",
+      "name": "Tools and Utilities"
+    },
+    {
+      "id": "claude",
+      "name": "Made by Claude"
+    }
   ],
   "apps": [
     {
@@ -21,11 +33,12 @@
       "id": "vt-signup",
       "name": "Visual T'filah Sign-Up",
       "cat": "jewish",
-      "url": "https://techrabbi.org/vt-sign-up/",
+      "url": "https://techrabbi.org/vt-sign-up/?demo",
       "repo": "danmedwin/danmedwin.github.io",
       "desc": "Congregants claim a prayer and bring their own image to carry it on screen during the service.",
       "created": "2026-06-29",
-      "updated": "2026-07-10"
+      "updated": "2026-07-10",
+      "note": "Opens in demo mode. The real sign-up asks a congregation for its access word."
     },
     {
       "id": "siddur-ocr",
@@ -36,7 +49,10 @@
       "desc": "Turn scanned prayer book pages into clean Word documents for blind and low vision worshipers.",
       "created": "2026-04-14",
       "updated": "2026-07-20",
-      "labels": ["Staff Only"]
+      "labels": [
+        "Staff Only"
+      ],
+      "note": "Runs on a Claude API key you supply. Nothing is stored on a server."
     },
     {
       "id": "layout-lab",
@@ -47,7 +63,9 @@
       "desc": "Mark up the anatomy of a prayer book page so the next scan reads it in the right order.",
       "created": "2026-07-20",
       "updated": "2026-07-27",
-      "labels": ["Staff Only"]
+      "labels": [
+        "Staff Only"
+      ]
     },
     {
       "id": "digital-mensches",
@@ -68,9 +86,11 @@
       "desc": "Point a camera at the open scroll and find your place in the Torah reading.",
       "created": "2026-03-16",
       "updated": "2026-03-17",
-      "labels": ["Work in Progress"]
+      "labels": [
+        "Work in Progress"
+      ],
+      "note": "Needs a camera and a Claude API key you supply."
     },
-
     {
       "id": "glyphrush",
       "name": "Glyph Rush",
@@ -183,7 +203,6 @@
       "created": "2026-05-05",
       "updated": "2026-05-10"
     },
-
     {
       "id": "binah",
       "name": "Binah",
@@ -202,7 +221,8 @@
       "repo": "danmedwin/family-dinners",
       "desc": "Plan the week's dinners together so nobody ends up staring into the fridge at six o'clock.",
       "created": "2026-06-27",
-      "updated": "2026-08-02"
+      "updated": "2026-08-02",
+      "note": "Needs a family account, since the whole point is a shared plan."
     },
     {
       "id": "family-dinners-guide",
@@ -236,7 +256,6 @@
       "updated": "2026-03-25",
       "hidden": true
     },
-
     {
       "id": "palimpsest",
       "name": "Palimpsest",

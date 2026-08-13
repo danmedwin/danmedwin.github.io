@@ -263,7 +263,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v3.6</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v3.7</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -1011,6 +1011,13 @@ const MAX_PER_PERSON = 1;          // prayers one person may claim (phase 1: one
 const GROUPS = {
   rtr: { label: "Reform Temple of Rockland", deadline: "September 1, 2026" },
 };
+
+/* ?demo opens a sandbox for anyone arriving from techrabbi.org/apps.
+   It never touches Firestore, because claims and status are not scoped by
+   group: a visitor sharing the live store could claim a real congregation's
+   prayers. Demo runs on the mock store instead, in this browser only. */
+const DEMO = new URLSearchParams(location.search).has("demo");
+const DEMO_GROUP = { label: "Demo congregation", deadline: "a date of your choosing" };
 let currentGroup = null;           // {code, label, deadline}, set at the gate
 
 /* ---------- Email (EmailJS — reuses the VT Image Helper account) ----------
@@ -1519,6 +1526,12 @@ function showGroupBar(){
     lsSet("vt-group", code);
     g.classList.add("hide"); showGroupBar();
   };
+  if(DEMO){
+    // Deliberately not saved, so a demo visit does not become a sticky session.
+    currentGroup = { code:"demo", ...DEMO_GROUP };
+    g.classList.add("hide"); showGroupBar();
+    return;
+  }
   const saved = lsGet("vt-group");
   if(saved && GROUPS[saved]){ apply(saved); return; }
   if(lsGet("vt-gate")==="1" && GROUPS.rtr){ apply("rtr"); return; }  // migrate old gate
@@ -1671,8 +1684,10 @@ function renderPreview(id){
 
 /* ---------- boot ---------- */
 (async function init(){
-  store = USE_FIREBASE ? await makeFirebaseStore() : makeMockStore();
-  if(USE_FIREBASE) document.getElementById("demoflag").style.display="none";
+  store = (USE_FIREBASE && !DEMO) ? await makeFirebaseStore() : makeMockStore();
+  if(USE_FIREBASE && !DEMO) document.getElementById("demoflag").style.display="none";
+  if(DEMO) document.getElementById("demoflag").textContent =
+    "Demo mode · nothing here is saved to a real service";
   if(me && me.email){ try{ myToken = await store.token(me.email); }catch(e){} }
   store.subscribe(m => { claims = m; render(); maybeAdmin(); });
 })();

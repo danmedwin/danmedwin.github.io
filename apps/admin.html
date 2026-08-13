@@ -318,6 +318,10 @@ function editorHTML(app) {
     <label for="desc-${app.id}">Description</label>
     <textarea id="desc-${app.id}" data-field="desc">${esc(app.desc)}</textarea>
 
+    <label for="note-${app.id}">Note (what to know before clicking, blank for none)</label>
+    <textarea id="note-${app.id}" data-field="note"
+              placeholder="e.g. Needs a Claude API key you supply.">${esc(app.note || '')}</textarea>
+
     <div class="editor-actions">
       <button class="btn btn-primary" type="button" data-act="save">Save</button>
       <button class="btn btn-ghost" type="button" data-act="revert">Revert to original</button>
@@ -383,10 +387,14 @@ document.getElementById('rows').addEventListener('click', async (e) => {
     const desc = row.querySelector('[data-field="desc"]').value.trim();
     const cat = row.querySelector('[data-field="cat"]').value;
     const shot = row.querySelector('[data-field="shot"]').value.trim();
+    const note = row.querySelector('[data-field="note"]').value.trim();
     await store.save(id, {
       desc: desc === original.desc ? null : desc,
       cat: cat === original.cat ? null : cat,
       shot: shot || null,
+      // An empty box means "no note", which must override a catalog note
+      // rather than read as "no opinion". store.js keeps '' for this field.
+      note: note === (original.note || '') ? null : note,
     });
     openId = null;
     toast('Saved');

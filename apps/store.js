@@ -20,6 +20,9 @@ const CONFIG = {
   appId: "1:352405899450:web:6d9ca77145302212b15a83",
 };
 
+/* Fields where an empty string means "deliberately blank", not "unset". */
+const KEEP_EMPTY = new Set(["note"]);
+
 const LS_OVERRIDES = "techrabbi.apps.overrides";
 const LS_ADMIN = "techrabbi.apps.admin";
 
@@ -64,6 +67,7 @@ function mockStore() {
       const next = { ...(all[id] || {}), ...patch };
       Object.keys(next).forEach((k) => {
         const v = next[k];
+        if (v === "" && KEEP_EMPTY.has(k)) return;   // an explicit "no note" is a choice
         if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) delete next[k];
       });
       if (Object.keys(next).length) all[id] = next; else delete all[id];
@@ -128,6 +132,7 @@ async function firebaseStore() {
       const next = { ...(cache[id] || {}), ...patch };
       Object.keys(next).forEach((k) => {
         const v = next[k];
+        if (v === "" && KEEP_EMPTY.has(k)) return;   // an explicit "no note" is a choice
         if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) delete next[k];
       });
       await db.set(db.ref(dbRef, "apps/" + id), Object.keys(next).length ? next : null);
