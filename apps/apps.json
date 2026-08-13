@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.6.0",
   "categories": [
     {
       "id": "jewish",
@@ -46,7 +46,7 @@
       "cat": "jewish",
       "url": "https://techrabbi.org/JBI/",
       "repo": "danmedwin/JBI",
-      "desc": "Turn scanned prayer book pages into clean Word documents for blind and low vision worshipers.",
+      "desc": "Built for JBI. Turns scanned prayer book pages into clean Word documents for blind and low vision worshipers.",
       "created": "2026-04-14",
       "updated": "2026-07-20",
       "labels": [
@@ -159,7 +159,7 @@
       "cat": "games",
       "url": "https://cosmicdriftapp.com/",
       "repo": "danmedwin/cosmic-drift",
-      "desc": "Clear waves of drifting blocks, then spend what you salvage on a better ship.",
+      "desc": "Space Invaders meets Brick Breaker in this puzzle game designed for the phone.",
       "created": "2026-05-07",
       "updated": "2026-05-26"
     },
@@ -179,7 +179,7 @@
       "cat": "games",
       "url": "https://techrabbi.org/streams/",
       "repo": "danmedwin/streams",
-      "desc": "A living aquarium painted in three inks. Click the water to feed the fish.",
+      "desc": "A living aquarium painted in three inks. Click the water to feed the fish, and surprises await.",
       "created": "2026-07-12",
       "updated": "2026-07-21"
     },

@@ -284,12 +284,7 @@ section h2 .n {
 .label[data-kind="wip"]      { color: var(--gold); }
 .label[data-kind="new"]      { color: #7fc9a4; }
 .label[data-kind="archived"] { color: var(--slate); }
-.label[data-kind="hidden"]   { color: #c58fd6; }
 .label[data-kind="custom"]   { color: #8fb3d6; }
-
-/* Admin-only view of a hidden entry. */
-.card.is-hidden { opacity: 0.55; border-style: dashed; }
-.card.is-hidden:hover { opacity: 1; }
 
 .admin-bar {
   display: none;
@@ -422,8 +417,6 @@ const GITHUB_ICON =
 function cardHTML(app) {
   const labels = app.labels.map((l) =>
     `<span class="label" data-kind="${kindFor(l)}">${esc(l)}</span>`).join('');
-  const hiddenChip = app.hidden
-    ? '<span class="label" data-kind="hidden">Hidden</span>' : '';
   const dates = app.created === app.updated
     ? monthYear(app.created)
     : `${monthYear(app.created)} &rarr; ${monthYear(app.updated)}`;
@@ -433,12 +426,12 @@ function cardHTML(app) {
     : '';
 
   return `
-  <article class="card${app.hidden ? ' is-hidden' : ''}">
+  <article class="card">
     <img class="shot" src="shots/${esc(app.shot || app.id)}.webp?v=${esc(SHOT_VERSION)}"
          alt="Screenshot of ${esc(app.name)}" loading="lazy" width="1200" height="750">
     <div class="card-body">
       <h3><a href="${esc(app.url)}" target="_blank" rel="noopener">${esc(app.name)}</a></h3>
-      ${labels || hiddenChip ? `<div class="labels">${hiddenChip}${labels}</div>` : ''}
+      ${labels ? `<div class="labels">${labels}</div>` : ''}
       <p>${esc(app.desc)}</p>
       ${app.note ? `<p class="note">${esc(app.note)}</p>` : ''}
       <div class="meta"><span>${dates}</span>${source}</div>
@@ -448,7 +441,9 @@ function cardHTML(app) {
 
 function render(catalog, overrides, isAdmin) {
   const all = merge(catalog, overrides);
-  const visible = all.filter((a) => isAdmin || !a.hidden);
+  // Hidden means hidden, signed in or not, so this page always shows exactly
+  // what a visitor sees. The admin page is where hidden entries are managed.
+  const visible = all.filter((a) => !a.hidden);
   const root = document.getElementById('sections');
 
   root.innerHTML = catalog.categories.map((cat) => {
@@ -460,10 +455,12 @@ function render(catalog, overrides, isAdmin) {
     </section>`;
   }).join('') || '<p class="empty">Nothing to show yet.</p>';
 
-  const shown = all.filter((a) => !a.hidden).length;
-  document.getElementById('count').innerHTML = isAdmin
-    ? `<b>${all.length}</b> entries &middot; ${all.length - shown} hidden from visitors`
-    : `<b>${shown}</b> apps, games, and experiments`;
+  const hiddenCount = all.length - visible.length;
+  document.getElementById('count').innerHTML =
+    `<b>${visible.length}</b> apps, games, and experiments`;
+  document.getElementById('adminNote').textContent = hiddenCount
+    ? `Signed in. This is the visitor's view: ${hiddenCount} hidden ${hiddenCount === 1 ? 'entry is' : 'entries are'} not shown here either.`
+    : 'Signed in. This is the visitor\'s view. Nothing is hidden right now.';
 
   document.body.classList.toggle('is-admin', isAdmin);
   document.getElementById('adminLink').hidden = isAdmin;
