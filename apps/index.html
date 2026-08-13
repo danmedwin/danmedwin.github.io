@@ -48,7 +48,7 @@ body {
   margin: 0;
   background: var(--navy);
   color: var(--cream);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -70,7 +70,7 @@ body {
 .site-header .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
 .site-header .logo img { height: 36px; width: auto; }
 .logo-text {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--gold);
@@ -105,7 +105,7 @@ body {
 main { max-width: 1280px; margin: 0 auto; padding: var(--space-2xl) var(--space-xl) var(--space-xl); }
 
 .eyebrow {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.8rem;
   color: var(--gold);
   letter-spacing: 0.12em;
@@ -113,7 +113,7 @@ main { max-width: 1280px; margin: 0 auto; padding: var(--space-2xl) var(--space-
   margin: 0 0 var(--space-sm);
 }
 h1 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
   margin: 0 0 var(--space-md);
@@ -138,7 +138,11 @@ h1 em { font-style: italic; color: var(--gold); }
   border-bottom: 1px solid var(--line);
   margin-bottom: var(--space-xl);
 }
-.count { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--slate); }
+.count { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.8rem; color: var(--slate); }
+.offline-note {
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.7rem; color: var(--gold);
+  border: 1px solid var(--line-gold); border-radius: 999px; padding: 0.25rem 0.8rem;
+}
 .count b { color: var(--cream); font-weight: 500; }
 
 .ghost-btn {
@@ -147,7 +151,7 @@ h1 em { font-style: italic; color: var(--gold); }
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 0.4rem 1rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -159,7 +163,7 @@ h1 em { font-style: italic; color: var(--gold); }
 
 section { margin-bottom: var(--space-2xl); }
 section h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 var(--space-lg);
@@ -170,7 +174,7 @@ section h2 {
   gap: var(--space-md);
 }
 section h2 .n {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.75rem;
   font-weight: 400;
   color: var(--gold);
@@ -235,7 +239,7 @@ section h2 .n {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.68rem;
   color: var(--slate);
   border-top: 1px solid var(--line);
@@ -258,7 +262,7 @@ section h2 .n {
 
 .labels { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
 .label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -289,7 +293,7 @@ section h2 .n {
   border-radius: var(--radius-md);
   padding: var(--space-sm) var(--space-md);
   margin-bottom: var(--space-xl);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.75rem;
   color: var(--gold);
 }
@@ -311,7 +315,7 @@ footer {
   justify-content: space-between;
   gap: var(--space-md);
   flex-wrap: wrap;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.72rem;
   color: var(--slate);
 }
@@ -457,6 +461,14 @@ function render(catalog, overrides, isAdmin) {
   ]);
 
   document.getElementById('version').textContent = `apps directory v${catalog.version}`;
+
+  if (store.mode === 'offline') {
+    const note = document.createElement('span');
+    note.className = 'offline-note';
+    note.textContent = 'offline · showing the published list';
+    note.title = store.reason;
+    document.querySelector('.toolbar').append(note);
+  }
 
   let overrides = {};
   let isAdmin = false;

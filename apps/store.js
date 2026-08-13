@@ -149,7 +149,49 @@ async function firebaseStore() {
   };
 }
 
-export const storeReady = USE_FIREBASE ? firebaseStore() : Promise.resolve(mockStore());
+/* ------------------------------------------------------------- offline ---- */
+
+/* Firebase lives on a CDN, so a captive portal, a blocked host, or plane wifi
+ * can leave the import hanging. Rather than stall the page behind it, fall
+ * back to this: the committed catalog renders, admin edits are unavailable,
+ * and both pages say so. */
+function offlineStore(reason) {
+  console.warn('Apps directory is running offline: ' + reason);
+  return {
+    mode: 'offline',
+    reason,
+    async init() { return {}; },
+    overrides: () => ({}),
+    onData(fn) { fn({}); return () => {}; },
+    async save() { throw new Error('offline'); },
+    async saveMany() { throw new Error('offline'); },
+    async reset() { throw new Error('offline'); },
+    onAuth(fn) { fn(null); return () => {}; },
+    user: () => null,
+    async signIn() {
+      const err = new Error('Cannot reach Firebase. Check the connection and reload.');
+      err.code = 'app/offline';
+      throw err;
+    },
+    async signOut() {},
+  };
+}
+
+const SDK_TIMEOUT_MS = 10000;
+
+function withFallback(promise) {
+  const timeout = new Promise((resolve) =>
+    setTimeout(() => resolve(offlineStore('Firebase did not load within ' + (SDK_TIMEOUT_MS / 1000) + 's')),
+      SDK_TIMEOUT_MS));
+  return Promise.race([
+    promise.catch((err) => offlineStore(err.message || String(err))),
+    timeout,
+  ]);
+}
+
+export const storeReady = USE_FIREBASE
+  ? withFallback(firebaseStore())
+  : Promise.resolve(mockStore());
 
 /* Merge the committed catalog with whatever admin has changed. */
 export function merge(catalog, overrides) {

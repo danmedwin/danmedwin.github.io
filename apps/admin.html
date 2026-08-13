@@ -21,7 +21,7 @@
 * { box-sizing: border-box; }
 body {
   margin: 0; background: var(--navy); color: var(--cream);
-  font-family: 'DM Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased;
 }
 a { color: var(--gold); }
 
@@ -30,15 +30,15 @@ header.bar {
   flex-wrap: wrap; padding: var(--space-md) var(--space-xl);
   border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--navy); z-index: 50;
 }
-.bar h1 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin: 0; }
+.bar h1 { font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; font-size: 1.3rem; margin: 0; }
 .bar h1 span { color: var(--gold); }
-.bar .who { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--slate); }
+.bar .who { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.72rem; color: var(--slate); }
 .bar .actions { display: flex; gap: var(--space-sm); align-items: center; }
 
 main { max-width: 1100px; margin: 0 auto; padding: var(--space-xl); }
 
 button, .btn {
-  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.85rem; font-weight: 600;
   border-radius: 999px; padding: 0.5rem 1.1rem; cursor: pointer;
   border: 1px solid transparent; text-decoration: none; display: inline-block;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
@@ -55,7 +55,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   max-width: 380px; margin: 12vh auto; background: var(--navy-card);
   border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-xl);
 }
-.signin h2 { font-family: 'Playfair Display', serif; margin: 0 0 var(--space-xs); font-size: 1.4rem; }
+.signin h2 { font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; margin: 0 0 var(--space-xs); font-size: 1.4rem; }
 .signin p { color: var(--slate); font-size: 0.88rem; margin: 0 0 var(--space-lg); }
 label { display: block; font-size: 0.8rem; color: var(--slate); margin-bottom: var(--space-xs); }
 input[type="email"], input[type="password"], input[type="text"], textarea, select {
@@ -73,16 +73,16 @@ textarea { resize: vertical; min-height: 62px; line-height: 1.5; }
 .mode-note {
   background: rgba(212,168,83,0.1); border: 1px solid var(--line-gold);
   border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md);
-  font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--gold);
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.72rem; color: var(--gold);
   margin-bottom: var(--space-lg);
 }
 h2.cat {
-  font-family: 'Playfair Display', serif; font-size: 1.15rem; margin: var(--space-xl) 0 var(--space-md);
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; font-size: 1.15rem; margin: var(--space-xl) 0 var(--space-md);
   padding-bottom: var(--space-xs); border-bottom: 1px solid var(--line-gold);
   display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md);
 }
 .cat-hint {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.65rem;
   color: var(--slate); font-weight: 400; letter-spacing: 0.04em;
 }
 .row {
@@ -102,7 +102,7 @@ h2.cat {
 .row .desc { color: var(--slate); font-size: 0.86rem; margin: 0 0 var(--space-sm); }
 .row .chips { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
 .chip {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.62rem; letter-spacing: 0.06em;
   text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
   border: 1px solid currentColor; line-height: 1.4; color: #8fb3d6;
 }
@@ -126,7 +126,7 @@ h2.cat {
 .editor .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md); }
 .preset-labels { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-md); }
 .preset-labels button {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; text-transform: uppercase;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.68rem; text-transform: uppercase;
   letter-spacing: 0.06em; padding: 4px 10px; background: transparent;
   border: 1px solid var(--line); color: var(--slate);
 }
@@ -459,9 +459,22 @@ document.getElementById('signOut').addEventListener('click', () => store.signOut
   ]);
 
   const demo = store.mode === 'mock';
-  document.getElementById('modeNote').textContent = demo
-    ? 'Demo mode. Changes are saved in this browser only, so nobody else sees them yet. Set USE_FIREBASE in store.js once the Firebase project exists.'
-    : 'Live. Changes are saved to Firebase and appear for everyone.';
+  const offline = store.mode === 'offline';
+  document.getElementById('modeNote').textContent = offline
+    ? 'Cannot reach Firebase, so nothing can be edited right now. ' + store.reason +
+      '. The public page still shows the published list. Reload once you are back online.'
+    : demo
+      ? 'Demo mode. Changes are saved in this browser only, so nobody else sees them yet. Set USE_FIREBASE in store.js once the Firebase project exists.'
+      : 'Live. Changes are saved to Firebase and appear for everyone.';
+
+  if (offline) {
+    // The mode note lives inside the panel, which stays hidden while signed out,
+    // so the sign-in card has to carry the explanation.
+    document.getElementById('signinNote').textContent =
+      'Sign in needs a connection to Firebase, and there is not one right now.';
+    document.getElementById('signinError').textContent = store.reason + '.';
+    document.getElementById('signinBtn').disabled = true;
+  }
   if (demo) {
     document.getElementById('signinNote').textContent =
       'Demo mode: any email gets you in, and the password is ignored. Real sign in arrives with Firebase.';
