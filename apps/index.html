@@ -405,6 +405,11 @@ const LABEL_KIND = {
 
 const kindFor = (label) => LABEL_KIND[label.trim().toLowerCase()] || 'custom';
 
+/* Screenshots keep their filenames when they are re-shot, so without this a
+   browser that has seen the page before keeps serving the old picture.
+   Set from the catalog version, which is bumped on every change. */
+let SHOT_VERSION = '0';
+
 const monthYear = (iso) =>
   new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
@@ -429,8 +434,8 @@ function cardHTML(app) {
 
   return `
   <article class="card${app.hidden ? ' is-hidden' : ''}">
-    <img class="shot" src="shots/${esc(app.shot || app.id)}.webp" alt="Screenshot of ${esc(app.name)}"
-         loading="lazy" width="1200" height="750">
+    <img class="shot" src="shots/${esc(app.shot || app.id)}.webp?v=${esc(SHOT_VERSION)}"
+         alt="Screenshot of ${esc(app.name)}" loading="lazy" width="1200" height="750">
     <div class="card-body">
       <h3><a href="${esc(app.url)}" target="_blank" rel="noopener">${esc(app.name)}</a></h3>
       ${labels || hiddenChip ? `<div class="labels">${hiddenChip}${labels}</div>` : ''}
@@ -470,6 +475,7 @@ function render(catalog, overrides, isAdmin) {
     storeReady,
   ]);
 
+  SHOT_VERSION = catalog.version;
   document.getElementById('version').textContent = `apps directory v${catalog.version}`;
 
   if (store.mode === 'offline') {

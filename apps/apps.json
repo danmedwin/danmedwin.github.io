@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "categories": [
     {
       "id": "jewish",
@@ -52,7 +52,7 @@
       "labels": [
         "Staff Only"
       ],
-      "note": "Runs on a Claude API key you supply. Nothing is stored on a server."
+      "note": "Runs on a Claude API key you supply. Nothing is sent to a server of mine."
     },
     {
       "id": "layout-lab",
@@ -217,12 +217,12 @@
       "id": "family-dinners",
       "name": "Family Dinner Planner",
       "cat": "tools",
-      "url": "https://techrabbi.org/family-dinners/",
+      "url": "https://techrabbi.org/family-dinners/?demo",
       "repo": "danmedwin/family-dinners",
       "desc": "Plan the week's dinners together so nobody ends up staring into the fridge at six o'clock.",
       "created": "2026-06-27",
       "updated": "2026-08-02",
-      "note": "Needs a family account, since the whole point is a shared plan."
+      "note": "Opens a demo family you can play with. The real planner needs an account, since the point is a shared plan."
     },
     {
       "id": "family-dinners-guide",

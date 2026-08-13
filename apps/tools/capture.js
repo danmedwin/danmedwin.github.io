@@ -67,6 +67,15 @@ const WARMUPS = {
     await page.click('#playBtn'); await sleep(1400);
     await page.click('#helpGo'); await sleep(1200);
   },
+  // The key prompt is only a display toggle in front of the real UI. Calling
+  // the page's own showApp reveals it without a key and without any API call,
+  // which is the screen worth showing on a card.
+  'siddur-ocr': async (page) => {
+    await page.evaluate(() => window.showApp && window.showApp());
+    await sleep(2500);
+  },
+  // The card links to ?demo, so shoot the sandbox rather than the sign-in card.
+  'family-dinners': async (page) => { await sleep(5000); },
 };
 
 (async () => {
