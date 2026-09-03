@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Source+Sans+3:wght@400;600;700&display=swap">
 <script>
   /* Paste the Apps Script web app URL here after deploying (it ends in /exec).
-     Leave empty until then and this page shows a "not open yet" notice. */
-  const APP_URL = "https://script.google.com/macros/s/AKfycbwsTnZ3-9W49knNSPVm3oPtDoGnq1YbPd96yIn1rbaQTzFkPYzydsTX1QwAca30wHL3/exec";
+     Leave empty and this page shows a "not connected" notice instead of a button. */
+  const APP_URL = "https://script.google.com/a/macros/davisstudent.org/s/AKfycbzig5xOzFHtwgDAkowIsErteeH6JnHEEXVR5UQSXJDnBSD9BmGg3LKq06kS04jBAN57/exec";
   (function () {
     if (!APP_URL) return;
     const q = new URLSearchParams(location.search);
@@ -50,7 +50,7 @@ p{max-width:34rem;margin:0 auto 1.2rem;font-size:1.15rem;color:#dbe6f2}
 <script>
   const a = document.getElementById('open');
   if (APP_URL) a.href = APP_URL;
-  else { a.className = 'btn off'; a.textContent = 'Opens on September 8'; }
+  else { a.className = 'btn off'; a.textContent = 'Not connected to the app yet'; }
 </script>
 </body>
 </html>

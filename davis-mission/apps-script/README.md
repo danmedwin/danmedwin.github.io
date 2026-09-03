@@ -29,8 +29,8 @@ To change the code later: paste the new file, then Deploy > Manage deployments >
 ## Useful URLs
 
 Deployed 2026-09-03 from dmedwin@davisstudent.org with clasp (`.clasp.json` holds the script id).
-Web app: `https://script.google.com/macros/s/AKfycbwsTnZ3-9W49knNSPVm3oPtDoGnq1YbPd96yIn1rbaQTzFkPYzydsTX1QwAca30wHL3/exec`
-To ship a code change: `clasp push -f` then `clasp deploy -i AKfycbwsTnZ3-9W49knNSPVm3oPtDoGnq1YbPd96yIn1rbaQTzFkPYzydsTX1QwAca30wHL3 -d "v2 ..."` (same URL).
+Web app: `https://script.google.com/a/macros/davisstudent.org/s/AKfycbzig5xOzFHtwgDAkowIsErteeH6JnHEEXVR5UQSXJDnBSD9BmGg3LKq06kS04jBAN57/exec`
+To ship a code change: `clasp push -f` then `clasp deploy -i AKfycbzig5xOzFHtwgDAkowIsErteeH6JnHEEXVR5UQSXJDnBSD9BmGg3LKq06kS04jBAN57 -d "v2 ..."` (same URL).
 
 - Activity: `https://techrabbi.org/davis-mission/` (forwards to the `/exec` URL)
 - Results board: `https://techrabbi.org/davis-mission/?board` (forwards to `/exec?view=board`)
