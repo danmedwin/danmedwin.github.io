@@ -395,11 +395,11 @@ function renderDone() {
     <p class="lede" style="margin:0 auto">Head back to the Media Center. Bring your three with you:</p>
     <div class="three">${(state.three || []).slice().sort((a, b) => a - b).map(i => `<div class="card big">${esc(PHRASES[i])}</div>`).join('')}</div>
     <div class="links"><button type="button" class="btn ghost" id="edit4">Edit our answers</button><button type="button" class="btn ghost" id="edit3">Change our three</button></div>
-    <p style="margin-top:2rem"><button type="button" class="btn ghost sm" id="another">Start a different group on this phone</button></p></div>`);
+    <p style="margin-top:2rem"><button type="button" class="btn ghost sm" id="another">Start a different group on this device</button></p></div>`);
   foot(`<span class="spacer"></span>${saveTag()}`);
   $('#edit4').addEventListener('click', () => gotoPart(4, 'edit'));
   $('#edit3').addEventListener('click', () => gotoPart(3, 'edit'));
-  $('#another').addEventListener('click', () => { if (confirm('Leave this group on the board as submitted and start a new one on this phone?')) { try { localStorage.removeItem(LS); } catch (e) {} state = null; renderSetup(); } });
+  $('#another').addEventListener('click', () => { if (confirm('Leave this group on the board as submitted and start a new one on this device?')) { try { localStorage.removeItem(LS); } catch (e) {} state = null; renderSetup(); } });
 }
 
 function render() {
