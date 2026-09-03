@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;background:#003060;color:#fff;font-family:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
+.box{max-width:460px;text-align:center}
+h1{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:28px;margin:0 0 12px}
+p{font-size:17px;line-height:1.5;margin:0 0 14px;color:#dbe6f2}
+code{color:#ffc64a}
+</style></head>
+<body><div class="box">
+<h1>Please sign in with your Davis account</h1>
+<p>This page is for Davis Academy faculty and staff. Open it in a browser signed in to a <code>@<?= session.domain ?></code> Google account.</p>
+<? if (session.email) { ?><p>You are currently signed in as <code><?= session.email ?></code>.</p><? } ?>
+<p>On a phone, the easiest fix is to open the link in the Gmail app's browser, or switch accounts in Chrome first.</p>
+</div></body></html>
