@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Card packets · What Makes Davis, Davis?</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+:root{--navy:#003060;--teal:#0098a1;--gold:#ffc64a;--ink:#14213a;--ink-2:#4a5670;--line:#c9d3e0}
+*{box-sizing:border-box}
+body{margin:0;background:#e9edf3;color:var(--ink);font-family:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif}
+.bar{background:var(--navy);color:#fff;padding:.7rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;position:sticky;top:0;z-index:2}
+.bar b{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:1.15rem}
+.bar label{display:flex;align-items:center;gap:.4rem;font-size:.95rem}
+.bar input{width:4rem;font:inherit;padding:.3rem .4rem;border-radius:.3rem;border:0}
+.bar button{font:inherit;font-weight:700;background:var(--gold);color:var(--navy);border:0;border-radius:.4rem;padding:.5rem 1rem;cursor:pointer}
+.bar span{color:#a9bdd6;font-size:.9rem}
+.sheet{background:#fff;width:8.5in;min-height:11in;margin:.5in auto;padding:.5in;box-shadow:0 2px 12px rgba(0,0,0,.12);page-break-after:always;break-after:page}
+.cards{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:3.05in;gap:.2in}
+.card{border:1.5px solid var(--navy);border-radius:.14in;position:relative;display:flex;align-items:center;justify-content:center;text-align:center;padding:.35in .3in;font-family:"Newsreader",Georgia,serif;font-size:22pt;line-height:1.15;color:var(--navy);text-wrap:balance}
+.card svg{position:absolute;left:.16in;top:.14in;height:.3in;fill:var(--teal)}
+.card small{position:absolute;right:.16in;bottom:.12in;font-family:"Source Sans 3",sans-serif;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;color:#8b97ab}
+.cover{display:flex;flex-direction:column;align-items:center;text-align:center;height:10in}
+.cover svg.logo{height:1.4in;fill:var(--teal);margin:.2in 0 .1in}
+.cover .kicker{font-size:9pt;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700}
+.cover h1{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:34pt;margin:.05in 0 .15in;color:var(--navy)}
+.cover .qr{width:2.9in;height:2.9in;margin:.1in 0}
+.cover .qr svg{width:100%;height:100%;display:block}
+.cover .url{font-weight:700;font-size:15pt;color:var(--navy);letter-spacing:.02em}
+.cover ol{text-align:left;max-width:5.6in;font-size:12.5pt;line-height:1.45;color:var(--ink-2);padding-left:1.1em;margin:.25in 0}
+.cover ol b{color:var(--ink)}
+.cover .lines{width:5.6in;margin-top:auto;display:grid;grid-template-columns:2fr 1fr;gap:.3in;font-size:11pt;color:var(--ink-2)}
+.cover .lines div{border-bottom:1px solid var(--navy);padding-bottom:.05in;text-align:left}
+@page{size:letter;margin:0}
+@media print{
+  body{background:#fff}
+  .bar{display:none}
+  .sheet{margin:0;box-shadow:none;width:8.5in;height:11in;padding:.5in}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<div class="bar"><b>Card packets</b><label>Sets <input id="n" type="number" min="1" max="30" value="1"></label><button id="print">Print</button><span>Each set is three letter-size pages: a cover with the QR code, then the twelve cards. Cut on the borders.</span></div>
+<div id="out"></div>
+<template id="tpl-logo"><svg viewBox="0 0 1461 891" aria-hidden="true"><path d="M 623.429199 166 L 836.681885 166 L 824.222839 254 L 1035 254 L 1010.119141 342 L 1222 342 L 1184.889648 430.770569 L 1397 430 L 1133 887 L 1182.181274 437.249268 L 995 885 L 1009.274658 344.986816 L 855.744812 888 L 823.569336 258.615784 L 734.036377 891 L 636.963501 254.713745 L 604.588562 888 L 451.058716 344.986816 L 465.333374 885 L 278.15213 437.249268 L 327.333374 887 L 63.333374 430 L 275.443726 430.770569 L 238.333374 342 L 450.214233 342 L 425.333374 254 L 636.854614 254 L 623.429199 166 Z M 214.666672 344.888916 C 214.666672 302.915222 166.761139 268.888916 107.666664 268.888916 C 48.572201 268.888916 0.666667 302.915222 0.666667 344.888916 C 0.666667 386.862518 48.572201 420.888885 107.666664 420.888885 C 166.761139 420.888885 214.666672 386.862518 214.666672 344.888916 Z M 1460.111084 344.888916 C 1460.111084 302.915222 1412.205566 268.888916 1353.111084 268.888916 C 1294.016602 268.888916 1246.111084 302.915222 1246.111084 344.888916 C 1246.111084 386.862518 1294.016602 420.888885 1353.111084 420.888885 C 1412.205566 420.888885 1460.111084 386.862518 1460.111084 344.888916 Z M 309.222198 180 C 368.316681 180 416.222198 214.026367 416.222198 256 C 416.222198 297.973633 368.316681 332 309.222198 332 C 250.127762 332 202.222229 297.973633 202.222229 256 C 202.222229 214.026367 250.127762 180 309.222198 180 Z M 1151.666626 179 C 1210.761108 179 1258.666626 213.026367 1258.666626 255 C 1258.666626 296.973633 1210.761108 331 1151.666626 331 C 1092.572144 331 1044.666626 296.973633 1044.666626 255 C 1044.666626 213.026367 1092.572144 179 1151.666626 179 Z M 506.666656 91.111084 C 565.761169 91.111084 613.666687 125.137451 613.666687 167.111084 C 613.666687 209.084778 565.761169 243.111084 506.666656 243.111084 C 447.572205 243.111084 399.666656 209.084778 399.666656 167.111084 C 399.666656 125.137451 447.572205 91.111084 506.666656 91.111084 Z M 952.111145 91.111084 C 1011.205627 91.111084 1059.111084 125.137451 1059.111084 167.111084 C 1059.111084 209.084778 1011.205627 243.111084 952.111145 243.111084 C 893.016663 243.111084 845.111145 209.084778 845.111145 167.111084 C 845.111145 125.137451 893.016663 91.111084 952.111145 91.111084 Z M 728.888916 0.222229 C 787.983398 0.222229 835.888916 34.248596 835.888916 76.222229 C 835.888916 118.195862 787.983398 152.222229 728.888916 152.222229 C 669.794434 152.222229 621.888916 118.195862 621.888916 76.222229 C 621.888916 34.248596 669.794434 0.222229 728.888916 0.222229 Z"/></svg></template>
+<template id="tpl-qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" class="segno"><path class="qrline" stroke="#003060" d="M0 0.5h7m2 0h3m1 0h6m1 0h3m3 0h7m-33 1h1m5 0h1m1 0h1m1 0h1m1 0h1m5 0h2m4 0h1m1 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m3 0h1m1 0h2m6 0h5m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h1m4 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m2 0h3m1 0h2m1 0h1m2 0h1m2 0h2m2 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-25 1h2m1 0h2m1 0h3m5 0h2m-23 1h1m1 0h4m1 0h1m1 0h3m1 0h1m1 0h2m5 0h1m1 0h2m1 0h2m1 0h1m-31 1h1m1 0h1m4 0h4m2 0h1m2 0h3m1 0h3m4 0h3m-29 1h3m1 0h3m1 0h6m4 0h1m1 0h3m1 0h1m1 0h5m-32 1h2m2 0h1m2 0h2m1 0h2m3 0h1m1 0h2m1 0h7m2 0h1m1 0h1m-33 1h2m4 0h1m2 0h2m5 0h2m1 0h1m1 0h1m2 0h1m1 0h1m5 0h1m-33 1h1m2 0h2m6 0h1m3 0h1m2 0h3m2 0h2m2 0h1m-28 1h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h5m2 0h2m1 0h1m1 0h1m1 0h1m1 0h3m-29 1h3m2 0h2m2 0h3m2 0h2m2 0h1m1 0h2m1 0h1m3 0h2m1 0h1m-33 1h3m1 0h1m1 0h2m2 0h1m1 0h2m1 0h1m6 0h1m1 0h5m-25 1h2m1 0h1m1 0h2m3 0h1m3 0h3m1 0h1m2 0h2m1 0h1m1 0h3m-32 1h2m1 0h3m1 0h1m1 0h1m3 0h1m2 0h1m1 0h1m1 0h3m1 0h3m1 0h2m1 0h1m-32 1h1m3 0h1m2 0h3m1 0h2m3 0h1m4 0h3m3 0h3m1 0h1m-31 1h1m1 0h1m1 0h2m1 0h3m1 0h2m1 0h2m3 0h2m1 0h1m2 0h1m1 0h1m1 0h1m-32 1h1m1 0h4m2 0h1m1 0h2m1 0h1m1 0h2m6 0h1m3 0h2m1 0h1m-31 1h1m2 0h1m1 0h5m1 0h3m2 0h1m1 0h3m2 0h1m1 0h2m4 0h2m-33 1h1m4 0h1m1 0h2m2 0h1m4 0h5m1 0h1m4 0h1m1 0h2m-31 1h2m3 0h3m1 0h1m1 0h1m2 0h1m1 0h1m3 0h1m3 0h6m2 0h1m-25 1h3m2 0h1m4 0h1m2 0h1m2 0h1m3 0h1m1 0h2m-32 1h7m6 0h1m2 0h4m3 0h2m1 0h1m1 0h1m1 0h1m-31 1h1m5 0h1m1 0h1m1 0h1m1 0h2m1 0h1m3 0h1m1 0h4m3 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h2m3 0h1m3 0h1m1 0h1m1 0h8m2 0h2m-33 1h1m1 0h3m1 0h1m1 0h2m1 0h5m5 0h2m1 0h2m1 0h1m4 0h1m-33 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h3m-33 1h1m5 0h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h2m1 0h1m2 0h1m1 0h6m-33 1h7m4 0h3m4 0h2m2 0h3m2 0h2"/></svg></template>
+<script>
+const PHRASES = ["Reform Jewish Day School","Academically challenging environment","Enriched curricula","Integration of general academics and Judaic studies","Nurturing environment","Secure environment","Faculty dedicated to excellence","Children encouraged to reach their highest potential","Lifelong love of learning","Commitment to Jewish life","Morals, values, and ethics","Grounded in Torah"];
+const logo = document.getElementById('tpl-logo').innerHTML, qr = document.getElementById('tpl-qr').innerHTML;
+function build() {
+  const n = Math.max(1, Math.min(30, parseInt(document.getElementById('n').value, 10) || 1));
+  let html = '';
+  for (let s = 0; s < n; s++) {
+    html += `<div class="sheet"><div class="cover">${logo.replace('<svg', '<svg class="logo"')}
+      <div class="kicker">The Davis Academy · Faculty Meeting · September 8, 2026</div><h1>What Makes Davis, Davis?</h1>
+      <div class="qr">${qr}</div><div class="url">techrabbi.org/davis-mission</div>
+      <ol><li><b>One person scans the code</b> and signs in with a davisstudent.org Google account. One phone per group is enough, or open the link on the room's smart board.</li>
+      <li><b>Name your group and room</b> on the phone.</li>
+      <li><b>Spread the twelve cards on the table.</b> Sort them there, then tap your choices on the phone so nothing gets lost.</li>
+      <li><b>The phone will tell you what comes next</b>, and about how long to spend on each part. You have about 40 minutes before we regroup in the Media Center.</li></ol>
+      <div class="lines"><div>Group name</div><div>Room</div></div></div></div>`;
+    for (let p = 0; p < 2; p++) {
+      html += `<div class="sheet"><div class="cards">` + PHRASES.slice(p * 6, p * 6 + 6).map(ph => `<div class="card">${logo}${ph}<small>What Makes Davis, Davis?</small></div>`).join('') + `</div></div>`;
+    }
+  }
+  document.getElementById('out').innerHTML = html;
+}
+document.getElementById('n').addEventListener('input', build);
+document.getElementById('print').addEventListener('click', () => window.print());
+const q = new URLSearchParams(location.search); if (q.get('sets')) document.getElementById('n').value = q.get('sets');
+build();
+</script>
+</body>
+</html>

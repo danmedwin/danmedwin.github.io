@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Makes Davis, Davis?</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --navy:#003060; --navy-2:#0b4a86; --teal:#0098a1; --teal-2:#0f7e8f; --gold:#ffc64a; --sky:#74d2e7;
+  --ink:#14213a; --ink-2:#4a5670; --ink-3:#7d879c;
+  --ground:#f2f5f9; --paper:#ffffff; --line:#d3dbe6; --line-2:#e6ebf2;
+  --released:#eef1f5; --released-ink:#9aa4b8; --ok:#2e7d5b; --warn:#b7791f;
+}
+html{font-size:16px}
+@media (min-width:900px){html{font-size:19px}}
+@media (min-width:1400px){html{font-size:22px}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+header.top{background:var(--navy);color:#fff;padding:.7rem 1rem;display:flex;align-items:center;gap:.8rem}
+header.top svg{height:2.1rem;width:auto;fill:var(--teal);flex:none}
+header .t1{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sky);font-weight:600}
+header .t2{font-family:"Newsreader",Georgia,serif;font-size:1.15rem;line-height:1.1}
+header .grp{margin-left:auto;text-align:right;font-size:.8rem;color:#dbe6f2;line-height:1.25}
+header .grp b{color:#fff;font-weight:600}
+@media (max-width:480px){header .t1{display:none}header .t2{font-size:1.05rem}header .grp{font-size:.72rem}}
+main{flex:1;width:100%;max-width:64rem;margin:0 auto;padding:1rem 1rem 7rem}
+.kicker{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-2);font-weight:700}
+h2{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:1.9rem;margin:.15rem 0 .3rem;line-height:1.1;text-wrap:balance}
+.lede{font-size:1.05rem;color:var(--ink-2);margin:0 0 1rem;max-width:42rem}
+.lede b{color:var(--ink)}
+blockquote.ask{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:1.45rem;line-height:1.25;margin:.6rem 0 1rem;padding:.6rem 1rem;border-left:4px solid var(--gold);background:var(--paper);color:var(--navy);text-wrap:balance}
+label.f{display:flex;flex-direction:column;gap:.25rem;font-weight:600;font-size:.9rem;margin-bottom:.8rem}
+label.f small{font-weight:400;color:var(--ink-3)}
+input,textarea{font:inherit;font-weight:400;font-size:1rem;padding:.6rem .7rem;border:1px solid var(--line);border-radius:.4rem;background:var(--paper);color:var(--ink);width:100%}
+textarea{min-height:5.5rem;resize:vertical;line-height:1.45}
+input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:1px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:.45rem;padding:.65rem 1.1rem;cursor:pointer;background:var(--navy);color:#fff;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line)}
+.btn.gold{background:var(--gold);color:var(--navy)}
+.btn.sm{padding:.4rem .7rem;font-size:.85rem}
+.btn:disabled{opacity:.4;cursor:default}
+.timer{display:flex;align-items:center;gap:.6rem;margin:.4rem 0 1rem;font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--ink-2);white-space:nowrap}
+.timer .bar{flex:1;height:.4rem;background:var(--line-2);border-radius:99px;overflow:hidden}
+.timer .bar i{display:block;height:100%;background:var(--teal);width:0;transition:width 1s linear}
+.timer.over .bar i{background:var(--gold)}
+.timer.over .rem{color:var(--warn);font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+@media (min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{font-family:"Newsreader",Georgia,serif;font-size:1.05rem;line-height:1.25;text-align:left;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:.4rem;padding:.75rem .8rem 1.1rem;min-height:4.4rem;cursor:pointer;position:relative;box-shadow:0 1px 2px rgba(0,48,96,.06);transition:background .15s,color .15s;width:100%}
+.card::after{position:absolute;right:.6rem;bottom:.35rem;font:600 .58rem "Source Sans 3",sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.card.kept{background:var(--navy);color:#fff;border-color:var(--navy)}
+.card.kept::after{content:"Keeping";color:var(--gold)}
+.card.out{background:var(--released);color:var(--released-ink);border-color:var(--line-2);box-shadow:none}
+.card.out::after{content:"Let go";color:var(--released-ink)}
+.card.big{cursor:default;background:var(--navy);color:#fff;border-color:var(--navy);min-height:0;padding-bottom:.75rem}
+.card.big::after{content:none}
+.foot{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);padding:.7rem 1rem;box-shadow:0 -6px 20px rgba(0,48,96,.08);z-index:5}
+.foot .in{width:100%;max-width:64rem;margin:0 auto;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.count{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink-2)}
+.count b{color:var(--navy);font-size:1.15rem}
+.spacer{flex:1}
+.save{font-size:.72rem;color:var(--ink-3);white-space:nowrap}
+.save.err{color:var(--warn)}
+.tip{border-left:3px solid var(--gold);padding:.5rem .8rem;background:var(--paper);color:var(--ink-2);font-size:.92rem;margin:.9rem 0}
+.tip b{color:var(--ink)}
+details.how{border:1px solid var(--line);border-radius:.45rem;padding:.55rem .8rem;background:var(--paper);margin:.9rem 0;font-size:.92rem;color:var(--ink-2)}
+summary{cursor:pointer;font-weight:600;color:var(--navy)}
+details ol{margin:.5rem 0 0;padding-left:1.2rem;display:flex;flex-direction:column;gap:.3rem}
+.six{display:flex;flex-wrap:wrap;gap:.4rem;margin:.6rem 0 1rem}
+.six span{background:var(--navy);color:#fff;border-radius:.35rem;padding:.35rem .6rem;font-family:"Newsreader",Georgia,serif;font-size:.95rem}
+.q{margin:1.1rem 0}
+.q .qn{font-family:"Newsreader",Georgia,serif;font-size:1.3rem;margin:0 0 .1rem;color:var(--navy)}
+.q .qs{color:var(--ink-2);font-size:.95rem;margin:0 0 .45rem}
+.resume{margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--line)}
+.resume .btn{display:block;width:100%;text-align:left;margin:.4rem 0;white-space:normal}
+.overlay{position:fixed;inset:0;background:var(--ground);z-index:10;overflow:auto;padding:1rem 1rem 7rem}
+.overlay .in{max-width:64rem;margin:0 auto}
+.tally{display:grid;grid-template-columns:1fr auto;gap:.5rem .8rem;align-items:center;margin:.8rem 0}
+.tally .ph{font-family:"Newsreader",Georgia,serif;font-size:1rem}
+.tally .bar{height:.5rem;background:var(--teal);border-radius:99px;margin-top:.2rem}
+.tally .n{font-variant-numeric:tabular-nums;font-weight:700;color:var(--navy);font-size:1.2rem;text-align:right}
+.done{text-align:center;padding-top:1.5rem}
+.done .chk{width:3.2rem;height:3.2rem;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:1.8rem;font-weight:700;margin:0 auto .8rem}
+.three{display:flex;flex-direction:column;gap:.5rem;max-width:32rem;margin:1rem auto}
+.links{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:1.4rem}
+.shadow-sec{margin-top:1.4rem;padding-top:1rem;border-top:2px solid var(--gold)}
+.sh{margin:.9rem 0}
+.sh .card{margin-bottom:.35rem}
+.toast{position:fixed;left:50%;bottom:5.2rem;transform:translateX(-50%);background:var(--ink);color:#fff;padding:.5rem .9rem;border-radius:.4rem;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.badge{position:fixed;top:.4rem;right:.4rem;background:var(--gold);color:var(--navy);font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .5rem;border-radius:.3rem;z-index:30}
+.loading{color:var(--ink-3);padding:2rem 0;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg viewBox="0 0 1461 891" aria-hidden="true"><path d="M 623.429199 166 L 836.681885 166 L 824.222839 254 L 1035 254 L 1010.119141 342 L 1222 342 L 1184.889648 430.770569 L 1397 430 L 1133 887 L 1182.181274 437.249268 L 995 885 L 1009.274658 344.986816 L 855.744812 888 L 823.569336 258.615784 L 734.036377 891 L 636.963501 254.713745 L 604.588562 888 L 451.058716 344.986816 L 465.333374 885 L 278.15213 437.249268 L 327.333374 887 L 63.333374 430 L 275.443726 430.770569 L 238.333374 342 L 450.214233 342 L 425.333374 254 L 636.854614 254 L 623.429199 166 Z M 214.666672 344.888916 C 214.666672 302.915222 166.761139 268.888916 107.666664 268.888916 C 48.572201 268.888916 0.666667 302.915222 0.666667 344.888916 C 0.666667 386.862518 48.572201 420.888885 107.666664 420.888885 C 166.761139 420.888885 214.666672 386.862518 214.666672 344.888916 Z M 1460.111084 344.888916 C 1460.111084 302.915222 1412.205566 268.888916 1353.111084 268.888916 C 1294.016602 268.888916 1246.111084 302.915222 1246.111084 344.888916 C 1246.111084 386.862518 1294.016602 420.888885 1353.111084 420.888885 C 1412.205566 420.888885 1460.111084 386.862518 1460.111084 344.888916 Z M 309.222198 180 C 368.316681 180 416.222198 214.026367 416.222198 256 C 416.222198 297.973633 368.316681 332 309.222198 332 C 250.127762 332 202.222229 297.973633 202.222229 256 C 202.222229 214.026367 250.127762 180 309.222198 180 Z M 1151.666626 179 C 1210.761108 179 1258.666626 213.026367 1258.666626 255 C 1258.666626 296.973633 1210.761108 331 1151.666626 331 C 1092.572144 331 1044.666626 296.973633 1044.666626 255 C 1044.666626 213.026367 1092.572144 179 1151.666626 179 Z M 506.666656 91.111084 C 565.761169 91.111084 613.666687 125.137451 613.666687 167.111084 C 613.666687 209.084778 565.761169 243.111084 506.666656 243.111084 C 447.572205 243.111084 399.666656 209.084778 399.666656 167.111084 C 399.666656 125.137451 447.572205 91.111084 506.666656 91.111084 Z M 952.111145 91.111084 C 1011.205627 91.111084 1059.111084 125.137451 1059.111084 167.111084 C 1059.111084 209.084778 1011.205627 243.111084 952.111145 243.111084 C 893.016663 243.111084 845.111145 209.084778 845.111145 167.111084 C 845.111145 125.137451 893.016663 91.111084 952.111145 91.111084 Z M 728.888916 0.222229 C 787.983398 0.222229 835.888916 34.248596 835.888916 76.222229 C 835.888916 118.195862 787.983398 152.222229 728.888916 152.222229 C 669.794434 152.222229 621.888916 118.195862 621.888916 76.222229 C 621.888916 34.248596 669.794434 0.222229 728.888916 0.222229 Z"/></svg>
+  <div><div class="t1">The Davis Academy · Faculty Meeting</div><div class="t2">What Makes Davis, Davis?</div></div>
+  <div class="grp" id="grp"></div>
+</header>
+<main id="app"><div class="loading">Loading…</div></main>
+<div class="foot" id="foot" hidden><div class="in" id="footIn"></div></div>
+<div class="toast" id="toast"></div>
+<script type="application/json" id="boot"><?!= JSON.stringify({session: session, phrases: phrases}) ?></script>
+<script>
+/* ---------------------------------------------------------------- boot data */
+const DEFAULT_PHRASES = ["Reform Jewish Day School","Academically challenging environment","Enriched curricula","Integration of general academics and Judaic studies","Nurturing environment","Secure environment","Faculty dedicated to excellence","Children encouraged to reach their highest potential","Lifelong love of learning","Commitment to Jewish life","Morals, values, and ethics","Grounded in Torah"];
+let SESSION = { email: 'preview@davisstudent.org', ok: true }, PHRASES = DEFAULT_PHRASES;
+try { const b = JSON.parse(document.getElementById('boot').textContent); SESSION = b.session; PHRASES = b.phrases; } catch (e) { /* opened outside Apps Script: preview mode */ }
+const LIVE = typeof google !== 'undefined' && google.script && google.script.run;
+if (!LIVE) { const b = document.createElement('div'); b.className = 'badge'; b.textContent = 'Preview mode'; document.body.appendChild(b); }
+
+const PART_MIN = { 1: 12, 2: 6, 3: 12, 4: 8 };
+const LS = 'davis-mission.group';
+const FIELDS = ['groupName','room','members','part','six','three','pitch','shadow','unique','essential','aspirational','missing','submittedAt','partStarted'];
+
+/* ---------------------------------------------------------------- server (real or preview) */
+function mockServer() {
+  const K = 'davis-mission.mock';
+  const read = () => { try { return JSON.parse(localStorage.getItem(K)) || []; } catch (e) { return []; } };
+  const write = (g) => localStorage.setItem(K, JSON.stringify(g));
+  const api = {
+    startGroup(info) {
+      const now = new Date().toISOString();
+      const g = { groupId: Math.random().toString(36).slice(2, 12), createdAt: now, updatedAt: now, email: SESSION.email,
+        groupName: info.groupName || '', room: info.room || '', members: info.members || '', part: 1, submittedAt: '',
+        six: [], three: [], pitch: '', shadow: {}, unique: '', essential: '', aspirational: '', missing: '', partStarted: { 1: now } };
+      const all = read(); all.push(g); write(all); return g;
+    },
+    saveGroup(id, patch) {
+      const all = read(); const g = all.find(x => x.groupId === id);
+      if (!g) throw new Error('That group was not found. Please start a new group.');
+      FIELDS.forEach(k => { if (patch[k] !== undefined) g[k] = patch[k]; });
+      g.updatedAt = new Date().toISOString(); write(all); return { updatedAt: g.updatedAt };
+    },
+    getGroup(id) { return read().find(x => x.groupId === id) || null; },
+    listOpenGroups() { return read().filter(g => !g.submittedAt).map(g => ({ groupId: g.groupId, groupName: g.groupName, room: g.room, part: g.part, updatedAt: g.updatedAt })); }
+  };
+  return { call: (fn, ...a) => new Promise((res, rej) => setTimeout(() => { try { res(JSON.parse(JSON.stringify(api[fn](...a)))); } catch (e) { rej(e); } }, 150)) };
+}
+const server = LIVE
+  ? { call: (fn, ...a) => new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...a)) }
+  : mockServer();
+
+/* ---------------------------------------------------------------- state + saving */
+let state = null, dirty = false, saving = false, saveTimer = null, tickTimer = null, pendingEvent = '', lastFailed = false;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nowIso = () => new Date().toISOString();
+const timeStr = (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const fmt = (sec) => Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+
+function persistLocal() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+function setSave(msg, err) { const el = $('#save'); if (!el) return; el.textContent = msg; el.classList.toggle('err', !!err); }
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2200); }
+
+function save(event, immediate) {
+  if (!state) return;
+  state.updatedAt = nowIso();
+  persistLocal();
+  dirty = true;
+  if (event) pendingEvent = event;
+  clearTimeout(saveTimer);
+  if (immediate) flush(); else saveTimer = setTimeout(flush, 1500);
+}
+async function flush() {
+  if (!dirty || saving || !state) return;
+  saving = true; dirty = false; setSave('Saving…');
+  const p = {}; FIELDS.forEach(k => p[k] = state[k]); p.event = pendingEvent || 'save'; pendingEvent = '';
+  try {
+    await server.call('saveGroup', state.groupId, p);
+    lastFailed = false; setSave('Saved ' + timeStr(new Date()));
+  } catch (e) {
+    dirty = true; lastFailed = true;
+    setSave('Not saved yet, retrying…', true);
+  } finally {
+    saving = false;
+    if (dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, lastFailed ? 5000 : 1500); }
+  }
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && dirty) { clearTimeout(saveTimer); flush(); } });
+
+/* ---------------------------------------------------------------- rendering helpers */
+function h(html) { $('#app').innerHTML = html; window.scrollTo(0, 0); }
+function foot(html) { const f = $('#foot'); if (!html) { f.hidden = true; return; } f.hidden = false; $('#footIn').innerHTML = html; }
+function headerGroup() { $('#grp').innerHTML = state ? `<b>${esc(state.groupName)}</b><br>${state.room ? 'Room ' + esc(state.room) : ''}` : ''; }
+function saveTag() { return `<span class="save" id="save"></span>`; }
+
+function partHead(n, title, sub) {
+  return `<div class="kicker">Part ${n} of 4 · about ${PART_MIN[n]} minutes</div><h2>${title}</h2><p class="lede">${sub}</p>
+  <div class="timer" id="timer"><span class="el"></span><div class="bar"><i></i></div><span class="rem"></span></div>`;
+}
+function startTick() { clearInterval(tickTimer); tickTimer = setInterval(renderTimer, 1000); renderTimer(); }
+function renderTimer() {
+  const el = $('#timer'); if (!el || !state) return;
+  const start = Date.parse((state.partStarted || {})[state.part] || state.updatedAt || nowIso());
+  const sec = Math.max(0, Math.floor((Date.now() - start) / 1000));
+  const budget = (PART_MIN[state.part] || 10) * 60;
+  el.classList.toggle('over', sec > budget);
+  el.querySelector('i').style.width = Math.min(100, sec / budget * 100) + '%';
+  el.querySelector('.el').textContent = fmt(sec) + ' elapsed';
+  el.querySelector('.rem').textContent = sec > budget ? fmt(sec - budget) + ' over' : fmt(budget - sec) + ' left';
+}
+function gotoPart(n, event) {
+  state.part = n;
+  state.partStarted = state.partStarted || {};
+  if (!state.partStarted[n]) state.partStarted[n] = nowIso();
+  save(event || ('part' + n), true);
+  render();
+}
+function bindText(id, key, sub) {
+  const el = document.getElementById(id); if (!el) return;
+  el.addEventListener('input', () => {
+    if (sub) { state[key] = state[key] || {}; state[key][sub] = el.value; } else state[key] = el.value;
+    save();
+  });
+}
+
+/* ---------------------------------------------------------------- card sorting */
+function drawGrid(key, candidates, n, opts) {
+  opts = opts || {};
+  const grid = $('#grid'); if (!grid) return;
+  const kept = state[key] || [];
+  const full = kept.length >= n;
+  grid.innerHTML = candidates.map(i => {
+    const k = kept.includes(i);
+    const cls = k ? 'kept' : (full && opts.fadeRest ? 'out' : '');
+    return `<button type="button" class="card ${cls}" data-i="${i}" aria-pressed="${k}">${esc(PHRASES[i])}</button>`;
+  }).join('');
+  grid.querySelectorAll('.card').forEach(b => b.addEventListener('click', () => {
+    const i = +b.dataset.i;
+    const cur = state[key] || [];
+    if (cur.includes(i)) state[key] = cur.filter(x => x !== i);
+    else if (cur.length >= n) { toast(`You already have ${n}. Let one go first.`); return; }
+    else state[key] = cur.concat([i]);
+    save('sort');
+    drawGrid(key, candidates, n, opts);
+    if (opts.onChange) opts.onChange();
+  }));
+  const c = $('#count'); if (c) c.innerHTML = `Keeping <b>${(state[key] || []).length}</b> of ${n}`;
+  const nx = $('#next'); if (nx) nx.disabled = (state[key] || []).length !== n;
+}
+function howTo(n) {
+  return `<details class="how"><summary>How to decide when you're stuck</summary><ol>
+  <li>Sort by agreement first. Keep the cards everyone nods at, let go of the ones nobody fights for.</li>
+  <li>Spend your energy only on the borderline cards.</li>
+  <li>Ask: "If a visitor spent a week here, would they actually see this?"</li>
+  <li>Still stuck? Use <b>Pass-the-phone vote</b>. Each person picks their ${n} in private; the tally shows where you really stand.</li>
+  <li>The clock is a suggestion. Better to arrive a minute late with a real answer.</li></ol></details>`;
+}
+function footSort(key, candidates, n, label, next) {
+  foot(`<span class="count" id="count"></span><button type="button" class="btn ghost sm" id="vote">Pass-the-phone vote</button><span class="spacer"></span>${saveTag()}<button type="button" class="btn" id="next" disabled>${label}</button>`);
+  $('#vote').addEventListener('click', () => openVote(key, candidates, n));
+  $('#next').addEventListener('click', next);
+}
+
+function openVote(key, candidates, n) {
+  const ov = document.createElement('div'); ov.className = 'overlay'; document.body.appendChild(ov);
+  const rounds = []; let cur = new Set(); let person = 1;
+  const close = () => ov.remove();
+  function drawVote() {
+    ov.innerHTML = `<div class="in"><div class="kicker">Pass-the-phone vote</div><h2>Person ${person}, your turn</h2>
+      <p class="lede">Tap up to <b>${n}</b> you would keep, then pass the phone. Nobody sees anyone's picks until the tally.</p>
+      <div class="grid" id="vgrid"></div>
+      <div class="links"><button type="button" class="btn ghost" id="vcancel">Cancel</button><button type="button" class="btn ghost" id="vfinish">Finish and see the tally</button><button type="button" class="btn" id="vnext">Done, pass it on</button></div></div>`;
+    const g = ov.querySelector('#vgrid');
+    g.innerHTML = candidates.map(i => `<button type="button" class="card ${cur.has(i) ? 'kept' : ''}" data-i="${i}">${esc(PHRASES[i])}</button>`).join('');
+    g.querySelectorAll('.card').forEach(b => b.addEventListener('click', () => {
+      const i = +b.dataset.i;
+      if (cur.has(i)) cur.delete(i); else if (cur.size >= n) { toast(`Up to ${n} each.`); return; } else cur.add(i);
+      b.classList.toggle('kept', cur.has(i));
+    }));
+    ov.querySelector('#vcancel').onclick = close;
+    ov.querySelector('#vnext').onclick = () => { if (!cur.size) { toast('Pick at least one.'); return; } rounds.push([...cur]); cur = new Set(); person++; drawVote(); window.scrollTo(0, 0); };
+    ov.querySelector('#vfinish').onclick = () => { if (cur.size) rounds.push([...cur]); if (!rounds.length) { toast('Nobody has voted yet.'); return; } drawTally(); };
+  }
+  function drawTally() {
+    const counts = {}; candidates.forEach(i => counts[i] = 0);
+    rounds.forEach(r => r.forEach(i => counts[i]++));
+    const order = candidates.slice().sort((a, b) => counts[b] - counts[a] || candidates.indexOf(a) - candidates.indexOf(b));
+    const top = order.slice(0, n);
+    const cut = counts[order[n - 1]], nextOne = order[n] !== undefined ? counts[order[n]] : -1;
+    const tie = cut === nextOne ? `<p class="lede">There is a tie at the cut line, so the group still has a call to make.</p>` : '';
+    ov.innerHTML = `<div class="in"><div class="kicker">Pass-the-phone vote</div><h2>The tally</h2><p class="lede">${rounds.length} ${rounds.length === 1 ? 'person' : 'people'} voted. Talk about what the numbers show before you decide.</p>
+      <div class="tally">${order.map(i => `<div><div class="ph">${esc(PHRASES[i])}</div><div class="bar" style="width:${rounds.length ? counts[i] / rounds.length * 100 : 0}%"></div></div><div class="n">${counts[i]}</div>`).join('')}</div>${tie}
+      <div class="links"><button type="button" class="btn ghost" id="tclose">Close</button><button type="button" class="btn" id="tapply">Start from the top ${n}</button></div></div>`;
+    ov.querySelector('#tclose').onclick = close;
+    ov.querySelector('#tapply').onclick = () => { state[key] = top; save('vote'); close(); render(); };
+    window.scrollTo(0, 0);
+  }
+  drawVote();
+}
+
+/* ---------------------------------------------------------------- screens */
+function renderSetup() {
+  clearInterval(tickTimer); foot('');
+  h(`<div class="kicker">Before you begin</div><h2>Your group</h2>
+  <p class="lede">One phone per group is enough, or open this on the room's smart board. Your group has about <b>40 minutes</b>. Each part will tell you roughly how long to give it, and what comes next stays a surprise until you get there.</p>
+  <label class="f">Group name <input id="gname" placeholder="e.g. The Fourth Grade Team" autocomplete="off"></label>
+  <label class="f">Room <input id="room" placeholder="e.g. 104" autocomplete="off"></label>
+  <label class="f">Who's in the group? <small>first names are fine</small><input id="members" autocomplete="off"></label>
+  <div class="tip"><b>Two jobs before you start:</b> one person holds the phone, one keeps time. Everyone else argues.</div>
+  <button type="button" class="btn" id="start">Start with 12</button>
+  <div class="resume" id="resume" hidden></div>`);
+  headerGroup();
+  $('#start').addEventListener('click', async () => {
+    const info = { groupName: $('#gname').value.trim(), room: $('#room').value.trim(), members: $('#members').value.trim() };
+    if (!info.groupName) { toast('Give your group a name first.'); $('#gname').focus(); return; }
+    $('#start').disabled = true; $('#start').textContent = 'Starting…';
+    try { state = await server.call('startGroup', info); persistLocal(); render(); }
+    catch (e) { $('#start').disabled = false; $('#start').textContent = 'Start with 12'; toast('Could not start: ' + (e.message || e)); }
+  });
+  server.call('listOpenGroups').then(list => {
+    if (!list || !list.length) return;
+    const r = $('#resume'); if (!r) return; r.hidden = false;
+    r.innerHTML = `<div class="kicker">Already started on another device?</div>` + list.map(g =>
+      `<button type="button" class="btn ghost" data-id="${esc(g.groupId)}">Continue <b>${esc(g.groupName)}</b>${g.room ? ' · Room ' + esc(g.room) : ''} <span style="color:var(--ink-3)">· part ${g.part} of 4</span></button>`).join('');
+    r.querySelectorAll('button').forEach(b => b.addEventListener('click', async () => {
+      try { const g = await server.call('getGroup', b.dataset.id); if (g) { state = g; persistLocal(); render(); } }
+      catch (e) { toast('Could not open that group.'); }
+    }));
+  }).catch(() => {});
+}
+
+function renderPart1() {
+  h(partHead(1, 'Start with 12', 'These twelve phrases all come from the Davis mission. Which <b>six</b> are most essential to our identity as a school? Tap a card to keep it.')
+    + `<div class="grid" id="grid"></div>` + howTo(6));
+  footSort('six', PHRASES.map((p, i) => i), 6, 'Continue', () => gotoPart(2));
+  drawGrid('six', PHRASES.map((p, i) => i), 6);
+  startTick();
+}
+
+function renderPart2() {
+  h(partHead(2, 'Make your case', 'Imagine you are explaining your six choices to a prospective family. They ask:')
+    + `<blockquote class="ask">"What makes Davis different from another excellent private school?"</blockquote>
+    <p class="lede">Using your six phrases, how would you answer them? Talk it through first. Then capture the answer in a sentence or two, so it can be shared when we regroup.</p>
+    <div class="six">${(state.six || []).slice().sort((a, b) => a - b).map(i => `<span>${esc(PHRASES[i])}</span>`).join('')}</div>
+    <label class="f">Our answer <small>optional, but worth a sentence</small><textarea id="pitch">${esc(state.pitch)}</textarea></label>`);
+  bindText('pitch', 'pitch');
+  foot(`<button type="button" class="btn ghost sm" id="back">Back</button><span class="spacer"></span>${saveTag()}<button type="button" class="btn" id="next">Continue</button>`);
+  $('#back').addEventListener('click', () => gotoPart(1, 'back1'));
+  $('#next').addEventListener('click', () => gotoPart(3));
+  startTick();
+}
+
+function renderPart3() {
+  h(partHead(3, 'Now it gets harder', 'You have six. You now have to give up <b>three more</b>. Tap the three you could not imagine Davis without.')
+    + `<div class="grid" id="grid"></div><div id="shadow"></div>`);
+  const six = (state.six || []).slice().sort((a, b) => a - b);
+  let shownKey = '';
+  function syncShadow() {
+    const three = (state.three || []).slice().sort((a, b) => a - b);
+    const box = $('#shadow');
+    if (three.length !== 3) { box.innerHTML = ''; shownKey = ''; return; }
+    const key = three.join(',');
+    if (key === shownKey) return;
+    shownKey = key;
+    box.innerHTML = `<div class="shadow-sec"><div class="kicker">Now take it one step further</div><h2>The shadow</h2>
+      <p class="lede">Imagine a shadow followed you around Davis for an entire week. They don't read our website. They don't see our mission statement. They simply observe our school. <b>What would they see, hear, and experience that would demonstrate these three?</b> A line or two per card is plenty. Be ready to share your three and how they show up in the daily experience of our students.</p>
+      ${three.map(i => `<div class="sh"><div class="card big">${esc(PHRASES[i])}</div><textarea id="sh${i}" placeholder="They would see, hear, or experience…">${esc((state.shadow || {})[i] || '')}</textarea></div>`).join('')}</div>`;
+    three.forEach(i => bindText('sh' + i, 'shadow', i));
+  }
+  footSort('three', six, 3, 'Continue', () => gotoPart(4));
+  drawGrid('three', six, 3, { fadeRest: true, onChange: syncShadow });
+  syncShadow();
+  startTick();
+}
+
+function renderPart4() {
+  const q = (key, name, text, extra) => `<div class="q"><p class="qn">${name}</p><p class="qs">${text}</p><textarea id="${key}" ${extra || ''}>${esc(state[key])}</textarea></div>`;
+  h(partHead(4, 'One last look at Davis', 'Using everything your group has discussed, answer these three questions. The fourth is a bonus.')
+    + q('unique', 'Uniquely Davis', 'What is something that truly distinguishes Davis from other excellent schools?')
+    + q('essential', 'Essential Davis', 'What may not be unique to Davis, but we could not imagine Davis without it?')
+    + q('aspirational', 'Aspirational Davis', 'What is something we deeply value and want to become even better at?')
+    + q('missing', 'Bonus: Missing Davis', 'Is there something not represented in our twelve phrases that you believe is essential to who Davis is, or who we want to become?'));
+  ['unique', 'essential', 'aspirational', 'missing'].forEach(k => bindText(k, k));
+  foot(`<button type="button" class="btn ghost sm" id="back">Back</button><span class="spacer"></span>${saveTag()}<button type="button" class="btn gold" id="submit">Submit our answers</button>`);
+  $('#back').addEventListener('click', () => gotoPart(3, 'back3'));
+  $('#submit').addEventListener('click', () => {
+    const blank = ['unique', 'essential', 'aspirational'].filter(k => !(state[k] || '').trim());
+    if (blank.length && !confirm(`${blank.length === 3 ? 'The three questions are' : 'Some answers are'} still blank. Submit anyway? You can come back and edit.`)) return;
+    state.submittedAt = state.submittedAt || nowIso();
+    gotoPart(5, 'submit');
+  });
+  startTick();
+}
+
+function renderDone() {
+  clearInterval(tickTimer);
+  h(`<div class="done"><div class="chk">✓</div><div class="kicker">Submitted</div><h2>${esc(state.groupName)} is in.</h2>
+    <p class="lede" style="margin:0 auto">Head back to the Media Center. Bring your three with you:</p>
+    <div class="three">${(state.three || []).slice().sort((a, b) => a - b).map(i => `<div class="card big">${esc(PHRASES[i])}</div>`).join('')}</div>
+    <div class="links"><button type="button" class="btn ghost" id="edit4">Edit our answers</button><button type="button" class="btn ghost" id="edit3">Change our three</button></div>
+    <p style="margin-top:2rem"><button type="button" class="btn ghost sm" id="another">Start a different group on this phone</button></p></div>`);
+  foot(`<span class="spacer"></span>${saveTag()}`);
+  $('#edit4').addEventListener('click', () => gotoPart(4, 'edit'));
+  $('#edit3').addEventListener('click', () => gotoPart(3, 'edit'));
+  $('#another').addEventListener('click', () => { if (confirm('Leave this group on the board as submitted and start a new one on this phone?')) { try { localStorage.removeItem(LS); } catch (e) {} state = null; renderSetup(); } });
+}
+
+function render() {
+  headerGroup();
+  if (!state) return renderSetup();
+  switch (state.part) {
+    case 1: return renderPart1();
+    case 2: return renderPart2();
+    case 3: return renderPart3();
+    case 4: return renderPart4();
+    default: return renderDone();
+  }
+}
+
+/* ---------------------------------------------------------------- boot */
+(async function boot() {
+  let local = null;
+  try { local = JSON.parse(localStorage.getItem(LS)); } catch (e) {}
+  if (local && local.groupId) {
+    h('<div class="loading">Picking up where you left off…</div>');
+    try {
+      const srv = await server.call('getGroup', local.groupId);
+      if (srv) {
+        if ((srv.updatedAt || '') >= (local.updatedAt || '')) state = srv;
+        else { state = local; save('resync', true); }
+      } else {
+        try { localStorage.removeItem(LS); } catch (e) {}
+      }
+    } catch (e) { state = local; }
+    if (state) persistLocal();
+  }
+  render();
+})();
+</script>
+</body>
+</html>

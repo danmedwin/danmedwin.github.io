@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>What Makes Davis, Davis?</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Source+Sans+3:wght@400;600;700&display=swap">
+<script>
+  /* Paste the Apps Script web app URL here after deploying (it ends in /exec).
+     Leave empty until then and this page shows a "not open yet" notice. */
+  const APP_URL = "";
+  (function () {
+    if (!APP_URL) return;
+    const q = new URLSearchParams(location.search);
+    if (q.has('board')) location.replace(APP_URL + '?view=board');
+    else if (!q.has('stay')) location.replace(APP_URL);
+  })();
+</script>
+<style>
+:root{--navy:#003060;--teal:#0098a1;--gold:#ffc64a;--sky:#74d2e7;--ink:#14213a}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--navy);color:#fff;font-family:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem 1.2rem;text-align:center}
+.logo{width:min(46vw,300px);fill:var(--teal);margin-bottom:.5rem}
+.kicker{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);font-weight:600}
+h1{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:clamp(2.2rem,7vw,4.5rem);line-height:1.05;margin:.3rem 0 .8rem;text-wrap:balance}
+p{max-width:34rem;margin:0 auto 1.2rem;font-size:1.15rem;color:#dbe6f2}
+.btn{display:inline-block;background:var(--gold);color:var(--navy);font-weight:700;font-size:1.25rem;padding:.9rem 1.8rem;border-radius:.6rem;text-decoration:none;margin:.4rem 0 1.4rem}
+.btn.off{background:rgba(255,255,255,.12);color:#dbe6f2;font-weight:600;pointer-events:none}
+.qr{background:#fff;padding:.7rem;border-radius:.6rem;width:11rem;height:11rem;margin:.6rem auto 0}
+.qr svg{width:100%;height:100%;display:block}
+.url{font-size:1.05rem;color:#fff;font-weight:600;letter-spacing:.02em;margin-top:.5rem}
+.small{font-size:.9rem;color:#a9bdd6;margin-top:2rem}
+.small a{color:var(--sky)}
+@media (min-width:900px){body{font-size:20px}.qr{width:14rem;height:14rem}}
+</style>
+</head>
+<body>
+<svg class="logo" viewBox="0 0 1461 891" aria-hidden="true"><path d="M 623.429199 166 L 836.681885 166 L 824.222839 254 L 1035 254 L 1010.119141 342 L 1222 342 L 1184.889648 430.770569 L 1397 430 L 1133 887 L 1182.181274 437.249268 L 995 885 L 1009.274658 344.986816 L 855.744812 888 L 823.569336 258.615784 L 734.036377 891 L 636.963501 254.713745 L 604.588562 888 L 451.058716 344.986816 L 465.333374 885 L 278.15213 437.249268 L 327.333374 887 L 63.333374 430 L 275.443726 430.770569 L 238.333374 342 L 450.214233 342 L 425.333374 254 L 636.854614 254 L 623.429199 166 Z M 214.666672 344.888916 C 214.666672 302.915222 166.761139 268.888916 107.666664 268.888916 C 48.572201 268.888916 0.666667 302.915222 0.666667 344.888916 C 0.666667 386.862518 48.572201 420.888885 107.666664 420.888885 C 166.761139 420.888885 214.666672 386.862518 214.666672 344.888916 Z M 1460.111084 344.888916 C 1460.111084 302.915222 1412.205566 268.888916 1353.111084 268.888916 C 1294.016602 268.888916 1246.111084 302.915222 1246.111084 344.888916 C 1246.111084 386.862518 1294.016602 420.888885 1353.111084 420.888885 C 1412.205566 420.888885 1460.111084 386.862518 1460.111084 344.888916 Z M 309.222198 180 C 368.316681 180 416.222198 214.026367 416.222198 256 C 416.222198 297.973633 368.316681 332 309.222198 332 C 250.127762 332 202.222229 297.973633 202.222229 256 C 202.222229 214.026367 250.127762 180 309.222198 180 Z M 1151.666626 179 C 1210.761108 179 1258.666626 213.026367 1258.666626 255 C 1258.666626 296.973633 1210.761108 331 1151.666626 331 C 1092.572144 331 1044.666626 296.973633 1044.666626 255 C 1044.666626 213.026367 1092.572144 179 1151.666626 179 Z M 506.666656 91.111084 C 565.761169 91.111084 613.666687 125.137451 613.666687 167.111084 C 613.666687 209.084778 565.761169 243.111084 506.666656 243.111084 C 447.572205 243.111084 399.666656 209.084778 399.666656 167.111084 C 399.666656 125.137451 447.572205 91.111084 506.666656 91.111084 Z M 952.111145 91.111084 C 1011.205627 91.111084 1059.111084 125.137451 1059.111084 167.111084 C 1059.111084 209.084778 1011.205627 243.111084 952.111145 243.111084 C 893.016663 243.111084 845.111145 209.084778 845.111145 167.111084 C 845.111145 125.137451 893.016663 91.111084 952.111145 91.111084 Z M 728.888916 0.222229 C 787.983398 0.222229 835.888916 34.248596 835.888916 76.222229 C 835.888916 118.195862 787.983398 152.222229 728.888916 152.222229 C 669.794434 152.222229 621.888916 118.195862 621.888916 76.222229 C 621.888916 34.248596 669.794434 0.222229 728.888916 0.222229 Z"/></svg>
+<div class="kicker">The Davis Academy · Faculty Meeting · September 8, 2026</div>
+<h1>What Makes Davis, Davis?</h1>
+<p>Sign in with your <b>davisstudent.org</b> Google account when asked. One phone per group is enough.</p>
+<a class="btn" id="open" href="#">Open the activity</a>
+<div class="qr" aria-label="QR code for techrabbi.org/davis-mission"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" class="segno"><path class="qrline" stroke="#003060" d="M0 0.5h7m2 0h3m1 0h6m1 0h3m3 0h7m-33 1h1m5 0h1m1 0h1m1 0h1m1 0h1m5 0h2m4 0h1m1 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m3 0h1m1 0h2m6 0h5m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h1m4 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m2 0h3m1 0h2m1 0h1m2 0h1m2 0h2m2 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-25 1h2m1 0h2m1 0h3m5 0h2m-23 1h1m1 0h4m1 0h1m1 0h3m1 0h1m1 0h2m5 0h1m1 0h2m1 0h2m1 0h1m-31 1h1m1 0h1m4 0h4m2 0h1m2 0h3m1 0h3m4 0h3m-29 1h3m1 0h3m1 0h6m4 0h1m1 0h3m1 0h1m1 0h5m-32 1h2m2 0h1m2 0h2m1 0h2m3 0h1m1 0h2m1 0h7m2 0h1m1 0h1m-33 1h2m4 0h1m2 0h2m5 0h2m1 0h1m1 0h1m2 0h1m1 0h1m5 0h1m-33 1h1m2 0h2m6 0h1m3 0h1m2 0h3m2 0h2m2 0h1m-28 1h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h5m2 0h2m1 0h1m1 0h1m1 0h1m1 0h3m-29 1h3m2 0h2m2 0h3m2 0h2m2 0h1m1 0h2m1 0h1m3 0h2m1 0h1m-33 1h3m1 0h1m1 0h2m2 0h1m1 0h2m1 0h1m6 0h1m1 0h5m-25 1h2m1 0h1m1 0h2m3 0h1m3 0h3m1 0h1m2 0h2m1 0h1m1 0h3m-32 1h2m1 0h3m1 0h1m1 0h1m3 0h1m2 0h1m1 0h1m1 0h3m1 0h3m1 0h2m1 0h1m-32 1h1m3 0h1m2 0h3m1 0h2m3 0h1m4 0h3m3 0h3m1 0h1m-31 1h1m1 0h1m1 0h2m1 0h3m1 0h2m1 0h2m3 0h2m1 0h1m2 0h1m1 0h1m1 0h1m-32 1h1m1 0h4m2 0h1m1 0h2m1 0h1m1 0h2m6 0h1m3 0h2m1 0h1m-31 1h1m2 0h1m1 0h5m1 0h3m2 0h1m1 0h3m2 0h1m1 0h2m4 0h2m-33 1h1m4 0h1m1 0h2m2 0h1m4 0h5m1 0h1m4 0h1m1 0h2m-31 1h2m3 0h3m1 0h1m1 0h1m2 0h1m1 0h1m3 0h1m3 0h6m2 0h1m-25 1h3m2 0h1m4 0h1m2 0h1m2 0h1m3 0h1m1 0h2m-32 1h7m6 0h1m2 0h4m3 0h2m1 0h1m1 0h1m1 0h1m-31 1h1m5 0h1m1 0h1m1 0h1m1 0h2m1 0h1m3 0h1m1 0h4m3 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h2m3 0h1m3 0h1m1 0h1m1 0h8m2 0h2m-33 1h1m1 0h3m1 0h1m1 0h2m1 0h5m5 0h2m1 0h2m1 0h1m4 0h1m-33 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h3m-33 1h1m5 0h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h2m1 0h1m2 0h1m1 0h6m-33 1h7m4 0h3m4 0h2m2 0h3m2 0h2"/></svg></div>
+<div class="url">techrabbi.org/davis-mission</div>
+<div class="small"><a href="cards.html">Print the card packets</a></div>
+<script>
+  const a = document.getElementById('open');
+  if (APP_URL) a.href = APP_URL;
+  else { a.className = 'btn off'; a.textContent = 'Opens on September 8'; }
+</script>
+</body>
+</html>
