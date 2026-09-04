@@ -42,17 +42,16 @@ input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--gold);ou
 .btn.gold{background:var(--gold);color:var(--navy)}
 .btn.sm{padding:.4rem .7rem;font-size:.85rem}
 .btn:disabled{opacity:.4;cursor:default}
-.timer{display:flex;align-items:center;gap:.6rem;margin:.4rem 0 1rem;font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--ink-2);white-space:nowrap}
-.timer .bar{flex:1;height:.4rem;background:var(--line-2);border-radius:99px;overflow:hidden}
-.timer .bar i{display:block;height:100%;background:var(--teal);width:0;transition:width 1s linear}
-.timer.over .bar i{background:var(--gold)}
-.timer.over .rem{color:var(--warn);font-weight:600}
+.pace{margin:.3rem 0 1rem;font-size:.9rem;color:var(--ink-3)}
+.pace.warn{color:var(--ink);background:var(--paper);border-left:3px solid var(--gold);padding:.45rem .8rem;font-weight:600}
+.pace.wrap{color:var(--ink);background:var(--paper);border-left:3px solid var(--warn);padding:.45rem .8rem;font-weight:600}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
 @media (min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
 .card{font-family:"Newsreader",Georgia,serif;font-size:1.05rem;line-height:1.25;text-align:left;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:.4rem;padding:.75rem .8rem 1.1rem;min-height:4.4rem;cursor:pointer;position:relative;box-shadow:0 1px 2px rgba(0,48,96,.06);transition:background .15s,color .15s;width:100%}
 .card::after{position:absolute;right:.6rem;bottom:.35rem;font:600 .58rem "Source Sans 3",sans-serif;letter-spacing:.1em;text-transform:uppercase}
 .card.kept{background:var(--navy);color:#fff;border-color:var(--navy)}
 .card.kept::after{content:"Keeping";color:var(--gold)}
+.overlay .grid .card::after{content:none}
 .card.out{background:var(--released);color:var(--released-ink);border-color:var(--line-2);box-shadow:none}
 .card.out::after{content:"Let go";color:var(--released-ink)}
 .card.big{cursor:default;background:var(--navy);color:#fff;border-color:var(--navy);min-height:0;padding-bottom:.75rem}
@@ -192,19 +191,22 @@ function headerGroup() { $('#grp').innerHTML = state ? `<b>${esc(state.groupName
 function saveTag() { return `<span class="save" id="save"></span>`; }
 
 function partHead(n, title, sub) {
-  return `<div class="kicker">Part ${n} of 4 · about ${PART_MIN[n]} minutes</div><h2>${title}</h2><p class="lede">${sub}</p>
-  <div class="timer" id="timer"><span class="el"></span><div class="bar"><i></i></div><span class="rem"></span></div>`;
+  return `<div class="kicker">Part ${n} of 4</div><h2>${title}</h2>${sub ? `<p class="lede">${sub}</p>` : ''}
+  <div class="pace" id="pace"></div>`;
 }
-function startTick() { clearInterval(tickTimer); tickTimer = setInterval(renderTimer, 1000); renderTimer(); }
+const nudged = {};   // which warnings have already been shown, per part
+function startTick() { clearInterval(tickTimer); tickTimer = setInterval(renderTimer, 5000); renderTimer(); }
 function renderTimer() {
-  const el = $('#timer'); if (!el || !state) return;
+  const el = $('#pace'); if (!el || !state) return;
   const start = Date.parse((state.partStarted || {})[state.part] || state.updatedAt || nowIso());
-  const sec = Math.max(0, Math.floor((Date.now() - start) / 1000));
-  const budget = (PART_MIN[state.part] || 10) * 60;
-  el.classList.toggle('over', sec > budget);
-  el.querySelector('i').style.width = Math.min(100, sec / budget * 100) + '%';
-  el.querySelector('.el').textContent = fmt(sec) + ' elapsed';
-  el.querySelector('.rem').textContent = sec > budget ? fmt(sec - budget) + ' over' : fmt(budget - sec) + ' left';
+  const left = (PART_MIN[state.part] || 10) * 60 - Math.floor((Date.now() - start) / 1000);
+  const seen = nudged[state.part] = nudged[state.part] || {};
+  let cls = '', text = `Give this part about ${PART_MIN[state.part]} minutes.`;
+  if (left <= 0) { cls = 'wrap'; text = 'Time is up for this part. Please wrap up and move on.'; }
+  else if (left <= 60) { cls = 'warn'; text = 'About one minute left in this part.'; if (!seen[1]) { seen[1] = true; toast('One minute left in this part.'); } }
+  else if (left <= 120) { cls = 'warn'; text = 'About two minutes left in this part.'; if (!seen[2]) { seen[2] = true; toast('Two minutes left in this part.'); } }
+  el.className = 'pace ' + cls;
+  el.textContent = text;
 }
 function gotoPart(n, event) {
   state.part = n;
@@ -296,6 +298,16 @@ function openVote(key, candidates, n) {
   drawVote();
 }
 
+function showTwelve() {
+  const ov = document.createElement('div'); ov.className = 'overlay'; document.body.appendChild(ov);
+  const six = state.six || [], three = state.three || [];
+  ov.innerHTML = `<div class="in"><div class="kicker">For reference</div><h2>The twelve phrases</h2>
+    <p class="lede">All from the Davis mission. Your six are in navy, and your final three are marked.</p>
+    <div class="grid">${PHRASES.map((p, i) => `<div class="card ${six.includes(i) ? 'kept' : ''}" style="cursor:default">${esc(p)}${three.includes(i) ? ' <span style="color:var(--gold)">★</span>' : ''}</div>`).join('')}</div>
+    <div class="links"><button type="button" class="btn" id="twelveClose">Back to the questions</button></div></div>`;
+  ov.querySelector('#twelveClose').onclick = () => ov.remove();
+}
+
 /* ---------------------------------------------------------------- screens */
 function renderSetup() {
   clearInterval(tickTimer); foot('');
@@ -336,9 +348,10 @@ function renderPart1() {
 }
 
 function renderPart2() {
-  h(partHead(2, 'Make your case', 'Imagine you are explaining your six choices to a prospective family. They ask:')
-    + `<blockquote class="ask">"What makes Davis different from another excellent private school?"</blockquote>
-    <p class="lede">Using your six phrases, how would you answer them? Talk it through first. Then capture the answer in a sentence or two, so it can be shared when we regroup.</p>
+  h(partHead(2, 'Make your case', '')
+    + `<p class="lede" style="margin-bottom:.2rem"><b>Imagine you are explaining your six choices to a prospective family.</b> They ask:</p>
+    <blockquote class="ask">"What makes Davis different from another excellent private school?"</blockquote>
+    <p class="lede">Using your six phrases, how would you answer the prospective family? Talk it through first. Then capture the answer in a sentence or two, so it can be shared when we regroup.</p>
     <div class="six">${(state.six || []).slice().sort((a, b) => a - b).map(i => `<span>${esc(PHRASES[i])}</span>`).join('')}</div>
     <label class="f">Our answer <small>optional, but worth a sentence</small><textarea id="pitch">${esc(state.pitch)}</textarea></label>`);
   bindText('pitch', 'pitch');
@@ -377,7 +390,8 @@ function renderPart4() {
     + q('unique', 'Uniquely Davis', 'What is something that truly distinguishes Davis from other excellent schools?')
     + q('essential', 'Essential Davis', 'What may not be unique to Davis, but we could not imagine Davis without it?')
     + q('aspirational', 'Aspirational Davis', 'What is something we deeply value and want to become even better at?')
-    + q('missing', 'Bonus: Missing Davis', 'Is there something not represented in our twelve phrases that you believe is essential to who Davis is, or who we want to become?'));
+    + q('missing', 'Bonus: Missing Davis', 'Is there something not represented in our twelve phrases that you believe is essential to who Davis is, or who we want to become? <button type="button" class="btn ghost sm" id="showTwelve">Show the twelve phrases</button>'));
+  $('#showTwelve').addEventListener('click', showTwelve);
   ['unique', 'essential', 'aspirational', 'missing'].forEach(k => bindText(k, k));
   foot(`<button type="button" class="btn ghost sm" id="back">Back</button><span class="spacer"></span>${saveTag()}<button type="button" class="btn gold" id="submit">Submit our answers</button>`);
   $('#back').addEventListener('click', () => gotoPart(3, 'back3'));
