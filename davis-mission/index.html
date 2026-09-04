@@ -15,8 +15,9 @@
   (function () {
     if (!APP_URL) return;
     const q = new URLSearchParams(location.search);
-    if (q.has('board')) location.replace(APP_URL + '?view=board');
-    else if (!q.has('stay')) location.replace(APP_URL);
+    const key = q.get('key') ? '&key=' + encodeURIComponent(q.get('key')) : '';
+    if (q.has('board')) location.replace(APP_URL + '?view=board' + key);
+    else if (!q.has('stay')) location.replace(APP_URL + '?v=1' + key);
   })();
 </script>
 <style>
@@ -49,7 +50,8 @@ p{max-width:34rem;margin:0 auto 1.2rem;font-size:1.15rem;color:#dbe6f2}
 <div class="small"><a href="cards.html">Print the card packets</a></div>
 <script>
   const a = document.getElementById('open');
-  if (APP_URL) a.href = APP_URL;
+  const k = new URLSearchParams(location.search).get('key');
+  if (APP_URL) a.href = APP_URL + (k ? '?key=' + encodeURIComponent(k) : '');
   else { a.className = 'btn off'; a.textContent = 'Not connected to the app yet'; }
 </script>
 </body>

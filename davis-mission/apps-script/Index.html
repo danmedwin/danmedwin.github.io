@@ -142,8 +142,9 @@ function mockServer() {
   };
   return { call: (fn, ...a) => new Promise((res, rej) => setTimeout(() => { try { res(JSON.parse(JSON.stringify(api[fn](...a)))); } catch (e) { rej(e); } }, 150)) };
 }
+const ARGC = { startGroup: 1, saveGroup: 2, getGroup: 1, listOpenGroups: 0 };   // the tester key rides along as the last argument
 const server = LIVE
-  ? { call: (fn, ...a) => new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...a)) }
+  ? { call: (fn, ...a) => new Promise((res, rej) => { while (a.length < ARGC[fn]) a.push(undefined); google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...a, SESSION.key || ''); }) }
   : mockServer();
 
 /* ---------------------------------------------------------------- state + saving */

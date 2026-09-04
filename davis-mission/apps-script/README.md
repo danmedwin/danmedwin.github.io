@@ -21,7 +21,7 @@ printed packets point there, and it forwards to the web app.
 2. Replace the default `Code.gs` with this folder's `Code.gs`. Add three HTML files (File > New > HTML) named exactly `Index`, `Board`, `Denied` and paste the matching files.
 3. Project Settings (gear icon) > check **Show "appsscript.json" manifest file in editor**, then paste this folder's `appsscript.json` over it.
 4. In the editor, choose the function `setup` and click Run. Approve the permissions. This creates the responses spreadsheet in your Drive (the URL prints in the log).
-5. Deploy > New deployment > type **Web app**. Execute as: **Me**. Who has access: **Anyone within The Davis Academy**. Deploy, and copy the web app URL (ends in `/exec`).
+5. Deploy > New deployment > type **Web app**. Execute as: **Me**. Who has access: **Anyone with a Google account**. Deploy, and copy the web app URL (ends in `/exec`).
 6. Paste that URL into `APP_URL` at the top of `../index.html` and push. From then on techrabbi.org/davis-mission forwards to the app.
 
 To change the code later: paste the new file, then Deploy > Manage deployments > edit > New version. The URL stays the same.
@@ -39,9 +39,10 @@ To ship a code change: `clasp push -f` then `clasp deploy -i AKfycbzig5xOzFHtwgD
 
 ## Who can get in
 
-- The deployment setting means Google asks for a davisstudent.org sign-in before the page loads.
-- `getSession()` in `Code.gs` checks the domain again. `EXTRA_ALLOWED` lists testers outside the domain (currently dan.medwin@gmail.com); that only matters if the deployment is later opened to "Anyone with a Google account".
-- If the script is deployed from a personal Gmail account instead, the "Anyone within" option does not appear, and Google does not reveal the visitor's email to the script. The denied page would then show for everyone. Deploy from the Davis account.
+- The deployment is open to anyone with a Google account, so Google always asks for a sign-in first.
+- `getSession()` in `Code.gs` then admits davisstudent.org accounts (Google reveals a visitor's email to a script owned by the same Workspace domain, and not otherwise).
+- Outside testers (a Gmail address, say) get in only with the tester key in the link: `https://techrabbi.org/davis-mission/?key=XXXX` (add `&board` for the results board). The key is generated on first use and stored as a script property; accounts listed in `OWNERS` see the link in the board's footer. To revoke it, delete the `TESTER_KEY` script property in Project Settings and a new one is generated.
+- Deploy from the Davis account. From a personal Gmail account Google would not reveal any visitor's email, and only the tester key would work.
 
 ## Where the data goes
 

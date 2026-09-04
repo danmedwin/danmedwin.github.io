@@ -99,12 +99,14 @@ footer a{color:var(--teal-2)}
   <span class="spacer"></span>
   <span id="updated"></span>
   <a id="sheet" href="#" target="_blank" rel="noopener" hidden>Open the spreadsheet</a>
+  <span id="tester" hidden></span>
 </footer>
 <script type="application/json" id="boot"><?!= JSON.stringify({session: session, phrases: phrases}) ?></script>
 <script>
 const DEFAULT_PHRASES = ["Reform Jewish Day School","Academically challenging environment","Enriched curricula","Integration of general academics and Judaic studies","Nurturing environment","Secure environment","Faculty dedicated to excellence","Children encouraged to reach their highest potential","Lifelong love of learning","Commitment to Jewish life","Morals, values, and ethics","Grounded in Torah"];
-let PHRASES = DEFAULT_PHRASES;
-try { PHRASES = JSON.parse(document.getElementById('boot').textContent).phrases; } catch (e) {}
+let PHRASES = DEFAULT_PHRASES, SESSION = {};
+try { const b = JSON.parse(document.getElementById('boot').textContent); PHRASES = b.phrases; SESSION = b.session || {}; } catch (e) {}
+const FRONT_DOOR = 'https://techrabbi.org/davis-mission/';
 const LIVE = typeof google !== 'undefined' && google.script && google.script.run;
 if (!LIVE) { const b = document.createElement('div'); b.className = 'badge'; b.textContent = 'Preview mode'; document.body.appendChild(b); }
 
@@ -130,7 +132,7 @@ const inOrder = (idxs) => (idxs || []).slice().sort((a, b) => a - b);
 
 function load() {
   const done = (d) => { data = d || { groups: [] }; render(); $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }); if (d && d.sheetUrl) { $('#sheet').href = d.sheetUrl; $('#sheet').hidden = false; } };
-  if (LIVE) google.script.run.withSuccessHandler(done).withFailureHandler(e => { $('#updated').textContent = 'Could not refresh: ' + (e.message || e); }).getBoard();
+  if (LIVE) google.script.run.withSuccessHandler(done).withFailureHandler(e => { $('#updated').textContent = 'Could not refresh: ' + (e.message || e); }).getBoard(SESSION.key || '');
   else { let g = []; try { g = JSON.parse(localStorage.getItem('davis-mission.mock')) || []; } catch (e) {} done({ groups: g, phrases: PHRASES, sheetUrl: '' }); }
 }
 function threeCounts() { const c = PHRASES.map(() => 0); data.groups.forEach(g => { if ((g.part || 1) >= 4) (g.three || []).forEach(i => c[i]++); }); return c; }
@@ -225,6 +227,10 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Enter') { const l = items(); if (hi >= 0 && l[hi]) openItem(l[hi]); }
   else if (e.key >= '1' && e.key <= '8') { tab = +e.key - 1; hi = -1; render(); }
 });
+if (SESSION.testerKey) {
+  const t = $('#tester'); t.hidden = false;
+  t.innerHTML = `Tester link for people outside Davis: <a href="${FRONT_DOOR}?key=${encodeURIComponent(SESSION.testerKey)}" target="_blank" rel="noopener">${FRONT_DOOR}?key=${esc(SESSION.testerKey)}</a> (board: add <code>&amp;board</code>)`;
+}
 load();
 setInterval(load, 8000);
 </script>

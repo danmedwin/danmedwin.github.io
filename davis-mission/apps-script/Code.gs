@@ -3,16 +3,19 @@
  *
  * Backend for the group activity (Index.html) and the results board (Board.html).
  * Deploy as a web app from a davisstudent.org account:
- *   Execute as: Me   ·   Who has access: Anyone within The Davis Academy
- * Google then requires a davisstudent.org sign-in before the page loads, and
- * getSession() double-checks the domain in code.
+ *   Execute as: Me   ·   Who has access: Anyone with a Google account
+ * Google requires a sign-in before the page loads. getSession() then admits
+ * davisstudent.org accounts (Google reveals those emails to a same-domain
+ * script) and, for outside testers, anyone who arrives with the tester key
+ * in the link (?key=...). The key is generated once and stored as a script
+ * property; owners see it on the results board.
  *
  * All responses land in a Google Sheet that this script creates on first use
  * (run setup() once from the editor to create it and grant permissions).
  */
 
 const ALLOWED_DOMAIN = 'davisstudent.org';
-const EXTRA_ALLOWED = ['dan.medwin@gmail.com'];   // testers outside the domain
+const OWNERS = ['dmedwin@davisstudent.org'];     // see the tester link on the board
 const APP_TITLE = 'What Makes Davis, Davis?';
 const SHEET_TITLE = 'What Makes Davis, Davis - responses (Sept 8, 2026)';
 
@@ -46,7 +49,7 @@ const TEXT_MAX = { groupName: 80, room: 40, members: 300, pitch: 2000, unique: 2
 
 function doGet(e) {
   const view = (e && e.parameter && e.parameter.view) || 'app';
-  const session = getSession();
+  const session = getSession(e && e.parameter && e.parameter.key);
   let out;
   if (!session.ok) {
     out = HtmlService.createTemplateFromFile('Denied');
@@ -63,16 +66,32 @@ function doGet(e) {
 
 /* ------------------------------------------------------------------ session */
 
-function getSession() {
+function getTesterKey_() {
+  const props = PropertiesService.getScriptProperties();
+  let key = props.getProperty('TESTER_KEY');
+  if (!key) {
+    key = Utilities.getUuid().replace(/-/g, '').slice(0, 12);
+    props.setProperty('TESTER_KEY', key);
+  }
+  return key;
+}
+
+/** Who is this? Domain accounts are recognized by email; outsiders only with the tester key. */
+function getSession(key) {
   let email = '';
   try { email = Session.getActiveUser().getEmail() || ''; } catch (err) { email = ''; }
   email = String(email).trim().toLowerCase();
-  const ok = !!email && (email.endsWith('@' + ALLOWED_DOMAIN) || EXTRA_ALLOWED.indexOf(email) >= 0);
-  return { email: email, ok: ok, domain: ALLOWED_DOMAIN };
+  const inDomain = !!email && email.endsWith('@' + ALLOWED_DOMAIN);
+  const tester = !inDomain && !!key && String(key) === getTesterKey_();
+  const owner = OWNERS.indexOf(email) >= 0;
+  const s = { email: inDomain ? email : (tester ? 'tester' : email), ok: inDomain || tester, domain: ALLOWED_DOMAIN, tester: tester, owner: owner };
+  if (tester) s.key = String(key);
+  if (owner) s.testerKey = getTesterKey_();
+  return s;
 }
 
-function requireUser_() {
-  const s = getSession();
+function requireUser_(key) {
+  const s = getSession(key);
   if (!s.ok) throw new Error('Please sign in with your ' + ALLOWED_DOMAIN + ' Google account.');
   return s;
 }
@@ -110,8 +129,8 @@ function setup() {
   return ss.getUrl();
 }
 
-function getSheetUrl() {
-  requireUser_();
+function getSheetUrl(key) {
+  requireUser_(key);
   return getSpreadsheet_().getUrl();
 }
 
@@ -230,8 +249,8 @@ function sanitize_(key, v) {
 
 /* ------------------------------------------------------------------ API used by Index.html */
 
-function startGroup(info) {
-  const s = requireUser_();
+function startGroup(info, key) {
+  const s = requireUser_(key);
   info = info || {};
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
@@ -257,8 +276,8 @@ function startGroup(info) {
   }
 }
 
-function saveGroup(groupId, patch) {
-  const s = requireUser_();
+function saveGroup(groupId, patch, key) {
+  const s = requireUser_(key);
   patch = patch || {};
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
@@ -280,16 +299,16 @@ function saveGroup(groupId, patch) {
   }
 }
 
-function getGroup(groupId) {
-  requireUser_();
+function getGroup(groupId, key) {
+  requireUser_(key);
   const g = readGroups_().filter(function (x) { return x.groupId === groupId; })[0];
   if (!g) return null;
   delete g._row;
   return g;
 }
 
-function listOpenGroups() {
-  requireUser_();
+function listOpenGroups(key) {
+  requireUser_(key);
   return readGroups_()
     .filter(function (g) { return !g.submittedAt; })
     .map(function (g) {
@@ -299,8 +318,8 @@ function listOpenGroups() {
 
 /* ------------------------------------------------------------------ API used by Board.html */
 
-function getBoard() {
-  requireUser_();
+function getBoard(key) {
+  requireUser_(key);
   const groups = readGroups_().map(function (g) { delete g._row; return g; });
   return { groups: groups, phrases: PHRASES, sheetUrl: getSpreadsheet_().getUrl(), now: new Date().toISOString() };
 }
