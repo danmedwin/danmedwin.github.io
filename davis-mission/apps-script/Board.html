@@ -229,7 +229,8 @@ document.addEventListener('keydown', e => {
 });
 if (SESSION.testerKey) {
   const t = $('#tester'); t.hidden = false;
-  t.innerHTML = `Tester link for people outside Davis: <a href="${FRONT_DOOR}?key=${encodeURIComponent(SESSION.testerKey)}" target="_blank" rel="noopener">${FRONT_DOOR}?key=${esc(SESSION.testerKey)}</a> (board: add <code>&amp;board</code>)`;
+  const k = encodeURIComponent(SESSION.testerKey);
+  t.innerHTML = `Links with the key (no sign-in needed): <a href="${FRONT_DOOR}?stay&key=${k}" target="_blank" rel="noopener">projector page with QR</a> · <a href="${FRONT_DOOR}cards.html?key=${k}" target="_blank" rel="noopener">packets</a> · <a href="${FRONT_DOOR}?key=${k}" target="_blank" rel="noopener">the activity</a> · <a href="${FRONT_DOOR}?board&key=${k}" target="_blank" rel="noopener">this board</a> · key <code>${esc(SESSION.testerKey)}</code>`;
 }
 load();
 setInterval(load, 8000);

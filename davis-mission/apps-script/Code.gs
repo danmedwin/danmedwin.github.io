@@ -3,12 +3,12 @@
  *
  * Backend for the group activity (Index.html) and the results board (Board.html).
  * Deploy as a web app from a davisstudent.org account:
- *   Execute as: Me   ·   Who has access: Anyone with a Google account
- * Google requires a sign-in before the page loads. getSession() then admits
- * davisstudent.org accounts (Google reveals those emails to a same-domain
- * script) and, for outside testers, anyone who arrives with the tester key
- * in the link (?key=...). The key is generated once and stored as a script
- * property; owners see it on the results board.
+ *   Execute as: Me   ·   Who has access: Anyone (no sign-in required)
+ * getSession() admits davisstudent.org accounts that happen to be signed in
+ * (Google reveals those emails to a same-domain script) and anyone who
+ * arrives with the key in the link (?key=...). The key is generated once and
+ * stored as a script property; owners see the links on the results board.
+ * The QR code in the room carries the key, so groups never sign in.
  *
  * All responses land in a Google Sheet that this script creates on first use
  * (run setup() once from the editor to create it and grant permissions).

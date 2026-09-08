@@ -21,7 +21,7 @@ printed packets point there, and it forwards to the web app.
 2. Replace the default `Code.gs` with this folder's `Code.gs`. Add three HTML files (File > New > HTML) named exactly `Index`, `Board`, `Denied` and paste the matching files.
 3. Project Settings (gear icon) > check **Show "appsscript.json" manifest file in editor**, then paste this folder's `appsscript.json` over it.
 4. In the editor, choose the function `setup` and click Run. Approve the permissions. This creates the responses spreadsheet in your Drive (the URL prints in the log).
-5. Deploy > New deployment > type **Web app**. Execute as: **Me**. Who has access: **Anyone with a Google account**. Deploy, and copy the web app URL (ends in `/exec`).
+5. Deploy > New deployment > type **Web app**. Execute as: **Me**. Who has access: **Anyone**. Deploy, and copy the web app URL (ends in `/exec`).
 6. Paste that URL into `APP_URL` at the top of `../index.html` and push. From then on techrabbi.org/davis-mission forwards to the app.
 
 To change the code later: paste the new file, then Deploy > Manage deployments > edit > New version. The URL stays the same.
@@ -39,9 +39,9 @@ To ship a code change: `clasp push -f` then `clasp deploy -i AKfycbzig5xOzFHtwgD
 
 ## Who can get in
 
-- The deployment is open to anyone with a Google account, so Google always asks for a sign-in first.
-- `getSession()` in `Code.gs` then admits davisstudent.org accounts (Google reveals a visitor's email to a script owned by the same Workspace domain, and not otherwise).
-- Outside testers (a Gmail address, say) get in only with the tester key in the link: `https://techrabbi.org/davis-mission/?key=XXXX` (add `&board` for the results board). The key is generated on first use and stored as a script property; accounts listed in `OWNERS` see the link in the board's footer. To revoke it, delete the `TESTER_KEY` script property in Project Settings and a new one is generated.
+- The deployment is open to anyone, with no Google sign-in, so that the QR code in the room just works.
+- `getSession()` in `Code.gs` admits two kinds of visitor: davisstudent.org accounts that happen to be signed in (Google reveals a visitor's email to a script owned by the same Workspace domain, and not otherwise), and anyone whose link carries the key: `https://techrabbi.org/davis-mission/?key=XXXX` (add `&board` for the results board, `&stay` for the projector page whose QR code carries the key, or use `cards.html?key=XXXX` for packets whose QR carries it).
+- The key is generated on first use and stored as a script property; accounts listed in `OWNERS` see all of these links in the board's footer. To revoke it, delete the `TESTER_KEY` script property in Project Settings and a new one is generated on the next visit.
 - Deploy from the Davis account. From a personal Gmail account Google would not reveal any visitor's email, and only the tester key would work.
 
 ## Where the data goes

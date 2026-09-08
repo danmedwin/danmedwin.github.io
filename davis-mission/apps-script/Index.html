@@ -113,7 +113,7 @@ try { const b = JSON.parse(document.getElementById('boot').textContent); SESSION
 const LIVE = typeof google !== 'undefined' && google.script && google.script.run;
 if (!LIVE) { const b = document.createElement('div'); b.className = 'badge'; b.textContent = 'Preview mode'; document.body.appendChild(b); }
 
-const PART_MIN = { 1: 12, 2: 6, 3: 12, 4: 8 };
+const PART_MIN = { 1: 9, 2: 4, 3: 9, 4: 8 };
 const LS = 'davis-mission.group';
 const FIELDS = ['groupName','room','members','part','six','three','pitch','shadow','unique','essential','aspirational','missing','submittedAt','partStarted'];
 
@@ -249,53 +249,15 @@ function drawGrid(key, candidates, n, opts) {
 }
 function howTo(n) {
   return `<details class="how"><summary>How to decide when you're stuck</summary><ol>
-  <li>Sort by agreement first. Keep the cards everyone nods at, let go of the ones nobody fights for.</li>
-  <li>Spend your energy only on the borderline cards.</li>
+  <li><b>It is okay to disagree.</b> The discussion is the point. It is the fruit of this exercise, not a delay.</li>
+  <li>Start with the cards everyone agrees on, in or out. Spend your time on the rest.</li>
+  <li>For each contentious card, hold it up and vote by a show of hands. <b>Majority wins.</b></li>
   <li>Ask: "If a visitor spent a week here, would they actually see this?"</li>
-  <li>Still stuck? Use <b>Pass-the-phone vote</b>. Each person picks their ${n} in private; the tally shows where you really stand.</li>
-  <li>The clock is a suggestion. Better to arrive a minute late with a real answer.</li></ol></details>`;
+  <li>The clock is a suggestion. A real answer beats a fast one.</li></ol></details>`;
 }
 function footSort(key, candidates, n, label, next) {
-  foot(`<span class="count" id="count"></span><button type="button" class="btn ghost sm" id="vote">Pass-the-phone vote</button><span class="spacer"></span>${saveTag()}<button type="button" class="btn" id="next" disabled>${label}</button>`);
-  $('#vote').addEventListener('click', () => openVote(key, candidates, n));
+  foot(`<span class="count" id="count"></span><span class="spacer"></span>${saveTag()}<button type="button" class="btn" id="next" disabled>${label}</button>`);
   $('#next').addEventListener('click', next);
-}
-
-function openVote(key, candidates, n) {
-  const ov = document.createElement('div'); ov.className = 'overlay'; document.body.appendChild(ov);
-  const rounds = []; let cur = new Set(); let person = 1;
-  const close = () => ov.remove();
-  function drawVote() {
-    ov.innerHTML = `<div class="in"><div class="kicker">Pass-the-phone vote</div><h2>Person ${person}, your turn</h2>
-      <p class="lede">Tap up to <b>${n}</b> you would keep, then pass the phone. Nobody sees anyone's picks until the tally.</p>
-      <div class="grid" id="vgrid"></div>
-      <div class="links"><button type="button" class="btn ghost" id="vcancel">Cancel</button><button type="button" class="btn ghost" id="vfinish">Finish and see the tally</button><button type="button" class="btn" id="vnext">Done, pass it on</button></div></div>`;
-    const g = ov.querySelector('#vgrid');
-    g.innerHTML = candidates.map(i => `<button type="button" class="card ${cur.has(i) ? 'kept' : ''}" data-i="${i}">${esc(PHRASES[i])}</button>`).join('');
-    g.querySelectorAll('.card').forEach(b => b.addEventListener('click', () => {
-      const i = +b.dataset.i;
-      if (cur.has(i)) cur.delete(i); else if (cur.size >= n) { toast(`Up to ${n} each.`); return; } else cur.add(i);
-      b.classList.toggle('kept', cur.has(i));
-    }));
-    ov.querySelector('#vcancel').onclick = close;
-    ov.querySelector('#vnext').onclick = () => { if (!cur.size) { toast('Pick at least one.'); return; } rounds.push([...cur]); cur = new Set(); person++; drawVote(); window.scrollTo(0, 0); };
-    ov.querySelector('#vfinish').onclick = () => { if (cur.size) rounds.push([...cur]); if (!rounds.length) { toast('Nobody has voted yet.'); return; } drawTally(); };
-  }
-  function drawTally() {
-    const counts = {}; candidates.forEach(i => counts[i] = 0);
-    rounds.forEach(r => r.forEach(i => counts[i]++));
-    const order = candidates.slice().sort((a, b) => counts[b] - counts[a] || candidates.indexOf(a) - candidates.indexOf(b));
-    const top = order.slice(0, n);
-    const cut = counts[order[n - 1]], nextOne = order[n] !== undefined ? counts[order[n]] : -1;
-    const tie = cut === nextOne ? `<p class="lede">There is a tie at the cut line, so the group still has a call to make.</p>` : '';
-    ov.innerHTML = `<div class="in"><div class="kicker">Pass-the-phone vote</div><h2>The tally</h2><p class="lede">${rounds.length} ${rounds.length === 1 ? 'person' : 'people'} voted. Talk about what the numbers show before you decide.</p>
-      <div class="tally">${order.map(i => `<div><div class="ph">${esc(PHRASES[i])}</div><div class="bar" style="width:${rounds.length ? counts[i] / rounds.length * 100 : 0}%"></div></div><div class="n">${counts[i]}</div>`).join('')}</div>${tie}
-      <div class="links"><button type="button" class="btn ghost" id="tclose">Close</button><button type="button" class="btn" id="tapply">Start from the top ${n}</button></div></div>`;
-    ov.querySelector('#tclose').onclick = close;
-    ov.querySelector('#tapply').onclick = () => { state[key] = top; save('vote'); close(); render(); };
-    window.scrollTo(0, 0);
-  }
-  drawVote();
 }
 
 function showTwelve() {
@@ -312,16 +274,15 @@ function showTwelve() {
 function renderSetup() {
   clearInterval(tickTimer); foot('');
   h(`<div class="kicker">Before you begin</div><h2>Your group</h2>
-  <p class="lede">One phone per group is enough, or open this on the room's smart board. Your group has about <b>40 minutes</b>. Each part will tell you roughly how long to give it.</p>
+  <p class="lede">One phone per group is enough. Your group has about <b>30 minutes</b>. Each part will tell you roughly how long to give it.</p>
   <label class="f">Group name <input id="gname" placeholder="e.g. The Fourth Grade Team" autocomplete="off"></label>
   <label class="f">Room <input id="room" placeholder="e.g. 104" autocomplete="off"></label>
-  <label class="f">Who's in the group? <small>first names are fine</small><input id="members" autocomplete="off"></label>
   <div class="tip"><b>Two jobs before you start:</b> one person holds the phone, one keeps time. Everyone else argues.</div>
   <button type="button" class="btn" id="start">Start with 12</button>
   <div class="resume" id="resume" hidden></div>`);
   headerGroup();
   $('#start').addEventListener('click', async () => {
-    const info = { groupName: $('#gname').value.trim(), room: $('#room').value.trim(), members: $('#members').value.trim() };
+    const info = { groupName: $('#gname').value.trim(), room: $('#room').value.trim() };
     if (!info.groupName) { toast('Give your group a name first.'); $('#gname').focus(); return; }
     $('#start').disabled = true; $('#start').textContent = 'Starting…';
     try { state = await server.call('startGroup', info); persistLocal(); render(); }
@@ -363,7 +324,7 @@ function renderPart2() {
 
 function renderPart3() {
   h(partHead(3, 'Now it gets harder', 'You have six. You now have to give up <b>three more</b>. Tap the three you could not imagine Davis without.')
-    + `<div class="grid" id="grid"></div><div id="shadow"></div>`);
+    + `<div class="grid" id="grid"></div>` + howTo(3) + `<div id="shadow"></div>`);
   const six = (state.six || []).slice().sort((a, b) => a - b);
   let shownKey = '';
   function syncShadow() {
