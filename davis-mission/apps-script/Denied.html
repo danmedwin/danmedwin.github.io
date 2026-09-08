@@ -9,8 +9,7 @@ p{font-size:17px;line-height:1.5;margin:0 0 14px;color:#dbe6f2}
 code{color:#ffc64a}
 </style></head>
 <body><div class="box">
-<h1>Please sign in with your Davis account</h1>
-<p>This page is for Davis Academy faculty and staff. Open it in a browser signed in to a <code>@<?= session.domain ?></code> Google account.</p>
-<? if (session.email) { ?><p>You are currently signed in as <code><?= session.email ?></code>.</p><? } ?>
-<p>On a phone, the easiest fix is to open the link in the Gmail app's browser, or switch accounts in Chrome first.</p>
+<h1>Scan the code to get in</h1>
+<p>This page is for Davis Academy faculty and staff. The QR code on your packet or on the screen opens it with no sign-in needed.</p>
+<p>Without the code, it also opens for anyone signed in to a <code>@<?= session.domain ?></code> Google account.<? if (session.email) { ?> You are currently signed in as <code><?= session.email ?></code>.<? } ?></p>
 </div></body></html>
