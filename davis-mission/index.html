@@ -57,7 +57,7 @@ p{max-width:34rem;margin:0 auto 1.2rem;font-size:1.15rem;color:#dbe6f2}
     /* The key in the link lets a group in without any sign-in, so the code on screen carries it. */
     const box = document.getElementById('qr'); box.innerHTML = '';
     new QRCode(box, { text: location.origin + location.pathname + '?key=' + encodeURIComponent(k), width: 512, height: 512, colorDark: '#003060', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.Q });
-    document.getElementById('lead').innerHTML = 'Scan the code, then name your group. No sign-in needed. One phone per group is enough.';
+    document.getElementById('lead').innerHTML = 'Scan the code, then name your group. One phone per group is enough.';
   }
   else { a.className = 'btn off'; a.textContent = 'Not connected to the app yet'; }
 </script>
