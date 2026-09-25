@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Davis Today</title>
+<link rel="apple-touch-icon" href="/davis-today/icon-180.png">
+<link rel="icon" href="/davis-today/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/davis-today/icon-32.png" sizes="32x32">
+<meta name="apple-mobile-web-app-title" content="Davis Today">
+<meta name="theme-color" content="#05305E">
+<script>
+  // This page is the one to add to a Home Screen: unlike /davis-today/ it sits still in the
+  // browser, so the Share sheet can reach it and iOS can read the apple-touch-icon above.
+  // Launched FROM the Home Screen it forwards immediately, so it is invisible in daily use.
+  var target = "https://script.google.com/a/macros/davisstudent.org/s/AKfycbwFrTpYQKjpxYDdpV8Cu6KNfqtfEqfWUTU54IuMpVfCFE-JHvSZo_iODXdMUqj2tufX/exec";
+  var installed = window.navigator.standalone === true ||
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+  if (installed) location.replace(target + location.search);
+</script>
+<style>
+  body {
+    margin: 0; min-height: 100vh; background: #05305E; color: #F6F5F0;
+    font-family: -apple-system, system-ui, sans-serif; line-height: 1.5;
+    display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  .card { max-width: 21rem; text-align: center; }
+  img { width: 92px; height: 92px; border-radius: 21px; display: block; margin: 0 auto 1rem; }
+  h1 { font-size: 1.35rem; margin: 0 0 0.75rem; font-weight: 600; }
+  p { margin: 0 0 1rem; color: #CFE0EE; }
+  b { color: #FFC843; font-weight: 600; }
+  a.open {
+    display: inline-block; margin-top: 0.5rem; padding: 0.7rem 1.3rem; border-radius: 999px;
+    background: #009CA7; color: #05305E; text-decoration: none; font-weight: 600;
+  }
+  .fine { font-size: 0.85rem; color: #8FA9C2; margin-top: 1.5rem; }
+</style>
+</head><body>
+<div class="card">
+  <img src="/davis-today/icon-180.png" alt="">
+  <h1>Davis Today</h1>
+  <p>To keep this on your phone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</p>
+  <p>It opens straight to the schedule from then on.</p>
+  <a class="open" href="https://script.google.com/a/macros/davisstudent.org/s/AKfycbwFrTpYQKjpxYDdpV8Cu6KNfqtfEqfWUTU54IuMpVfCFE-JHvSZo_iODXdMUqj2tufX/exec">Open Davis Today</a>
+  <p class="fine">Sign in with your Davis Google account if asked.</p>
+</div>
+</body></html>
