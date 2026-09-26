@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Davis Today</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="apple-touch-icon" href="/davis-today/icon-180.png">
+<link rel="icon" href="/davis-today/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/davis-today/icon-32.png" sizes="32x32">
+<meta name="apple-mobile-web-app-title" content="Davis Today">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#05305E">
+<style>
+  :root { --paper: #F6F5F1; --ink: #22303F; --muted: #66707D; --line: #E3E1DA; --navy: #05305E; --teal: #007A8A; }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper: #151A21; --ink: #E8EAED; --muted: #98A2AE; --line: #2C3542; --navy: #0B1B2E; --teal: #4FB3C0; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100svh; background: var(--paper); color: var(--ink);
+    font-family: "Public Sans", -apple-system, system-ui, sans-serif; line-height: 1.5;
+    display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  #gate { width: 100%; max-width: 20rem; text-align: center; }
+  #gate img { width: 76px; height: 76px; border-radius: 17px; margin-bottom: 1rem; }
+  #gate h1 { font-family: "Zilla Slab", Georgia, serif; font-size: 1.5rem; font-weight: 600; margin: 0 0 0.35rem; }
+  #gate p { margin: 0 0 1.25rem; color: var(--muted); font-size: 0.95rem; }
+  #gate input {
+    width: 100%; padding: 0.75rem 0.9rem; font-size: 1rem; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 10px; background: #FFF; color: #22303F;
+  }
+  #gate input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+  #gate button {
+    width: 100%; margin-top: 0.6rem; padding: 0.75rem; font-size: 1rem; font-family: inherit; font-weight: 600;
+    border: 0; border-radius: 10px; background: var(--navy); color: #F6F5F0; cursor: pointer;
+  }
+  #gate button[disabled] { opacity: 0.6; }
+  #err { min-height: 1.4rem; margin: 0.6rem 0 0; font-size: 0.9rem; color: #B3261E; }
+  @media (prefers-color-scheme: dark) { #err { color: #F2B8B5; } }
+  #fine { margin-top: 1.5rem; font-size: 0.8rem; color: var(--muted); line-height: 1.45; }
+</style>
+</head><body>
+<div id="gate">
+  <img src="/davis-today/icon-180.png" alt="">
+  <h1>Davis Today</h1>
+  <p>Enter the phrase Rabbi Dan shared.</p>
+  <form id="f">
+    <input id="pw" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off"
+           spellcheck="false" enterkeyhint="go" aria-label="Pass phrase" placeholder="Pass phrase">
+    <button id="go" type="submit">Open</button>
+  </form>
+  <p id="err" role="status" aria-live="polite"></p>
+  <p id="fine">Remembered on this phone, so you enter it once.<br>Schedules come from the Master files — v43.3</p>
+</div>
+<script>
+(function () {
+  var STORE = "davis-today-key", gate = document.getElementById("gate");
+  var err = document.getElementById("err"), pw = document.getElementById("pw"), go = document.getElementById("go");
+  var blobPromise = fetch("app.enc").then(function (r) { return r.arrayBuffer(); });
+
+  function bytes(b64) { var s = atob(b64); var a = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+  function b64(buf) { var s = "", a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+
+  function parts(buf) {
+    var all = bytes(new TextDecoder().decode(buf));
+    return { salt: all.slice(0, 16), iv: all.slice(16, 28), data: all.slice(28) };
+  }
+  function keyFrom(pass, salt) {
+    return crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"])
+      .then(function (base) {
+        return crypto.subtle.deriveKey({ name: "PBKDF2", salt: salt, iterations: 250000, hash: "SHA-256" },
+          base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+      });
+  }
+  function gunzip(buf) {
+    if (typeof DecompressionStream !== "function") throw new Error("This browser is too old \u2014 try Safari or Chrome.");
+    return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+  }
+
+  function start(app) {
+    var st = document.createElement("style"); st.textContent = app.css; document.head.appendChild(st);
+    gate.remove();
+    document.body.insertAdjacentHTML("beforeend", app.html);
+    var sc = document.createElement("script"); sc.textContent = app.js; document.body.appendChild(sc);
+  }
+
+  function open(key, remember) {
+    return blobPromise.then(function (buf) {
+      var p = parts(buf);
+      return crypto.subtle.decrypt({ name: "AES-GCM", iv: p.iv }, key, p.data);
+    }).then(gunzip).then(function (text) {
+      if (remember) {
+        return crypto.subtle.exportKey("raw", key).then(function (raw) {
+          try { localStorage.setItem(STORE, b64(raw)); } catch (e) {}
+          start(JSON.parse(text));
+        });
+      }
+      start(JSON.parse(text));
+    });
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem(STORE); } catch (e) {}
+  if (saved) {
+    crypto.subtle.importKey("raw", bytes(saved), "AES-GCM", true, ["decrypt"])
+      .then(function (key) { return open(key, false); })
+      .catch(function () { try { localStorage.removeItem(STORE); } catch (e) {} });
+  }
+
+  document.getElementById("f").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var pass = pw.value.trim();
+    if (!pass) { err.textContent = "Enter the phrase first."; return; }
+    go.disabled = true; err.textContent = "Opening\u2026";
+    blobPromise.then(function (buf) { return keyFrom(pass, parts(buf).salt); })
+      .then(function (key) { return open(key, true); })
+      .catch(function (e) {
+        go.disabled = false;
+        err.textContent = /too old/.test(e && e.message) ? e.message : "That phrase didn\u2019t work. Try again.";
+        pw.select();
+      });
+  });
+})();
+</script>
+</body></html>
