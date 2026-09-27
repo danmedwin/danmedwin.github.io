@@ -115,12 +115,9 @@ body {
   z-index: 1;
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--space-2xl) var(--space-xl) calc(var(--space-2xl) + var(--space-md));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2xl);
+  padding: var(--space-2xl) var(--space-xl);
 }
+.hero-text { max-width: 760px; animation: rise 0.8s ease-out both; }
 
 h1 {
   font-family: var(--serif);
@@ -159,22 +156,7 @@ h1 em { font-style: italic; color: var(--gold); }
 .btn-secondary { color: var(--cream); border: 1.5px solid rgba(255, 255, 255, 0.2); }
 .btn-secondary:hover { color: var(--gold); border-color: var(--gold); }
 
-.portrait {
-  margin: 0;
-  width: clamp(220px, 26vw, 320px);
-  aspect-ratio: 1;
-  border-radius: 24px;
-  overflow: hidden;
-  border: 3px solid rgba(212, 168, 83, 0.25);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
-  transform: rotate(2deg);
-}
-.portrait img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
-@keyframes rise-tilted { from { opacity: 0; transform: translateY(16px) rotate(2deg); } }
-.hero-text { animation: rise 0.8s ease-out both; }
-.portrait { animation: rise-tilted 0.8s ease-out 0.15s both; }
 
 /* ------------------------------------------------------------ learning --- */
 
@@ -204,7 +186,7 @@ h2 {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-lg);
 }
 
@@ -260,15 +242,15 @@ h2 {
   gap: 0 0.75rem;
   margin: 0;
   font-family: var(--serif);
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   line-height: 1.25;
 }
 .card h3 a { color: var(--navy); text-decoration: none; transition: color 0.2s ease; }
 .card h3 a::after { content: ""; position: absolute; inset: 0; }
 .card:hover h3 a { color: var(--gold-ink); }
-.card h3 [lang="he"] { font-size: 1.25rem; color: var(--ink-soft); }
+.card h3 [lang="he"] { font-size: 1.15rem; color: var(--ink-soft); }
 
-.card .desc { margin: 0; color: var(--ink-soft); font-size: 1.02rem; line-height: 1.65; text-wrap: pretty; }
+.card .desc { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.65; text-wrap: pretty; }
 
 .go {
   margin-top: auto;
@@ -299,6 +281,28 @@ h2 {
 /* ------------------------------------------------------------- footer ---- */
 
 .site-footer .section-inner { padding-bottom: var(--space-xl); }
+
+.contact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2xl);
+}
+.contact .eyebrow { margin-bottom: var(--space-sm); }
+
+/* The home page's tilted, gold-edged frame, a size down. */
+.portrait {
+  margin: 0 0 0 var(--space-xs);
+  width: clamp(160px, 20vw, 240px);
+  aspect-ratio: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 3px solid rgba(212, 168, 83, 0.25);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  transform: rotate(2deg);
+}
+.portrait img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
 .ask {
   max-width: 26em;
   margin: 0;
@@ -334,18 +338,19 @@ h2 {
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .paper :focus-visible { outline-color: var(--gold-ink); }
 
+/* Three cards across only when each has room for its paragraph; otherwise one per row. */
+@media (max-width: 1000px) {
+  .cards { grid-template-columns: minmax(0, 600px); }
+}
+
 @media (max-width: 760px) {
   .site-header { padding: var(--space-md); }
-  .hero-inner {
-    grid-template-columns: 1fr;
-    gap: var(--space-xl);
-    padding: var(--space-xl) var(--space-md) var(--space-2xl);
-  }
-  .portrait { order: -1; width: 168px; margin-left: var(--space-xs); }
+  .hero-inner { padding: var(--space-xl) var(--space-md) var(--space-2xl); }
   .section-inner { padding: var(--space-xl) var(--space-md); }
-  .cards { grid-template-columns: 1fr; }
   .card-body { padding: var(--space-md) var(--space-md) var(--space-lg); }
   .soon-panel { padding: var(--space-lg); }
+  .contact { grid-template-columns: 1fr; gap: var(--space-lg); }
+  .portrait { width: 144px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -381,17 +386,14 @@ h2 {
         <a class="btn btn-secondary" href="/#ABOUT">More about me</a>
       </div>
     </div>
-    <figure class="portrait">
-      <img src="/rtr/img/dan-medwin.jpg" width="639" height="640" alt="Rabbi Dan Medwin" fetchpriority="high">
-    </figure>
   </div>
 </section>
 
 <section class="paper" aria-labelledby="learning">
   <div class="section-inner">
     <p class="eyebrow"><span lang="he" dir="rtl">לִמּוּד</span> Learning</p>
-    <h2 id="learning">How twelve translations redraw Jacob’s dream</h2>
-    <p class="intro">Every translation of Jacob’s dream (Genesis 28:10–18) makes choices: one stone or many, a ladder or a stairway, God above the ladder or beside Jacob. An AI image model mostly draws whichever reading it’s handed, which makes those choices visible. I built two pages from what it drew: a slide and the full study behind it.</p>
+    <h2 id="learning">Jacob’s dream, from words to pictures</h2>
+    <p class="intro">Every translation of Jacob’s dream (Genesis 28:10–18) makes choices a painter has to make too: one stone or many, a ladder or a stairway, God above the ladder or beside Jacob. I used an AI image model to make those choices visible, in a slide and the full study behind it. The third page is a gallery of the dream in eighteen art styles.</p>
 
     <div class="cards">
       <article class="card">
@@ -399,7 +401,7 @@ h2 {
         <div class="card-body">
           <p class="kicker">The slide</p>
           <h3><a href="https://techrabbi.org/jacobs-ladder/">Jacob’s Ladder</a> <span lang="he" dir="rtl">סולם יעקב</span></h3>
-          <p class="desc">A daf (a page of Talmud) puts one text in the middle and its commentaries around it. I built this slide the same way: the verses in the center, surrounded by six key phrases, how twelve translations render each one, and the AI images each wording produced.</p>
+          <p class="desc">A daf (a page of Talmud) puts one text in the middle and its commentaries around it. I built this slide the same way: the verses in the center, surrounded by six key phrases, how eleven translations render each one, and the AI images each wording produced.</p>
           <span class="go" aria-hidden="true">Open the slide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
         </div>
       </article>
@@ -409,8 +411,18 @@ h2 {
         <div class="card-body">
           <p class="kicker">The full study</p>
           <h3><a href="https://techrabbi.org/jacobs-ladder/eleven-ladders/">Eleven Ladders</a></h3>
-          <p class="desc">I sent Jacob’s dream to an AI image model in twelve translations, tried again with new instructions and with midrash (rabbinic interpretation) as the prompt, and set the results beside eight centuries of real art. Words for physical things steered the picture. Words for God did not, until one added instruction changed it. A chevrutah (paired study) lab lets pairs write their own prompts and compare what comes back.</p>
+          <p class="desc">I sent Jacob’s dream to an AI image model in the Hebrew and eleven translations, tried again with new instructions and with midrash (rabbinic interpretation) as the prompt, and set the results beside seven centuries of real art. Words for physical things steered the picture. Words for God did not, until one added instruction changed it. A chevrutah (paired study) lab lets pairs write their own prompts and compare what comes back.</p>
           <span class="go" aria-hidden="true">Read the study <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/rtr/img/jacobs-dream.webp" width="1200" height="675" alt="The Jacob’s Dream page: its title, the verses, the Hebrew word sulam in gold, and the first row of the gallery.">
+        <div class="card-body">
+          <p class="kicker">The gallery</p>
+          <h3><a href="https://techrabbi.org/jacobs-ladder/dream/">Jacob’s Dream</a></h3>
+          <p class="desc">I made this gallery of Genesis 28:11–12 in eighteen art styles, from a Sephardic illuminated manuscript to claymation, each with an eight-second looping animation. Following Jewish practice, none of the images show God. Each stairway rises into sky and light, and the angels (malachim, a word that also means messengers) appear as flames, birds, and light.</p>
+          <span class="go" aria-hidden="true">See the gallery <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
         </div>
       </article>
     </div>
@@ -431,7 +443,15 @@ h2 {
 
 <footer class="site-footer">
   <div class="section-inner">
-    <p class="ask">Questions, or something you’d like to learn together? I’d love to hear from you at <a class="mail" href="#"><span class="addr">my email</span></a>.</p>
+    <div class="contact">
+      <figure class="portrait">
+        <img src="/rtr/img/dan-medwin.jpg" width="639" height="640" alt="Rabbi Dan Medwin" loading="lazy">
+      </figure>
+      <div>
+        <p class="eyebrow">Rabbi Dan Medwin</p>
+        <p class="ask">Questions, or something you’d like to learn together? I’d love to hear from you at <a class="mail" href="#"><span class="addr">my email</span></a>.</p>
+      </div>
+    </div>
     <div class="fine">
       <span>&copy; 2026 Tech Rabbi · Rabbi Dan Medwin</span>
       <a href="/">techrabbi.org</a>
