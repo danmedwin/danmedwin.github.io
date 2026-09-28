@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Hidden draft: unlisted and kept out of search. At launch this page moves to /rtr/ and this line goes. -->
 <meta name="robots" content="noindex, nofollow">
-<title>Rabbi Dan Medwin at RTR | Tech Rabbi</title>
-<meta name="description" content="Texts, slides, and tools from Rabbi Dan Medwin, scholar in residence at Reform Temple of Rockland.">
+<title>RTR Scholar-in-Residence Weekend | Tech Rabbi</title>
+<meta name="description" content="Renew the Old and Sanctify the New: The Dance of Judaism &amp; Technology. Texts, slides, and tools for the Scholar-in-Residence Weekend at the Reform Temple of Rockland, November 20–22, 2026.">
 <link rel="icon" href="/apps/logo.png" type="image/png">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="Rabbi Dan Medwin at Reform Temple of Rockland">
-<meta property="og:description" content="Texts, slides, and tools from RTR’s scholar in residence.">
+<meta property="og:title" content="Renew the Old and Sanctify the New">
+<meta property="og:description" content="The Dance of Judaism &amp; Technology. Scholar-in-Residence Weekend at the Reform Temple of Rockland, November 20–22, 2026.">
 <meta property="og:image" content="https://techrabbi.org/rtr/img/dan-medwin.jpg">
 <meta name="twitter:card" content="summary">
 
@@ -116,45 +116,78 @@ body {
   max-width: 1100px;
   margin: 0 auto;
   padding: var(--space-2xl) var(--space-xl);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2xl);
 }
-.hero-text { max-width: 760px; animation: rise 0.8s ease-out both; }
+.hero-text { animation: rise 0.8s ease-out both; }
+.hero .eyebrow { display: block; line-height: 1.7; }
 
 h1 {
   font-family: var(--serif);
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-size: clamp(2.2rem, 4.6vw, 3.4rem);
   font-weight: 700;
   line-height: 1.12;
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-sm);
   text-wrap: balance;
 }
 h1 em { font-style: italic; color: var(--gold); }
 
+.subtitle {
+  margin: 0 0 var(--space-lg);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+  line-height: 1.3;
+  color: var(--cream);
+}
+
+.when {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0 0 var(--space-xs);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.when svg { width: 20px; height: 20px; flex: none; margin-top: 0.2em; color: var(--gold); }
+.nowrap { white-space: nowrap; }
+.credits { margin: 0 0 var(--space-lg); color: var(--slate); font-size: 0.95rem; }
+
 .lede {
   max-width: 36em;
+  margin: 0;
   color: var(--slate);
-  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  font-size: clamp(1.05rem, 1.6vw, 1.15rem);
   line-height: 1.7;
-  margin: 0 0 var(--space-xl);
   text-wrap: pretty;
 }
 
-.actions { display: flex; flex-wrap: wrap; gap: var(--space-md); }
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.85rem 1.5rem;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+/* The line the weekend's title comes from, set the way the Jacob's Dream page sets sulam. */
+.source {
+  margin: 0;
+  max-width: 21rem;
+  text-align: right;
+  animation: rise 0.8s ease-out 0.15s both;
 }
-.btn svg { width: 18px; height: 18px; flex: none; }
-.btn-primary { background: var(--gold); color: var(--navy); }
-.btn-primary:hover { background: var(--gold-soft); }
-.btn-secondary { color: var(--cream); border: 1.5px solid rgba(255, 255, 255, 0.2); }
-.btn-secondary:hover { color: var(--gold); border-color: var(--gold); }
+.source blockquote {
+  margin: 0 0 var(--space-md);
+  font-size: clamp(2rem, 3.4vw, 2.75rem);
+  line-height: 1.35;
+  color: var(--gold);
+}
+.source figcaption { color: var(--slate); font-size: 0.92rem; line-height: 1.55; }
+.source figcaption i { color: var(--cream); }
+.source .who {
+  display: block;
+  margin-top: var(--space-sm);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
 
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
 
@@ -320,6 +353,23 @@ h2 {
 }
 .ask a:hover { text-decoration-color: var(--gold); }
 
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--space-lg);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--slate);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.more svg { width: 14px; height: 14px; transition: transform 0.2s ease; }
+.more:hover { color: var(--gold); }
+.more:hover svg { transform: translateX(4px); }
+
 .fine {
   display: flex;
   justify-content: space-between;
@@ -338,8 +388,11 @@ h2 {
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .paper :focus-visible { outline-color: var(--gold-ink); }
 
-/* Three cards across only when each has room for its paragraph; otherwise one per row. */
+/* Side by side only when each column has room: the hero's text and its Hebrew line,
+   and three cards each with a paragraph. Otherwise they stack. */
 @media (max-width: 1000px) {
+  .hero-inner { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .source { max-width: none; padding-top: var(--space-lg); border-top: 1px solid var(--line); }
   .cards { grid-template-columns: minmax(0, 600px); }
 }
 
@@ -372,20 +425,27 @@ h2 {
 
 <main>
 
-<section class="hero" aria-labelledby="welcome">
+<section class="hero" aria-labelledby="weekend">
   <div class="hero-inner">
     <div class="hero-text">
-      <p class="eyebrow">Scholar in Residence</p>
-      <h1 id="welcome">Welcome, <em>Reform Temple of Rockland</em></h1>
-      <p class="lede">I’m Rabbi Dan Medwin, and I’m looking forward to learning with you as your scholar in residence. Everything I share with RTR will live on this page, so it’s easy to find and come back to.</p>
-      <div class="actions">
-        <a class="btn btn-primary mail" href="#">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-          <span class="addr">Email me</span>
-        </a>
-        <a class="btn btn-secondary" href="/#ABOUT">More about me</a>
-      </div>
+      <p class="eyebrow">The Reform Temple of Rockland&nbsp;· Scholar-in-Residence Weekend</p>
+      <h1 id="weekend">Renew the <em>Old</em> and Sanctify the <em>New</em></h1>
+      <p class="subtitle">The Dance of Judaism &amp; Technology</p>
+      <p class="when">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
+        <span><span class="nowrap">Friday, November 20</span> – <span class="nowrap">Sunday, November 22, 2026</span></span>
+      </p>
+      <p class="credits">With scholar Rabbi Dan Medwin&nbsp;· Sponsored by the RTR Adult Ed Committee</p>
+      <p class="lede">Explore how Jewish wisdom and modern technology intersect to deepen our tradition and shape our future. All are welcome: bring your curiosity, your questions, and your love of learning. This page gathers the texts, slides, and tools for the weekend, so they’re easy to find before we meet and after.</p>
     </div>
+    <figure class="source">
+      <blockquote lang="he" dir="rtl">הַיָּשָׁן יִתְחַדֵּשׁ<br>וְהֶחָדָשׁ יִתְקַדֵּשׁ</blockquote>
+      <figcaption>
+        <i>Hayashan yitchadeish, v’hechadash yitkadeish.</i>
+        The old will be renewed, and the new will be sanctified.
+        <span class="who">Rabbi Abraham Isaac Kook</span>
+      </figcaption>
+    </figure>
   </div>
 </section>
 
@@ -450,6 +510,7 @@ h2 {
       <div>
         <p class="eyebrow">Rabbi Dan Medwin</p>
         <p class="ask">Questions, or something you’d like to learn together? I’d love to hear from you at <a class="mail" href="#"><span class="addr">my email</span></a>.</p>
+        <a class="more" href="/#ABOUT">More about me <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
       </div>
     </div>
     <div class="fine">
@@ -461,10 +522,10 @@ h2 {
 
 <script>
 // The address is assembled here rather than written into the page, so scrapers
-// reading the HTML don't pick it up. Same approach as the home page.
+// reading the HTML don't pick it up. Same address and approach as the home page.
 (function () {
-  var user = [100, 97, 110];
-  var host = [116, 101, 99, 104, 114, 97, 98, 98, 105, 46, 111, 114, 103];
+  var user = [114, 97, 98, 98, 105, 46, 100, 97, 110];
+  var host = [109, 101, 100, 119, 46, 105, 110];
   var text = function (codes) { return codes.map(function (c) { return String.fromCharCode(c); }).join(''); };
   var addr = text(user) + String.fromCharCode(64) + text(host);
   document.querySelectorAll('a.mail').forEach(function (link) {
