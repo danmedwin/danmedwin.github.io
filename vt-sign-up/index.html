@@ -250,20 +250,20 @@
   </header>
   <p class="intro">Look through the prayers below to find one that speaks to you. Sign up to create
   an image or photo to carry it on screen during our Visual T'filah. Tap a prayer to learn more and
-  then sign up. Once you claim it, you can come back to upload it anytime<span id="dueDate"></span>.</p>
+  then sign up. You may sign up for up to three prayers. Once you claim one, you can come back to upload your image anytime<span id="dueDate"></span>.</p>
   <div style="text-align:center"><button class="guidebtn" id="guideBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>&nbsp;How to make your image</button></div>
   <div class="horizon"></div>
 
   <div class="statusbar" id="statusbar">
     Loading prayers&hellip;
-    <span class="manage" id="manageLink" style="display:none">Already signed up? Manage your prayer</span>
+    <span class="manage" id="manageLink" style="display:none">Already signed up? Manage your prayers</span>
   </div>
 
   <div id="grid"></div>
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v3.9</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v4.0</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -1006,7 +1006,7 @@ async function makeFirebaseStore(){
 }
 
 /* ---------- App ---------- */
-const MAX_PER_PERSON = 1;          // prayers one person may claim (phase 1: one each)
+const MAX_PER_PERSON = 3;          // prayers one person may claim
 /* Access word -> group config. The word both gates the page and identifies the group. */
 const GROUPS = {
   rtr: { label: "Reform Temple of Rockland", deadline: "October 9, 2026" },
@@ -1050,7 +1050,7 @@ function emailOnClaim(prayer, person){
       + (g.label ? ` for our Visual T'filah at ${g.label}` : "") + `.\n\n${prayer.info||""}\n\n`
       + `Your next step: create an image — you may upload up to three options — that brings this prayer to life on the screen.`
       + (g.deadline ? ` Please upload by ${g.deadline}.` : "") + `\n\n`
-      + `Use the button below to upload or manage your prayer (choose “Already signed up? Manage your prayer” and enter this email).\n\n`
+      + `Use the button below to upload or manage your prayer (choose “Already signed up? Manage your prayers” and enter this email).\n\n`
       + `Thank you for helping create our Shabbat together.`,
       "Upload / manage my prayer", _appUrl());
   }, CLAIM_EMAIL_DELAY);
@@ -1126,7 +1126,7 @@ function render(){
   const taken = Object.keys(claims).length;
   document.getElementById("statusbar").innerHTML =
     `<b>${PRAYERS.length-taken}</b> of ${PRAYERS.length} prayers still available` +
-    `<span class="manage" id="manageLink">Already signed up? Manage your prayer</span>`;
+    `<span class="manage" id="manageLink">Already signed up? Manage your prayers</span>`;
   document.getElementById("manageLink").onclick = openManage;
 
   grid.innerHTML = "";
@@ -1192,6 +1192,7 @@ function openPrayer(id){
       <div class="hint" style="margin:6px 0 0">Leave blank for no credit. Tap the box for suggestions.</div></div>
     <div class="err" id="f_err"></div>
     <button class="btn primary" id="f_go">Sign up for ${p.name}</button>
+    <div class="hint" style="margin-top:8px">You may sign up for up to ${MAX_PER_PERSON} prayers.</div>
     ${currentGroup && currentGroup.deadline ? `<div class="hint" style="margin-top:8px">Images are due by <b>${esc(currentGroup.deadline)}</b>.</div>` : ""}`;
   }
   modal.innerHTML = body;
@@ -1345,11 +1346,11 @@ async function doClaim(id){
 function openManage(){
   modal.innerHTML = `
     <button class="close" onclick="this.closest('.backdrop').classList.remove('show')">&times;</button>
-    <h2>Manage your prayer</h2>
-    <div class="info">Enter the email you signed up with to find your prayer and add your image.</div>
+    <h2>Manage your prayers</h2>
+    <div class="info">Enter the email you signed up with to find your prayers and add your images.</div>
     <div class="field"><label>Email</label><input id="m_email" type="email" value="${me?esc(me.email):''}"></div>
     <div class="err" id="m_err"></div>
-    <button class="btn primary" id="m_go">Find my prayer</button>`;
+    <button class="btn primary" id="m_go">Find my prayers</button>`;
   backdrop.classList.add("show");
   q("#m_go").onclick = async () => {
     const email = q("#m_email").value.trim().toLowerCase();
