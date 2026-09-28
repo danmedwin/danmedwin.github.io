@@ -263,7 +263,7 @@
 
   <div id="adminMount"></div>
 
-  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v4.0</footer>
+  <footer class="page"><a href="mailto:rabbi.dan@medw.in">rabbi.dan@medw.in</a> &nbsp;&bull;&nbsp; <a href="https://techrabbi.org" target="_blank" rel="noopener">techrabbi.org</a> &nbsp;&bull;&nbsp; v4.1</footer>
 </div>
 
 <!-- Sign-up / info modal -->
@@ -865,55 +865,103 @@ const TEXTS = {
 };
 
 /* ============================================================
-   STORE  — common interface used by the UI
-     store.subscribe(cb)            cb(claimsMap) on every change
-     store.claim(id, person)        -> {ok} | {ok:false, reason}
-     store.findByEmail(email)       -> [claim,...]
-     store.attachImage(id, email, file) -> {ok, name}
-   claimsMap: { prayerId: {first,last,email,at,image} }
+   STORE  — common interface used by the UI (Firebase + mock share it)
+     store.token(email)                 -> sha256 hex of the lowercased email
+     store.subscribe(cb)                cb(statusMap) on every change
+     store.claim(id, person)            -> {ok, token} | {ok:false, reason}
+     store.findByToken(tok)             -> [prayerId,...]
+     store.attachImage(id, file, niceName, slot, currentImages) -> {ok, url, images}
+     store.release(id)                  -> {ok}
+     store.adminAuth() / adminLoadClaims() / adminClearAll()
+   statusMap (public, no PII): { prayerId: {token, images:[], hasImage} }
    ============================================================ */
 
+/* Mock backend (?demo, or USE_FIREBASE=false): same surface as makeFirebaseStore,
+   kept in localStorage — "status" is public, "claims" holds the PII — and synced
+   across tabs with BroadcastChannel + the storage event. */
 function makeMockStore(){
-  const KEY = "vt-claims-v1";
-  const chan = ("BroadcastChannel" in self) ? new BroadcastChannel("vt-claims") : null;
-  let subs = [];
-  const read = () => { try{ return JSON.parse(lsGet(KEY)||"{}"); }catch{ return {}; } };
-  const write = (m) => { lsSet(KEY, JSON.stringify(m)); };
-  const emit = () => { const m=read(); subs.forEach(cb=>cb(m)); };
+  const SKEY = "vt-demo-status-v2", CKEY = "vt-demo-claims-v2";
+  const chan = ("BroadcastChannel" in self) ? new BroadcastChannel("vt-demo-status") : null;
+  const subs = [];
+  const read = k => { try{ return JSON.parse(lsGet(k)||"{}"); }catch{ return {}; } };
+  const write = (k, m) => { try{ localStorage.setItem(k, JSON.stringify(m)); return true; }catch(e){ return false; } };
+  const emit = () => { const m = read(SKEY); subs.forEach(cb => cb(m)); };
+  const changed = () => { if(chan) chan.postMessage("x"); emit(); };
   if(chan) chan.onmessage = () => emit();
-  window.addEventListener("storage", e => { if(e.key===KEY) emit(); });
+  window.addEventListener("storage", e => { if(e.key===SKEY) emit(); });
+  // Images: shrink to a JPEG data URL so the thumbnail survives reloads and shows in
+  // other tabs; if that can't be made or won't fit in localStorage, use an object URL
+  // (this tab only). Videos always get an object URL.
+  const toDataURL = file => new Promise(res => {
+    if(!/^image\//.test(file.type)) return res(null);
+    const src = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 800 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth*k); c.height = Math.round(img.naturalHeight*k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(src);
+      try{ res(c.toDataURL("image/jpeg", 0.8)); }catch(e){ res(null); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(src); res(null); };
+    img.src = src;
+  });
+  // demo admin: a stand-in for Firebase Auth; "Sign in with Google" signs in as the admin
+  let adminUser = null; const authSubs = [];
+  const setAdmin = u => { adminUser = u; authSubs.forEach(cb => cb(u)); };
+  const fakeAuth = {
+    auth: {},
+    GoogleAuthProvider: class {},
+    onAuthStateChanged(_a, cb){ authSubs.push(cb); cb(adminUser); return () => {}; },
+    async signInWithPopup(){ setAdmin({email: ADMIN_EMAIL}); },
+    async signOut(){ setAdmin(null); }
+  };
   return {
-    subscribe(cb){ subs.push(cb); cb(read()); },
+    token: sha256hex,
+    subscribe(cb){ subs.push(cb); cb(read(SKEY)); },
     async claim(id, person){
-      const m = read();
-      if(m[id]) return {ok:false, reason:"taken"};
-      m[id] = {...person, at:Date.now(), image:null};
-      write(m); if(chan) chan.postMessage("x"); emit();
+      const s = read(SKEY), c = read(CKEY);
+      if(s[id]) return {ok:false, reason:"taken"};
+      const tok = await sha256hex(person.email);
+      s[id] = {token:tok, images:[], hasImage:false};
+      c[id] = {first:person.first, last:person.last,
+        email:person.email.trim().toLowerCase(),
+        attribution:(person.attribution||"").trim().slice(0,120),
+        at:Date.now(), imageAt:null};
+      write(SKEY, s); write(CKEY, c); changed();
+      return {ok:true, token:tok};
+    },
+    async findByToken(tok){
+      const s = read(SKEY);
+      return Object.keys(s).filter(id => s[id].token === tok);
+    },
+    async attachImage(id, file, niceName, slot, currentImages){
+      const s = read(SKEY), c = read(CKEY);
+      if(!s[id]) return {ok:false, reason:"not-found"};
+      const images = (currentImages || s[id].images || []).slice();
+      images[slot||0] = await toDataURL(file) || URL.createObjectURL(file);
+      s[id] = {...s[id], images, hasImage:true};
+      if(!write(SKEY, s)){          // too big for localStorage -> this-tab-only object URL
+        images[slot||0] = URL.createObjectURL(file);
+        s[id].images = images;
+        if(!write(SKEY, s)) return {ok:false, reason:"storage-full"};
+      }
+      if(c[id]){ c[id].imageAt = Date.now(); write(CKEY, c); }
+      changed();
+      return {ok:true, url:images[slot||0], images};
+    },
+    async release(id){
+      const s = read(SKEY), c = read(CKEY);
+      delete s[id]; delete c[id];
+      write(SKEY, s); write(CKEY, c); changed();
       return {ok:true};
     },
-    async findByEmail(email){
-      const m = read(); email=email.trim().toLowerCase();
-      return Object.entries(m).filter(([,c])=>(c.email||"").toLowerCase()===email)
-                   .map(([id,c])=>({id,...c}));
-    },
-    async attachImage(id, email, file, niceName){
-      const m = read();
-      if(!m[id] || (m[id].email||"").toLowerCase()!==email.trim().toLowerCase())
-        return {ok:false, reason:"not-yours"};
-      const ext = (file.name.match(/\.[a-z0-9]+$/i)||[""])[0];
-      m[id].image = niceName + ext;       // mock: store the nice filename
-      m[id].imageAt = Date.now();
-      write(m); if(chan) chan.postMessage("x"); emit();
-      return {ok:true, name:niceName + ext};
-    },
-    async release(id, email){
-      const m = read();
-      if(!m[id]) return {ok:false, reason:"not-found"};
-      if((m[id].email||"").toLowerCase()!==email.trim().toLowerCase())
-        return {ok:false, reason:"not-yours"};
-      delete m[id];
-      write(m); if(chan) chan.postMessage("x"); emit();
-      return {ok:true};
+    async adminAuth(){ return fakeAuth; },
+    async adminLoadClaims(){ return read(CKEY); },
+    async adminClearAll(){
+      const n = Object.keys(read(SKEY)).length;
+      write(SKEY, {}); write(CKEY, {}); changed();
+      return {ok:true, count:n};
     }
   };
 }
@@ -1035,6 +1083,7 @@ const CLAIM_EMAIL_DELAY = 90000;     // hold the claim email briefly; an upload 
 const _appUrl = () => location.origin + location.pathname;
 
 function _send(to_email, subject, message, cta_label, cta_url){
+  if(DEMO){ console.info("[demo] email not sent:", to_email, subject); return; }
   if(window.emailjs) emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE,
     { to_email, subject, message, cta_label, cta_url }).catch(e => console.warn("email failed", e));
 }
