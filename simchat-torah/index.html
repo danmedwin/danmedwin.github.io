@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simchat Torah Scroll Tour | Tech Rabbi</title>
+<meta name="description" content="Twenty passages to point out when the whole Torah is unrolled on Simchat Torah, mapped around the circle, with photos from a real scroll.">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+<link rel="canonical" href="https://techrabbi.org/simchat-torah/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Simchat Torah Scroll Tour">
+<meta property="og:description" content="Twenty passages to point out when the whole Torah is unrolled on Simchat Torah, mapped around the circle, with photos from a real scroll.">
+<meta property="og:url" content="https://techrabbi.org/simchat-torah/">
+<meta property="og:image" content="https://techrabbi.org/simchat-torah/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wdth,wght@0,75..100,300..800;1,75..100,300..800&display=swap">
+<style>
+:root{color-scheme:light}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: a ring map of the unrolled scroll, then the stops in parchment order, books divided by four blank lines */
+:root{
+  --bg:#F6F5F0; --surface:#FFFFFF; --ink:#414042; --head:#05305E; --accent:#007A8A;
+  --gold:#FFC843; --on-gold:#05305E; --muted:#56606C;
+  --line:rgba(5,48,94,.14); --line-strong:rgba(5,48,94,.3);
+  --ring-a:#05305E; --ring-b:#007A8A; --pin:#FFFFFF; --pin-ink:#05305E;
+  --spec-bg:#FBFAF7; --spec-ink:#05305E; --bar:rgba(5,48,94,.2); --gapline:rgba(0,122,138,.6);
+  --bar-bg:rgba(246,245,240,.92);
+  --font:'Open Sans','Helvetica Neue',Arial,sans-serif;
+  --heb:'Arial Hebrew','Open Sans','Noto Sans Hebrew',Arial,sans-serif;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#05305E; --surface:#0B3A6B; --ink:#E4ECF5; --head:#FFFFFF; --accent:#74D2E7;
+    --gold:#FFC843; --on-gold:#05305E; --muted:#AFC0D3;
+    --line:rgba(255,255,255,.14); --line-strong:rgba(255,255,255,.32);
+    --ring-a:#F6F5F0; --ring-b:#009CA7; --pin:#0B3A6B; --pin-ink:#FFFFFF;
+    --spec-bg:#093262; --spec-ink:#FFFFFF; --bar:rgba(255,255,255,.24); --gapline:rgba(116,210,231,.7);
+    --bar-bg:rgba(5,48,94,.92);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#05305E; --surface:#0B3A6B; --ink:#E4ECF5; --head:#FFFFFF; --accent:#74D2E7;
+  --gold:#FFC843; --on-gold:#05305E; --muted:#AFC0D3;
+  --line:rgba(255,255,255,.14); --line-strong:rgba(255,255,255,.32);
+  --ring-a:#F6F5F0; --ring-b:#009CA7; --pin:#0B3A6B; --pin-ink:#FFFFFF;
+  --spec-bg:#093262; --spec-ink:#FFFFFF; --bar:rgba(255,255,255,.24); --gapline:rgba(116,210,231,.7);
+  --bar-bg:rgba(5,48,94,.92);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:clamp(16px,4vw,40px);padding-block:28px 72px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3{color:var(--head);text-wrap:balance;margin:0}
+p{margin:0}
+.he{font-family:var(--heb);font-weight:600;unicode-bidi:isolate}
+i{font-style:italic}
+
+/* header */
+.top{display:grid;gap:10px;padding-block:8px 26px;max-width:760px}
+.eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(2.3rem,7vw,3.6rem);font-weight:800;font-stretch:87.5%;line-height:1.02;letter-spacing:-.01em}
+.deck{font-size:1.08rem;max-width:62ch}
+
+/* map */
+.mapsec{display:grid;gap:22px;align-items:center;padding-block:6px 30px}
+@media (min-width:820px){.mapsec{grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:40px}}
+.map{min-width:0;margin:0;display:grid;gap:8px}
+.mapcap{font-size:.82rem;color:var(--muted);text-align:center;max-width:44ch;margin-inline:auto}
+.ring{width:100%;max-width:440px;height:auto;display:block;margin-inline:auto}
+.ring .arc{fill:none;stroke-width:20;stroke-linecap:butt}
+.ring .arc.a{stroke:var(--ring-a)}
+.ring .arc.b{stroke:var(--ring-b)}
+.ring .chev{fill:none;stroke:var(--bg);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ring .roller{fill:var(--gold);stroke:var(--head);stroke-width:1.2}
+.ring .rlabel{font:700 10.5px var(--font);fill:var(--head);letter-spacing:.04em}
+.ring .blabel{font:700 11.5px var(--font);fill:var(--head)}
+.ring .bsub{font:400 9.5px var(--font);fill:var(--muted)}
+.ring .clabel{font:italic 400 9.5px var(--font);fill:var(--muted)}
+.ring .lead{stroke:var(--line-strong);stroke-width:1.2}
+.ring .pin circle{fill:var(--pin);stroke:var(--pin-ink);stroke-width:1.6}
+.ring .pin.idea circle{stroke-dasharray:3 2.2}
+.ring .pin.must circle{fill:var(--gold);stroke:var(--on-gold)}
+.ring .pin text{font:800 11px var(--font);fill:var(--pin-ink)}
+.ring .pin.must text{fill:var(--on-gold)}
+.ring .pin:hover circle,.ring .pin:focus circle{stroke-width:3}
+.only-must .ring .pin:not(.must){opacity:.22}
+.howto{display:grid;gap:12px;min-width:0}
+.howto h2{font-size:1.4rem;font-weight:800}
+.howto ul{margin:0;padding-left:1.1em;display:grid;gap:8px}
+.howto b{color:var(--head)}
+.note{font-size:.85rem;color:var(--muted);max-width:60ch}
+
+/* sticky bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;
+  background:var(--bar-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-block:1px solid var(--line);padding:8px 0;margin-bottom:18px}
+.pills{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0}
+.pills::-webkit-scrollbar{display:none}
+.pills a{flex:0 0 auto;font-size:.85rem;font-weight:600;color:var(--head);text-decoration:none;padding:5px 11px;border:1px solid var(--line-strong);border-radius:999px}
+.pills a:hover{border-color:var(--accent);color:var(--accent)}
+.toggle{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;font:600 .85rem var(--font);color:var(--head);background:transparent;
+  border:1px solid var(--line-strong);border-radius:999px;padding:5px 12px;cursor:pointer}
+.toggle .dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--head);background:transparent}
+.toggle[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.toggle[aria-pressed="true"] .dot{background:var(--on-gold);border-color:var(--on-gold)}
+.only-must .stop:not([data-must]){display:none}
+
+/* books */
+.book{display:grid;gap:16px;scroll-margin-top:64px}
+.book h2{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:clamp(1.5rem,4.5vw,2rem);font-weight:800;padding-top:6px}
+.book h2 small{font-size:.55em;font-weight:600;color:var(--muted)}
+.he-title{font-family:var(--heb);font-weight:700;color:var(--accent)}
+
+/* the four blank lines between books */
+.gap4{display:grid;gap:10px;padding-block:26px 30px}
+.gap4-lines{display:grid;gap:9px}
+.gap4-lines i{display:block;height:0;border-top:1.5px dashed var(--line-strong)}
+.gap4 p{font-size:.95rem;color:var(--muted)}
+.gap4 b{color:var(--head)}
+.gap4 .photo{max-width:620px}
+
+/* stop cards */
+.stop{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:grid;gap:16px;
+  grid-template-areas:"head" "media" "body";scroll-margin-top:64px}
+@media (min-width:860px){.stop{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"head media" "body media";
+  grid-template-rows:auto 1fr;gap:14px 28px;padding:24px}}
+.head,.media,.body{min-width:0;display:grid;gap:11px;align-content:start}
+.head{grid-area:head}
+.media{grid-area:media}
+.body{grid-area:body}
+.sh{display:flex;gap:12px;align-items:flex-start}
+.num{font-size:2.5rem;font-weight:800;font-stretch:75%;line-height:.9;color:var(--accent);min-width:1.4ch;font-variant-numeric:tabular-nums}
+.sh-t{min-width:0;display:grid;gap:2px}
+.sh h3{font-size:1.3rem;font-weight:800;line-height:1.2}
+.ref{font-size:.88rem;color:var(--muted)}
+.ref .he{font-weight:600;color:var(--head)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid var(--line-strong);color:var(--head)}
+.chip.must{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.chip.far{border-color:var(--accent);color:var(--accent)}
+.chip.idea{border-style:dashed}
+.where{font-size:.95rem}
+.where b,.look b,.say b,.bonus b{color:var(--head);font-weight:800;margin-right:.3em}
+.say b{color:var(--accent)}
+.pct{display:inline-block;font-size:.78rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;
+  border:1px solid var(--line);border-radius:4px;padding:0 6px;margin-left:4px}
+.bonus{font-size:.93rem;color:var(--ink);padding-top:10px;border-top:1px dashed var(--line-strong)}
+
+/* specimens */
+.spec{margin:0;background:var(--spec-bg);border:1px solid var(--line);border-radius:8px;padding:18px 14px 14px;display:grid;gap:12px;justify-items:center}
+.spec-line{font-family:var(--heb);font-size:clamp(1.6rem,5.4vw,2.15rem);line-height:1.75;color:var(--spec-ink);text-align:center;direction:rtl}
+.spec-line.small{font-size:clamp(1.25rem,4.2vw,1.6rem)}
+.spec .big{font-size:1.5em;line-height:.8;font-weight:700;color:var(--accent)}
+.spec .hi{color:var(--accent);font-weight:700}
+.spec .sm{font-size:.5em;font-weight:700;color:var(--accent)}
+.spec .dt{position:relative;display:inline-block;line-height:1}
+.spec .dt::before{content:"";position:absolute;left:50%;top:-.22em;width:.17em;height:.17em;margin-left:-.085em;border-radius:50%;background:var(--accent)}
+.spec .brk{position:relative;display:inline-block;line-height:1;color:var(--accent);font-weight:700}
+.spec .brk::after{content:"";position:absolute;left:-.15em;right:-.15em;top:46%;height:.11em;background:var(--spec-bg)}
+.spec .inv{display:inline-block;transform:scaleX(-1);color:var(--accent);font-weight:700}
+.spec .gp{display:inline-block;width:1.5em;height:.8em;vertical-align:middle;border:1.5px dashed var(--gapline);border-radius:3px;margin-inline:.18em}
+.cap{font-size:.78rem;color:var(--muted);text-align:center;max-width:42ch}
+
+/* scroll schematics */
+.brick,.cols{direction:rtl}
+.brick{display:grid;gap:5px;width:100%;max-width:250px;padding:12px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+.brick .r{display:flex;align-items:center;min-height:5px}
+.brick .r i{height:4px;border-radius:2px;background:var(--bar);flex-grow:0;flex-shrink:0}
+.brick .r i.g{background:transparent}
+.brick .r.w,.cols .l.w{gap:6px}
+.brick .r.w b,.cols .l.w b{font-family:var(--heb);font-weight:700;font-size:.9rem;line-height:1.2;color:var(--accent)}
+.brick .r.w i{height:4px;border-radius:2px;background:var(--bar)}
+.brick .r.t2{justify-content:space-between;gap:8px}
+.brick .r.t2 b,.brick .r.t1 b{font-family:var(--heb);font-weight:600;font-size:.72rem;line-height:1.3;color:var(--spec-ink);white-space:nowrap}
+.brick .r.t2 em{flex:0 0 12%}
+.brick .r.t1{justify-content:flex-start}
+.brick .r.t1 b{font-size:.78rem;color:var(--accent);font-weight:700}
+.brick .lead{font-size:.95rem;color:var(--spec-ink)!important}
+.brick .bigb{font-size:1.55em;color:var(--accent)}
+.brick .day{margin-right:auto;font-style:normal;font-size:.62rem;font-weight:700;color:var(--accent);font-family:var(--font);line-height:1}
+.brick.tall{gap:4px}
+.cols{display:flex;gap:8px;justify-content:center;width:100%}
+.col{flex:0 1 96px;min-width:0;display:grid;gap:5px;padding:9px 7px;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+.col .l{display:flex;align-items:center;min-height:5px}
+.col .l i{flex:1;height:4px;border-radius:2px;background:var(--bar)}
+.col .l.w b{color:var(--spec-ink);font-weight:600}
+.col .l.w b.hi{color:var(--accent);font-weight:800}
+.middles{display:grid;grid-template-columns:auto auto;gap:6px 18px;align-items:center}
+.mid-he{font-family:var(--heb);font-size:clamp(1.4rem,4.6vw,1.8rem);color:var(--spec-ink);text-align:right;direction:rtl;line-height:1.5}
+.mid-he .big{font-size:1.45em}
+.mid-bar{display:inline-block;width:2px;height:1em;vertical-align:middle;background:var(--accent);margin-inline:.25em}
+.mid-en{font-size:.78rem;color:var(--muted);line-height:1.3}
+.tiles{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.tile{display:grid;justify-items:center;gap:2px;min-width:74px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface)}
+.tile b{font-family:var(--heb);font-size:1.6rem;line-height:1.2;color:var(--spec-ink)}
+.tile small{font-size:.7rem;color:var(--muted)}
+.tile.hi{border-color:var(--accent)}
+.tile.hi b{color:var(--accent)}
+.op{font-weight:700;color:var(--muted)}
+
+/* photos */
+.photo{margin:0;display:grid;gap:6px}
+.photo img{display:block;width:100%;height:auto;max-height:460px;object-fit:contain;background:var(--spec-bg);border-radius:8px;border:1px solid var(--line);cursor:zoom-in}
+.photo figcaption{font-size:.8rem;color:var(--muted)}
+.credit{display:block;font-size:.72rem;opacity:.9}
+.credit a{color:inherit}
+
+/* anywhere + credits */
+.anywhere{display:grid;gap:12px;padding-top:44px}
+.anywhere h2,.credits h2{font-size:clamp(1.5rem,4.5vw,2rem);font-weight:800}
+.lede{color:var(--muted)}
+.any-grid{display:grid;gap:22px}
+@media (min-width:860px){.any-grid{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}}
+.any{margin:0;padding:0;list-style:none;display:grid;gap:14px}
+@media (min-width:600px){.any{grid-template-columns:1fr 1fr;gap:16px 24px}}
+.any li{min-width:0;padding-top:10px;border-top:1px solid var(--line)}
+.any b{display:block;color:var(--head);font-weight:800;margin-bottom:2px}
+.credits{display:grid;gap:10px;padding-top:40px;font-size:.85rem;color:var(--muted)}
+.credits ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.credits b{color:var(--ink)}
+.credits p{max-width:75ch}
+.credits a{overflow-wrap:anywhere}
+.foot{padding-top:24px;font-size:.8rem;color:var(--muted)}
+
+/* lightbox */
+dialog#lb{border:none;padding:0;background:transparent;max-width:min(96vw,1400px);max-height:94vh}
+dialog#lb::backdrop{background:rgba(3,20,40,.86)}
+dialog#lb img{display:block;max-width:min(96vw,1400px);max-height:84vh;width:auto;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+dialog#lb p{color:#F6F5F0;font-size:.85rem;text-align:center;padding:8px 12px 0}
+dialog#lb button{display:block;margin:10px auto 0;font:700 .85rem var(--font);color:#05305E;background:#FFC843;border:none;border-radius:999px;padding:7px 16px;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">Simchat Torah 5787</p>
+  <h1>The Unrolled Torah</h1>
+  <p class="deck">Twenty stops to point out as you run the inside of the circle, in the order they appear on the parchment. Each one has where to find it, what to look for, something to say, and photos from a real Torah scroll.</p>
+</header>
+
+<section class="mapsec" aria-labelledby="h-map">
+  <figure class="map"><svg class="ring" viewBox="0 0 400 400" role="img" aria-labelledby="ringTitle"><title id="ringTitle">Map of the unrolled Torah as a circle, with twenty numbered stops</title><path d="M190.1,68.4 A132,132 0 0 0 68.0,199.2" class="arc a"/><path d="M68.4,210.8 A132,132 0 0 0 164.8,327.2" class="arc b"/><path d="M176.1,329.8 A132,132 0 0 0 280.2,304.8" class="arc a"/><path d="M289.1,297.4 A132,132 0 0 0 321.8,149.1" class="arc b"/><path d="M316.9,138.6 A132,132 0 0 0 209.9,68.4" class="arc a"/><path d="M-3.2,-4.6 L2.4,0 L-3.2,4.6" class="chev" transform="translate(132.8,86.4) rotate(149.4)"/><path d="M-3.2,-4.6 L2.4,0 L-3.2,4.6" class="chev" transform="translate(72.1,232.8) rotate(75.6)"/><path d="M-3.2,-4.6 L2.4,0 L-3.2,4.6" class="chev" transform="translate(296.2,290.4) rotate(-46.8)"/><path d="M-3.2,-4.6 L2.4,0 L-3.2,4.6" class="chev" transform="translate(274.2,90.8) rotate(-145.8)"/><text x="156.8" y="158.4" class="blabel" text-anchor="middle">B'reishit</text><text x="156.8" y="170.4" class="bsub" text-anchor="middle">Genesis</text><text x="153.8" y="238.2" class="blabel" text-anchor="middle">Sh'mot</text><text x="153.8" y="250.2" class="bsub" text-anchor="middle">Exodus</text><text x="214.0" y="258.3" class="blabel" text-anchor="middle">Vayikra</text><text x="214.0" y="270.3" class="bsub" text-anchor="middle">Leviticus</text><text x="258.6" y="212.9" class="blabel" text-anchor="middle">B'midbar</text><text x="258.6" y="224.9" class="bsub" text-anchor="middle">Numbers</text><text x="232.1" y="149.3" class="blabel" text-anchor="middle">D'varim</text><text x="232.1" y="161.3" class="bsub" text-anchor="middle">Deuteronomy</text><rect x="192" y="52" width="6" height="32" rx="3" class="roller"/><rect x="202" y="52" width="6" height="32" rx="3" class="roller"/><text x="200" y="14" class="rlabel" text-anchor="middle">Rollers: start and finish</text><a href="#stop-1" class="pin must"><title>1. In the Beginning</title><line x1="195.0" y1="68.1" x2="173.0" y2="36.2" class="lead"/><circle cx="173.0" cy="36.2" r="11"/><text x="173.0" y="40.1" text-anchor="middle">1</text></a><a href="#stop-2" class="pin"><title>2. Esau’s Kiss</title><circle cx="89.0" cy="128.6" r="11"/><text x="89.0" y="132.5" text-anchor="middle">2</text></a><a href="#stop-3" class="pin"><title>3. Y’hudah at the Top</title><line x1="68.0" y1="198.3" x2="101.1" y2="195.0" class="lead"/><circle cx="101.1" cy="195.0" r="11"/><text x="101.1" y="198.9" text-anchor="middle">3</text></a><a href="#stop-4" class="pin must"><title>4. The Song of the Sea</title><line x1="83.1" y1="261.4" x2="111.0" y2="243.3" class="lead"/><circle cx="111.0" cy="243.3" r="11"/><text x="111.0" y="247.2" text-anchor="middle">4</text></a><a href="#stop-5" class="pin must"><title>5. The Ten Commandments</title><line x1="93.7" y1="278.3" x2="69.5" y2="302.6" class="lead"/><circle cx="69.5" cy="302.6" r="11"/><text x="69.5" y="306.5" text-anchor="middle">5</text></a><a href="#stop-6" class="pin"><title>6. God’s Big Kindness</title><circle cx="139.3" cy="317.2" r="11"/><text x="139.3" y="321.1" text-anchor="middle">6</text></a><a href="#stop-7" class="pin must"><title>7. The Tiny Alef</title><line x1="170.4" y1="328.6" x2="185.1" y2="297.9" class="lead"/><circle cx="185.1" cy="297.9" r="11"/><text x="185.1" y="301.8" text-anchor="middle">7</text></a><a href="#stop-8" class="pin must"><title>8. The Middle of the Torah</title><circle cx="213.2" cy="331.3" r="11"/><text x="213.2" y="335.2" text-anchor="middle">8</text></a><a href="#stop-9" class="pin idea"><title>9. Love Your Neighbor</title><line x1="249.4" y1="322.4" x2="237.0" y2="291.8" class="lead"/><circle cx="237.0" cy="291.8" r="11"/><text x="237.0" y="295.7" text-anchor="middle">9</text></a><a href="#stop-10" class="pin idea"><title>10. The Holiday We’re Celebrating</title><line x1="265.8" y1="314.5" x2="285.4" y2="342.3" class="lead"/><circle cx="285.4" cy="342.3" r="11"/><text x="285.4" y="346.2" text-anchor="middle">10</text></a><a href="#stop-11" class="pin"><title>11. The Priestly Blessing</title><line x1="306.8" y1="277.6" x2="280.1" y2="258.2" class="lead"/><circle cx="280.1" cy="258.2" r="11"/><text x="280.1" y="262.1" text-anchor="middle">11</text></a><a href="#stop-12" class="pin must"><title>12. The Backward Nuns</title><line x1="318.7" y1="257.7" x2="349.3" y2="272.6" class="lead"/><circle cx="349.3" cy="272.6" r="11"/><text x="349.3" y="276.5" text-anchor="middle">12</text></a><a href="#stop-13" class="pin must"><title>13. Mah Tovu at the Top</title><line x1="332.0" y1="198.3" x2="299.0" y2="200.0" class="lead"/><circle cx="299.0" cy="200.0" r="11"/><text x="299.0" y="203.9" text-anchor="middle">13</text></a><a href="#stop-14" class="pin"><title>14. The Broken Vav</title><circle cx="331.8" cy="192.5" r="11"/><text x="331.8" y="196.4" text-anchor="middle">14</text></a><a href="#stop-15" class="pin"><title>15. Five Sisters, One Big Letter</title><line x1="331.2" y1="185.1" x2="364.4" y2="177.1" class="lead"/><circle cx="364.4" cy="177.1" r="11"/><text x="364.4" y="181.0" text-anchor="middle">15</text></a><a href="#stop-16" class="pin"><title>16. The Ten Commandments, Take Two</title><line x1="305.8" y1="121.1" x2="280.5" y2="142.3" class="lead"/><circle cx="280.5" cy="142.3" r="11"/><text x="280.5" y="146.2" text-anchor="middle">16</text></a><a href="#stop-17" class="pin must"><title>17. The Sh’ma</title><line x1="302.8" y1="117.1" x2="325.2" y2="91.0" class="lead"/><circle cx="325.2" cy="91.0" r="11"/><text x="325.2" y="94.9" text-anchor="middle">17</text></a><a href="#stop-18" class="pin"><title>18. Secret Dots</title><line x1="221.5" y1="69.8" x2="221.0" y2="103.3" class="lead"/><circle cx="221.0" cy="103.3" r="11"/><text x="221.0" y="107.2" text-anchor="middle">18</text></a><a href="#stop-19" class="pin must"><title>19. Ha’azinu</title><circle cx="211.6" cy="68.5" r="11"/><text x="211.6" y="72.4" text-anchor="middle">19</text></a><a href="#stop-20" class="pin must"><title>20. The Last Line</title><line x1="205.0" y1="68.1" x2="227.0" y2="36.2" class="lead"/><circle cx="227.0" cy="36.2" r="11"/><text x="227.0" y="40.1" text-anchor="middle">20</text></a></svg><figcaption class="mapcap">Seen from above, with the writing facing into the circle. The Torah runs counterclockwise; the chevrons on the ring point forward.</figcaption></figure>
+  <div class="howto">
+    <h2 id="h-map">Running the circle</h2>
+    <ul>
+      <li><b>Start at the rollers.</b> When the whole scroll is open, the end of D’varim meets the beginning of B’reishit.</li>
+      <li><b>Keep the parchment on your right</b> and you are moving forward through the Torah, from B’reishit toward D’varim. (This assumes the writing faces into the circle.)</li>
+      <li><b>Book boundaries are four blank lines,</b> the gaps in the ring. Use them as mile markers.</li>
+      <li><b>Halfway around is the middle of the Torah,</b> in Vayikra.</li>
+      <li><b>Gold pins are the ten must-sees</b> if you’re short on time. Tap a pin to jump to it.</li>
+    </ul>
+    <p class="note">Percentages come from counting the letters of the Masoretic text, so they hold for any scroll. Column numbers follow the standard 245-column layout; if almost every column in your scroll begins with ו, it very likely uses that layout.</p>
+  </div>
+</section>
+
+<nav class="bar" aria-label="Jump to a book">
+  <div class="pills"><a href="#breishit">B'reishit</a><a href="#shmot">Sh'mot</a><a href="#vayikra">Vayikra</a><a href="#bmidbar">B'midbar</a><a href="#dvarim">D'varim</a><a href="#anywhere">Anywhere</a></div>
+  <button type="button" id="mustToggle" class="toggle" aria-pressed="false"><span class="dot" aria-hidden="true"></span>Must-sees only</button>
+</nav>
+
+
+<section class="book" id="breishit" aria-labelledby="h-breishit">
+  <h2 id="h-breishit"><span class="he-title" lang="he" dir="rtl">בראשית</span> B'reishit <small>Genesis</small></h2>
+  
+<article class="stop" id="stop-1" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">1</span><div class="sh-t"><h3>In the Beginning</h3><p class="ref">Genesis 1:1–2:3 · <span class="he" lang="he" dir="rtl">בראשית</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> The very first column and a half, right beside the rollers. <span class="pct">0% around</span> <span class="pct">column 1</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><div class="brick tall" dir="rtl" aria-hidden="true"><span class="r w"><b class="lead"><span class="bigb">ב</span>ראשית ברא</b><i style="flex:1"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i style="flex-basis:62%"></i><em class="day">1</em></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i style="flex-basis:38%"></i><em class="day">2</em></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i style="flex-basis:55%"></i><em class="day">3</em></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i style="flex-basis:30%"></i><em class="day">4</em></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i style="flex-basis:70%"></i><em class="day">5</em></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i style="flex-basis:44%"></i><em class="day">6</em></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i style="flex-basis:52%"></i><em class="day">7</em></span></div><figcaption class="cap">Each day of Creation ends with an open space (the numbers mark them).</figcaption></figure>
+    <figure class="photo"><img src="img/c001-creation.jpg" alt="The first column of a Torah scroll: an enlarged bet opens the first line, and each day of Creation ends with blank space." width="1400" height="1605" loading="lazy" decoding="async"><figcaption>Column 1. The big ב, then Days 1, 2, and 3, each ending with the rest of its line left blank. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> An oversized <span class="he" lang="he" dir="rtl">ב</span> opens the Torah. Then count the paragraphs: each day of Creation ends with the rest of its line left blank, so the start of the Torah reads like a list of seven days.</p>
+    <p class="say"><b>Say</b> The Torah begins with <i>bet</i>, the second letter. The rabbis noticed that <span class="he" lang="he" dir="rtl">ב</span> is closed on the top, the bottom, and the back, and open only toward the words ahead. Their lesson: start here and keep moving forward <i>(B’reishit Rabbah 1:10)</i>.</p>
+    <p class="bonus"><b>Bonus</b> Just after the seventh day (Genesis 2:4), the word <span class="he" lang="he" dir="rtl">בהבראם</span> (<i>b’hibar’am</i>, “when they were created”) has a tiny <span class="he" lang="he" dir="rtl">ה</span>. The Talmud says this world was created with the letter <i>hei</i> <i>(Talmud Menachot 29b)</i>.</p>
+  </div>
+</article>
+<article class="stop" id="stop-2">
+  <div class="head">
+    <header class="sh"><span class="num">2</span><div class="sh-t"><h3>Esau’s Kiss</h3><p class="ref">Genesis 33:4 · <span class="he" lang="he" dir="rtl">וישקהו</span></p></div></header>
+    
+    <p class="where"><b>Where</b> A little past the middle of B’reishit. <span class="pct">16% around</span> <span class="pct">column 38</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl">ויפל על צוארו <span class="dt">ו</span><span class="dt">י</span><span class="dt">ש</span><span class="dt">ק</span><span class="dt">ה</span><span class="dt">ו</span> ויבכו</p><figcaption class="cap">Six dots, one over each letter of “and he kissed him.”</figcaption></figure>
+    <figure class="photo"><img src="img/c038-esau-dots.jpg" alt="Close-up of the word vayishakeihu with a dot above each letter." width="1100" height="273" loading="lazy" decoding="async"><figcaption>Close-up: a dot over each letter of וישקהו. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure><figure class="photo"><img src="img/c038-esau-lines.jpg" alt="Two lines of Genesis 33 in the scroll, including the dotted word." width="1400" height="183" loading="lazy" decoding="async"><figcaption>Column 38 in context: “Esau ran to greet him… and kissed him.” <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> Six dots floating over one word: <span class="he" lang="he" dir="rtl">וישקהו</span> (<i>vayishakeihu</i>, “and he kissed him”).</p>
+    <p class="say"><b>Say</b> After twenty years apart, Esau runs to hug and kiss his twin brother, Jacob. Did he mean it? Some rabbis read the dots as a hint that he didn’t. Rabbi Shimon bar Yochai said that in that moment, Esau kissed Jacob with his whole heart <i>(Rashi on Genesis 33:4)</i>. Ask: what do you think the dots mean?</p>
+    <p class="bonus"><b>Bonus</b> The Torah has dotted words in ten places. Four more are in B’reishit: Genesis 16:5, 18:9, 19:33, and 37:12.</p>
+  </div>
+</article>
+<article class="stop" id="stop-3">
+  <div class="head">
+    <header class="sh"><span class="num">3</span><div class="sh-t"><h3>Y’hudah at the Top</h3><p class="ref">Genesis 49:8 · <span class="he" lang="he" dir="rtl">יהודה</span></p></div></header>
+    
+    <p class="where"><b>Where</b> Near the end of B’reishit, about two columns before the first four-line gap. <span class="pct">25% around</span> <span class="pct">column 59</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><div class="cols" dir="rtl" aria-hidden="true"><span class="col"><span class="l w"><b>ו</b><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span></span><span class="col"><span class="l w"><b class="hi">יהודה</b><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span></span><span class="col"><span class="l w"><b>ו</b><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span></span></div><figcaption class="cap">Most columns open with ו. This one opens with Y’hudah.</figcaption></figure>
+    <figure class="photo"><img src="img/c059-yhudah.jpg" alt="The top of a column whose first word is Y’hudah." width="1376" height="482" loading="lazy" decoding="async"><figcaption>Column 59 opens with יהודה. The columns on either side open with ו. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> In many scrolls, a column starts with the name <span class="he" lang="he" dir="rtl">יהודה</span> (<i>Y’hudah</i>, Judah) instead of the usual <span class="he" lang="he" dir="rtl">ו</span>.</p>
+    <p class="say"><b>Say</b> Jacob is blessing his sons, and he tells Judah that his brothers will praise him. Judah’s name comes from the Hebrew for praise and thanks (Genesis 29:35), and it gives us the word <i>Y’hudi</i>: Jew.</p>
+    
+  </div>
+</article>
+</section>
+<div class="gap4" role="separator" aria-label="Four blank lines between Genesis and Exodus">
+  <span class="gap4-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  <p><b>Four blank lines.</b> B'reishit ends and Sh'mot begins. <span class="pct">26% around</span> <span class="pct">column 61</span></p>
+  <figure class="photo"><img src="img/c061-book-gap.jpg" alt="The last line of Genesis, four blank lines, then the first lines of Exodus." width="1400" height="571" loading="lazy" decoding="async"><figcaption>Column 61. The last line of B’reishit, four blank lines, then ואלה שמות. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+</div>
+<section class="book" id="shmot" aria-labelledby="h-shmot">
+  <h2 id="h-shmot"><span class="he-title" lang="he" dir="rtl">שמות</span> Sh'mot <small>Exodus</small></h2>
+  
+<article class="stop" id="stop-4" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">4</span><div class="sh-t"><h3>The Song of the Sea</h3><p class="ref">Exodus 14:28–15:21 · <span class="he" lang="he" dir="rtl">שירת הים</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span><span class="chip far">Visible across the circle</span></div>
+    <p class="where"><b>Where</b> About a third of the way into Sh’mot. <span class="pct">33% around</span> <span class="pct">column 78</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><div class="brick" dir="rtl" aria-hidden="true"><span class="r w"><b>הבאים</b><i style="flex:1"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:17%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:34%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:17%"></i></span><span class="r"><i class="" style="flex-basis:33%"></i><i class="g" style="flex-basis:34%"></i><i class="" style="flex-basis:33%"></i></span><span class="r"><i class="" style="flex-basis:17%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:34%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:17%"></i></span><span class="r"><i class="" style="flex-basis:33%"></i><i class="g" style="flex-basis:34%"></i><i class="" style="flex-basis:33%"></i></span><span class="r"><i class="" style="flex-basis:17%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:34%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:17%"></i></span><span class="r"><i class="" style="flex-basis:33%"></i><i class="g" style="flex-basis:34%"></i><i class="" style="flex-basis:33%"></i></span><span class="r"><i class="" style="flex-basis:17%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:34%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:17%"></i></span><span class="r"><i class="" style="flex-basis:33%"></i><i class="g" style="flex-basis:34%"></i><i class="" style="flex-basis:33%"></i></span><span class="r"><i class="" style="flex-basis:17%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:34%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:17%"></i></span><span class="r"><i class="" style="flex-basis:33%"></i><i class="g" style="flex-basis:34%"></i><i class="" style="flex-basis:33%"></i></span><span class="r"><i class="" style="flex-basis:17%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:34%"></i><i class="g" style="flex-basis:16%"></i><i class="" style="flex-basis:17%"></i></span><span class="r"><i class="" style="flex-basis:33%"></i><i class="g" style="flex-basis:34%"></i><i class="" style="flex-basis:33%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span></div><figcaption class="cap">The column opens with הבאים, then the song is laid out like brickwork.</figcaption></figure>
+    <figure class="photo"><img src="img/c078-song-of-the-sea.jpg" alt="A full column with the Song of the Sea laid out like brickwork." width="1283" height="2100" loading="lazy" decoding="async"><figcaption>Column 78, the whole column. It opens with הבאים; the song is the brickwork below. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A whole column that looks like a brick wall: short phrases stacked over blank spaces. In many scrolls the column begins with the word <span class="he" lang="he" dir="rtl">הבאים</span> (<i>haba’im</i>).</p>
+    <p class="say"><b>Say</b> The Israelites have just crossed the sea on dry ground, with walls of water on both sides. Moses and the people sing, then Miriam leads the women with her timbrel. The song is written like a wall of bricks; the Talmud calls the pattern “half-brick over whole brick” <i>(Talmud Megillah 16b)</i>. Find <span class="he" lang="he" dir="rtl">מי כמכה</span> (<i>Mi chamochah</i>) inside it. We sing it at services all the time.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-5" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">5</span><div class="sh-t"><h3>The Ten Commandments</h3><p class="ref">Exodus 20:1–14 · <span class="he" lang="he" dir="rtl">עשרת הדברות</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> About five columns after the Song of the Sea. <span class="pct">35% around</span> <span class="pct">columns 83–84</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line small" lang="he" dir="rtl">לא תרצח<span class="gp" aria-hidden="true"></span>לא תנאף<span class="gp" aria-hidden="true"></span>לא תגנב<span class="gp" aria-hidden="true"></span></p><figcaption class="cap">The dashed boxes are blank parchment: each commandment gets its own break.</figcaption></figure>
+    <figure class="photo"><img src="img/c084-ten-commandments.jpg" alt="Lines of Exodus 20 where the short commandments are separated by blank gaps." width="1400" height="415" loading="lazy" decoding="async"><figcaption>Column 84. Short commandments with gaps between them: לא תרצח, לא תנאף, לא תגנב. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A line of tiny two-word phrases with gaps between them: <span class="he" lang="he" dir="rtl">לא תרצח</span> · <span class="he" lang="he" dir="rtl">לא תנאף</span> · <span class="he" lang="he" dir="rtl">לא תגנב</span> (<i>lo tirtzach, lo tinaf, lo tignov</i>).</p>
+    <p class="say"><b>Say</b> Some commandments are only two words long, and each one still gets its own space on the parchment. Ask: how many of the ten can you name?</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-6">
+  <div class="head">
+    <header class="sh"><span class="num">6</span><div class="sh-t"><h3>God’s Big Kindness</h3><p class="ref">Exodus 34:6–14 · <span class="he" lang="he" dir="rtl">נצר חסד</span></p></div></header>
+    
+    <p class="where"><b>Where</b> About four-fifths of the way through Sh’mot. <span class="pct">42% around</span> <span class="pct">columns 101–102</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl"><span class="big">נ</span>צר חסד לאלפים</p><p class="spec-line small" lang="he" dir="rtl">לאל אח<span class="big">ר</span></p><figcaption class="cap">A big נ in “keeping kindness,” and a big ר a few lines later.</figcaption></figure>
+    <figure class="photo"><img src="img/c101-notzer.jpg" alt="Close-up of Exodus 34:6–7 with an enlarged, crowned nun in notzeir." width="933" height="262" loading="lazy" decoding="async"><figcaption>Column 101, close-up. The big נ of נצר חסד, with its crowns. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure><figure class="photo"><img src="img/c102-shamor.jpg" alt="The top of the next column, beginning with sh’mor, with an enlarged resh a few lines down." width="1400" height="572" loading="lazy" decoding="async"><figcaption>Column 102 opens with שמר. Six lines down, the big ר of אחר. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A big <span class="he" lang="he" dir="rtl">נ</span> at the start of <span class="he" lang="he" dir="rtl">נצר חסד</span> (<i>notzeir chesed</i>, “keeping kindness”). A few lines on, a column often begins with <span class="he" lang="he" dir="rtl">שמר</span> (<i>sh’mor</i>), and just below that the <span class="he" lang="he" dir="rtl">ר</span> of <span class="he" lang="he" dir="rtl">אחר</span> (<i>acheir</i>, “another”) is big too.</p>
+    <p class="say"><b>Say</b> You heard these words again and again on Yom Kippur: <i>Adonai, Adonai, El rachum v’chanun</i>. God keeps kindness for thousands of generations, and the letter is big. The big <span class="he" lang="he" dir="rtl">ר</span> makes sure no one misreads <i>acheir</i> (“another” god) as <i>echad</i> (“One”).</p>
+    
+  </div>
+</article>
+</section>
+<div class="gap4" role="separator" aria-label="Four blank lines between Exodus and Leviticus">
+  <span class="gap4-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  <p><b>Four blank lines.</b> Sh'mot ends and Vayikra begins. <span class="pct">46% around</span> <span class="pct">column 111</span></p>
+  
+</div>
+<section class="book" id="vayikra" aria-labelledby="h-vayikra">
+  <h2 id="h-vayikra"><span class="he-title" lang="he" dir="rtl">ויקרא</span> Vayikra <small>Leviticus</small></h2>
+  
+<article class="stop" id="stop-7" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">7</span><div class="sh-t"><h3>The Tiny Alef</h3><p class="ref">Leviticus 1:1 · <span class="he" lang="he" dir="rtl">ויקרא</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> The very first word after the second four-line gap. <span class="pct">46% around</span> <span class="pct">column 111</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl">ויקר<span class="sm">א</span> אל משה</p><figcaption class="cap">The last letter of the book’s first word is written small.</figcaption></figure>
+    <figure class="photo"><img src="img/c111-vayikra.jpg" alt="The end of Exodus, four blank lines, then the first lines of Leviticus." width="1400" height="1049" loading="lazy" decoding="async"><figcaption>Column 111. Exodus ends, four blank lines, then ויקרא. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure><figure class="photo"><img src="img/c111-alef-zoom.jpg" alt="Close-up of the word Vayikra next to the word el, showing the smaller alef." width="1150" height="375" loading="lazy" decoding="async"><figcaption>Close-up: the alef ending ויקרא (right) is smaller than the alef of אל beside it. In this scroll the difference is small; in some scrolls it is tiny. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> The last letter of <span class="he" lang="he" dir="rtl">ויקרא</span> (<i>Vayikra</i>, “called”), the first word of the book, is a small <span class="he" lang="he" dir="rtl">א</span>. How small depends on the scribe. In some scrolls it is tiny; in the scroll in these photos, it is only a bit smaller than the <span class="he" lang="he" dir="rtl">א</span> of <span class="he" lang="he" dir="rtl">אל</span> right beside it.</p>
+    <p class="say"><b>Say</b> The Torah calls Moses the humblest person on earth <i>(Numbers 12:3)</i>. One tradition says Moses wanted to leave off the <i>alef</i>, so the word would say God only happened to meet him. When God insisted, he wrote it small <i>(Baal HaTurim on Leviticus 1:1)</i>.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-8" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">8</span><div class="sh-t"><h3>The Middle of the Torah</h3><p class="ref">Leviticus 10:16 · 11:42 · 13:33 · <span class="he" lang="he" dir="rtl">גחון</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> About a third of the way into Vayikra, almost directly across the circle from the rollers. <span class="pct">52% around</span> <span class="pct">columns 122–126</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><div class="middles"><span class="mid-he" lang="he" dir="rtl">דרש <span class="mid-bar"></span> דרש</span><span class="mid-en">middle words<br>Leviticus 10:16</span><span class="mid-he" lang="he" dir="rtl">גח<span class="big">ו</span>ן</span><span class="mid-en">middle letter<br>Leviticus 11:42</span><span class="mid-he" lang="he" dir="rtl">והת<span class="big">ג</span>לח</span><span class="mid-en">middle verse<br>Leviticus 13:33</span></div><figcaption class="cap">Three “middles,” about two columns apart.</figcaption></figure>
+    <figure class="photo"><img src="img/c122-darosh-darash.jpg" alt="Two lines where the first darash ends one line and the second begins the next." width="1400" height="173" loading="lazy" decoding="async"><figcaption>Column 122. The middle words: the first דרש ends a line (left) and the second begins the next (right). <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure><figure class="photo"><img src="img/c124-gachon.jpg" alt="A line from Leviticus 11:42 with an enlarged vav in gachon." width="873" height="160" loading="lazy" decoding="async"><figcaption>Column 124. The middle letter: the big ו in גחון. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure><figure class="photo"><img src="img/c126-hitgalach.jpg" alt="A line from Leviticus 13:33 with an enlarged gimel in v’hitgalach." width="963" height="160" loading="lazy" decoding="async"><figcaption>Column 126. The middle verse: the big ג in והתגלח. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> Three middles in a row: <span class="he" lang="he" dir="rtl">דרש דרש</span> (<i>darosh darash</i>), the middle words; a big <span class="he" lang="he" dir="rtl">ו</span> in <span class="he" lang="he" dir="rtl">גחון</span> (<i>gachon</i>), the middle letter; and a big <span class="he" lang="he" dir="rtl">ג</span> in <span class="he" lang="he" dir="rtl">והתגלח</span> (<i>v’hitgalach</i>), the middle verse <i>(Talmud Kiddushin 30a)</i>. In the scroll pictured here, the first <span class="he" lang="he" dir="rtl">דרש</span> ends one line and the second begins the next.</p>
+    <p class="say"><b>Say</b> <i>Gachon</i> means belly, as in creatures that crawl on their bellies. So the middle letter of the Torah sits in the word for belly. Welcome to the Torah’s belly button!</p>
+    <p class="bonus"><b>Bonus</b> When computers count every letter, the exact middle lands a few chapters earlier, in Leviticus 8. The Talmud itself admits the rabbis weren’t sure of every spelling <i>(Talmud Kiddushin 30a)</i>.</p>
+  </div>
+</article>
+<article class="stop" id="stop-9">
+  <div class="head">
+    <header class="sh"><span class="num">9</span><div class="sh-t"><h3>Love Your Neighbor</h3><p class="ref">Leviticus 19:18 · <span class="he" lang="he" dir="rtl">ואהבת לרעך כמוך</span></p></div></header>
+    <div class="chips"><span class="chip idea">Big idea, no special look</span></div>
+    <p class="where"><b>Where</b> About two-thirds of the way through Vayikra. <span class="pct">56% around</span> <span class="pct">column 135</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl">ואהבת לרעך כמוך</p><figcaption class="cap">No special layout. These are the words to find.</figcaption></figure>
+    <figure class="photo"><img src="img/c135-love.jpg" alt="Two lines of Leviticus 19 including v’ahavta l’rei’acha kamocha." width="1400" height="249" loading="lazy" decoding="async"><figcaption>Column 135. ואהבת לרעך כמוך, in the second line. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> No special look here. Point to <span class="he" lang="he" dir="rtl">ואהבת לרעך כמוך</span> (<i>v’ahavta l’rei’acha kamocha</i>), love your neighbor as yourself.</p>
+    <p class="say"><b>Say</b> Rabbi Akiva called this the great principle of the whole Torah <i>(Sifra, K’doshim 4:12)</i>. It lives just past the Torah’s middle.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-10">
+  <div class="head">
+    <header class="sh"><span class="num">10</span><div class="sh-t"><h3>The Holiday We’re Celebrating</h3><p class="ref">Leviticus 23:33–43 · <span class="he" lang="he" dir="rtl">בסכת תשבו</span></p></div></header>
+    <div class="chips"><span class="chip idea">Big idea, no special look</span></div>
+    <p class="where"><b>Where</b> About four-fifths of the way through Vayikra. <span class="pct">58% around</span> <span class="pct">columns 141–142</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl">בסכת תשבו שבעת ימים</p><figcaption class="cap">No special layout. “Live in sukkot seven days” (Leviticus 23:42).</figcaption></figure>
+    <figure class="photo"><img src="img/c142-sukkot.jpg" alt="Lines of Leviticus 23 with the command to live in sukkot." width="1400" height="257" loading="lazy" decoding="async"><figcaption>Column 142. בסכת תשבו שבעת ימים, in the middle line. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> No special look here. Point to <span class="he" lang="he" dir="rtl">בסכת תשבו שבעת ימים</span> (<i>basukkot teishvu shivat yamim</i>), live in sukkot for seven days (23:42). Nearby: the lulav and etrog (23:40) and the eighth day, Sh’mini Atzeret (23:36).</p>
+    <p class="say"><b>Say</b> This paragraph is why we have Sukkot and Sh’mini Atzeret. Finishing the Torah and starting it again with a party came later, from the Jewish people. That party is Simchat Torah!</p>
+    
+  </div>
+</article>
+</section>
+<div class="gap4" role="separator" aria-label="Four blank lines between Leviticus and Numbers">
+  <span class="gap4-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  <p><b>Four blank lines.</b> Vayikra ends and B'midbar begins. <span class="pct">61% around</span> <span class="pct">column 148</span></p>
+  
+</div>
+<section class="book" id="bmidbar" aria-labelledby="h-bmidbar">
+  <h2 id="h-bmidbar"><span class="he-title" lang="he" dir="rtl">במדבר</span> B'midbar <small>Numbers</small></h2>
+  
+<article class="stop" id="stop-11">
+  <div class="head">
+    <header class="sh"><span class="num">11</span><div class="sh-t"><h3>The Priestly Blessing</h3><p class="ref">Numbers 6:24–26 · <span class="he" lang="he" dir="rtl">ברכת כהנים</span></p></div></header>
+    
+    <p class="where"><b>Where</b> About a fifth of the way into B’midbar. <span class="pct">65% around</span> <span class="pct">column 158</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line small" lang="he" dir="rtl">יברכך ה׳ וישמרך<span class="gp" aria-hidden="true"></span></p><p class="spec-line small" lang="he" dir="rtl">יאר ה׳ פניו אליך ויחנך<span class="gp" aria-hidden="true"></span></p><p class="spec-line small" lang="he" dir="rtl">ישא ה׳ פניו אליך וישם לך שלום<span class="gp" aria-hidden="true"></span></p><figcaption class="cap">Each blessing is followed by a gap, so the three stand apart.</figcaption></figure>
+    <figure class="photo"><img src="img/c158-priestly-blessing.jpg" alt="The Priestly Blessing in the scroll, its three verses set apart by gaps." width="1400" height="492" loading="lazy" decoding="async"><figcaption>Column 158. The three blessings, each followed by a gap. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> Three short blessings, each followed by a gap, so they stand apart on the parchment. The first begins <span class="he" lang="he" dir="rtl">יברכך</span> (<i>Y’varech’cha Adonai v’yishm’recha</i>, May God bless you and protect you).</p>
+    <p class="say"><b>Say</b> Three verses that grow: three words, then five, then seven. Many families bless their children with these words on Friday night.</p>
+    <p class="bonus"><b>Bonus</b> Keep walking into Numbers 7: nearly the same paragraph repeats twelve times, once for each tribe’s leader. We read it on Chanukah.</p>
+  </div>
+</article>
+<article class="stop" id="stop-12" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">12</span><div class="sh-t"><h3>The Backward Nuns</h3><p class="ref">Numbers 10:35–36 · <span class="he" lang="he" dir="rtl">ויהי בנסע</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> About a third of the way into B’midbar. <span class="pct">68% around</span> <span class="pct">column 165</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl"><span class="inv" role="img" aria-label="backward nun">נ</span> ויהי בנסע הארן … <span class="inv" role="img" aria-label="backward nun">נ</span></p><figcaption class="cap">Two reversed nuns bracket the passage like parentheses.</figcaption></figure>
+    <figure class="photo"><img src="img/c165-backward-nuns.jpg" alt="Numbers 10:35–36 bracketed by two reversed nun marks." width="1400" height="496" loading="lazy" decoding="async"><figcaption>Column 165. A reversed נ before ויהי בנסע and another after אלפי ישראל. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> Two backward or upside-down <span class="he" lang="he" dir="rtl">נ</span> marks, one before and one after a two-verse paragraph that begins <span class="he" lang="he" dir="rtl">ויהי בנסע הארן</span> (<i>Vay’hi binso’a ha’aron</i>).</p>
+    <p class="say"><b>Say</b> Many of us sing these words as the Torah comes out of the ark. The Talmud says the marks set this little passage apart as a book of its own, which would make the Torah seven books instead of five <i>(Talmud Shabbat 116a)</i>.</p>
+    <p class="bonus"><b>Bonus</b> Four chapters later (Numbers 14:17), the smallest letter gets big: a large <span class="he" lang="he" dir="rtl">י</span> in <span class="he" lang="he" dir="rtl">יגדל</span> (<i>yigdal</i>, “let it be great”), as Moses asks God to forgive the people.</p>
+  </div>
+</article>
+<article class="stop" id="stop-13" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">13</span><div class="sh-t"><h3>Mah Tovu at the Top</h3><p class="ref">Numbers 24:5 · <span class="he" lang="he" dir="rtl">מה טבו</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> About two-thirds of the way through B’midbar. <span class="pct">75% around</span> <span class="pct">column 184</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><div class="cols" dir="rtl" aria-hidden="true"><span class="col"><span class="l w"><b>ו</b><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span></span><span class="col"><span class="l w"><b class="hi">מה טבו</b><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span></span><span class="col"><span class="l w"><b>ו</b><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span><span class="l"><i></i></span></span></div><figcaption class="cap">A column that opens with Mah tovu instead of ו.</figcaption></figure>
+    <figure class="photo"><img src="img/c184-mah-tovu.jpg" alt="The top of a column whose first words are Mah tovu." width="1336" height="479" loading="lazy" decoding="async"><figcaption>Column 184 opens with מה טבו. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> In many scrolls, a column begins with <span class="he" lang="he" dir="rtl">מה טבו</span> (<i>Mah tovu</i>) instead of the usual <span class="he" lang="he" dir="rtl">ו</span>.</p>
+    <p class="say"><b>Say</b> We sing these words at the start of morning services. They were first said by Balaam, a prophet hired to curse the Israelites, who blessed them instead.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-14">
+  <div class="head">
+    <header class="sh"><span class="num">14</span><div class="sh-t"><h3>The Broken Vav</h3><p class="ref">Numbers 25:11–12 · <span class="he" lang="he" dir="rtl">שלום</span></p></div></header>
+    
+    <p class="where"><b>Where</b> About one column after Mah Tovu. <span class="pct">76% around</span> <span class="pct">column 185</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl">פ<span class="sm">י</span>נחס</p><p class="spec-line " lang="he" dir="rtl">בריתי של<span class="brk">ו</span>ם</p><figcaption class="cap">A small י in Pinchas, then a cracked ו in shalom.</figcaption></figure>
+    <figure class="photo"><img src="img/pinchas-vav-zoom.jpg" alt="Close-up of the word shalom, whose vav is cut partway down, next to the solid vav of v’hayetah." width="708" height="243" loading="lazy" decoding="async"><figcaption>Close-up: the ו of שלום (right) is cut partway down. Compare the solid ו that starts the next word. <span class="credit">Photo: NYC Guru, public domain</span></figcaption></figure><figure class="photo"><img src="img/pinchas-context.jpg" alt="Numbers 25:10–13 in a Torah scroll, with Pinchas in the first line and shalom starting the last line." width="958" height="312" loading="lazy" decoding="async"><figcaption>Numbers 25 in a different scroll. פינחס is in the top line; שלום starts the bottom line. <span class="credit">Photo: NYC Guru, public domain</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A <span class="he" lang="he" dir="rtl">ו</span> with a crack across its middle, in the word <span class="he" lang="he" dir="rtl">שלום</span> (<i>shalom</i>, peace). Just above it, the <span class="he" lang="he" dir="rtl">י</span> in <span class="he" lang="he" dir="rtl">פינחס</span> (<i>Pinchas</i>) is small. The crack can be a hairline, so get close.</p>
+    <p class="say"><b>Say</b> After an act of violence, God gives Pinchas <i>b’riti shalom</i>, a covenant of peace, and the <i>vav</i> in <i>shalom</i> is broken. Many teachers read it this way: peace that comes from violence isn’t whole. Ask: what do you think?</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-15">
+  <div class="head">
+    <header class="sh"><span class="num">15</span><div class="sh-t"><h3>Five Sisters, One Big Letter</h3><p class="ref">Numbers 27:1–11 · <span class="he" lang="he" dir="rtl">משפטן</span></p></div></header>
+    
+    <p class="where"><b>Where</b> About three-quarters of the way through B’midbar, a few columns after the broken vav. <span class="pct">77% around</span> <span class="pct">column 188</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl">ויקרב משה את משפט<span class="big">ן</span></p><figcaption class="cap">A big final ן: the ending that means “their.”</figcaption></figure>
+    <figure class="photo"><img src="img/c188-mishpatan.jpg" alt="Numbers 27:5 with a large final nun at the end of mishpatan, reaching well below the line." width="1300" height="308" loading="lazy" decoding="async"><figcaption>Column 188. The big final ן of משפטן reaches down past the next line. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A big final <span class="he" lang="he" dir="rtl">ן</span> at the end of <span class="he" lang="he" dir="rtl">משפטן</span> (<i>mishpatan</i>, their case).</p>
+    <p class="say"><b>Say</b> Machlah, No’ah, Choglah, Milkah, and Tirtzah had no brothers, so their father’s land would have been lost. They stood up in front of everyone and asked for their fair share. Moses brought their case to God, and God said they were right. The big letter is the ending that means “their,” as in these five women’s.</p>
+    
+  </div>
+</article>
+</section>
+<div class="gap4" role="separator" aria-label="Four blank lines between Numbers and Deuteronomy">
+  <span class="gap4-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  <p><b>Four blank lines.</b> B'midbar ends and D'varim begins. <span class="pct">82% around</span> <span class="pct">column 200</span></p>
+  
+</div>
+<section class="book" id="dvarim" aria-labelledby="h-dvarim">
+  <h2 id="h-dvarim"><span class="he-title" lang="he" dir="rtl">דברים</span> D'varim <small>Deuteronomy</small></h2>
+  
+<article class="stop" id="stop-16">
+  <div class="head">
+    <header class="sh"><span class="num">16</span><div class="sh-t"><h3>The Ten Commandments, Take Two</h3><p class="ref">Deuteronomy 5:6–18 · <span class="he" lang="he" dir="rtl">עשרת הדברות</span></p></div></header>
+    
+    <p class="where"><b>Where</b> About a fifth of the way into D’varim. <span class="pct">85% around</span> <span class="pct">columns 208–209</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line small" lang="he" dir="rtl">לא תרצח<span class="gp" aria-hidden="true"></span><span class="hi">ו</span>לא תנאף<span class="gp" aria-hidden="true"></span><span class="hi">ו</span>לא תגנב</p><div class="tiles"><span class="tile"><b lang="he" dir="rtl">זכור</b><small>Exodus 20:8</small></span><span class="op">·</span><span class="tile hi"><b lang="he" dir="rtl">שמור</b><small>Deuteronomy 5:12</small></span></div><figcaption class="cap">Same gapped line, now joined with ו (and). Zachor becomes shamor.</figcaption></figure>
+    <figure class="photo"><img src="img/c209-ten-commandments-2.jpg" alt="The Deuteronomy Ten Commandments with gaps, now joined by v’lo." width="1400" height="405" loading="lazy" decoding="async"><figcaption>Column 209. The same gaps, now with ולא. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> The same gapped line of short commandments, now joined by <span class="he" lang="he" dir="rtl">ו</span> (and): <span class="he" lang="he" dir="rtl">ולא תנאף</span>, <span class="he" lang="he" dir="rtl">ולא תגנב</span>.</p>
+    <p class="say"><b>Say</b> Moses retells the Ten Commandments with a few changes. In Exodus we <i>zachor</i> (remember) Shabbat; here we <i>shamor</i> (keep) it. That’s why we sing <i>shamor v’zachor b’dibur echad</i> in L’cha Dodi.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-17" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">17</span><div class="sh-t"><h3>The Sh’ma</h3><p class="ref">Deuteronomy 6:4–9 · <span class="he" lang="he" dir="rtl">שמע</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> A column or two after the Ten Commandments. <span class="pct">86% around</span> <span class="pct">column 210</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line " lang="he" dir="rtl">שמ<span class="big">ע</span> ישראל … אח<span class="big">ד</span></p><figcaption class="cap">Big ע, big ד. Together: עד, witness.</figcaption></figure>
+    <figure class="photo"><img src="img/c210-shma.jpg" alt="The Sh’ma line with an enlarged ayin and an enlarged, stretched dalet." width="1400" height="252" loading="lazy" decoding="async"><figcaption>Column 210. The big ע of שמע (right) and the big ד of אחד (left). <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A big <span class="he" lang="he" dir="rtl">ע</span> at the end of <span class="he" lang="he" dir="rtl">שמע</span> (<i>Sh’ma</i>) and a big <span class="he" lang="he" dir="rtl">ד</span> at the end of <span class="he" lang="he" dir="rtl">אחד</span> (<i>echad</i>). The V’ahavta follows right after.</p>
+    <p class="say"><b>Say</b> Put the two big letters together and they spell <span class="he" lang="he" dir="rtl">עד</span> (<i>eid</i>), witness. Every time we say the Sh’ma, we are witnesses <i>(Baal HaTurim on Deuteronomy 6:4)</i>.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-18">
+  <div class="head">
+    <header class="sh"><span class="num">18</span><div class="sh-t"><h3>Secret Dots</h3><p class="ref">Deuteronomy 29:27–28 · <span class="he" lang="he" dir="rtl">לנו ולבנינו</span></p></div></header>
+    
+    <p class="where"><b>Where</b> Six or seven columns before the end. <span class="pct">97% around</span> <span class="pct">column 239</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><p class="spec-line small" lang="he" dir="rtl">ויש<span class="big">ל</span>כם</p><p class="spec-line " lang="he" dir="rtl"><span class="dt">ל</span><span class="dt">נ</span><span class="dt">ו</span> <span class="dt">ו</span><span class="dt">ל</span><span class="dt">ב</span><span class="dt">נ</span><span class="dt">י</span><span class="dt">נ</span><span class="dt">ו</span> <span class="dt">ע</span>ד עולם</p><figcaption class="cap">A big ל, then dots over “for us and our children.”</figcaption></figure>
+    <figure class="photo"><img src="img/c239-dots.jpg" alt="Deuteronomy 29:27–28 with a large lamed and dots over lanu ul’vaneinu." width="1300" height="320" loading="lazy" decoding="async"><figcaption>Column 239. The big ל in וישלכם (top line), then dots over לנו ולבנינו (bottom line). <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A big <span class="he" lang="he" dir="rtl">ל</span> in <span class="he" lang="he" dir="rtl">וישלכם</span> (<i>vayashlicheim</i>). In the next verse, dots over <span class="he" lang="he" dir="rtl">לנו ולבנינו</span> (<i>lanu ul’vaneinu</i>, for us and our children) and over the <span class="he" lang="he" dir="rtl">ע</span> of <span class="he" lang="he" dir="rtl">עד</span> (<i>ad</i>, forever).</p>
+    <p class="say"><b>Say</b> The verse says the hidden things belong to God, and the things we can see belong to us and our children forever. It’s the last of the Torah’s ten dotted places.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-19" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">19</span><div class="sh-t"><h3>Ha’azinu</h3><p class="ref">Deuteronomy 32:1–43 · <span class="he" lang="he" dir="rtl">האזינו</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span><span class="chip far">Visible across the circle</span></div>
+    <p class="where"><b>Where</b> The last few columns. In many scrolls, the column where the song starts begins with <span class="he" lang="he" dir="rtl">ואעידה</span> (<i>v’a’idah</i>). <span class="pct">99% around</span> <span class="pct">columns 242–243</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><div class="brick" dir="rtl" aria-hidden="true"><span class="r w"><b>ואעידה</b><i style="flex:1"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r t2"><b>האזינו השמים ואדברה</b><em></em><b>ותשמע הארץ אמרי פי</b></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span><span class="r"><i class="" style="flex-basis:44%"></i><i class="g" style="flex-basis:12%"></i><i class="" style="flex-basis:44%"></i></span></div><figcaption class="cap">Moses’s last song, set in two neat columns.</figcaption></figure>
+    <figure class="photo"><img src="img/c242-haazinu.jpg" alt="A column that opens with v’a’idah, then the song Ha’azinu in two columns." width="1100" height="2004" loading="lazy" decoding="async"><figcaption>Column 242. It opens with ואעידה; the song below is set in two columns. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> A song written in two neat columns, like a poem. In verse 6, a big <span class="he" lang="he" dir="rtl">ה</span> stands alone as its own word.</p>
+    <p class="say"><b>Say</b> This is Moses’s last song, calling heaven and earth to listen: <i>Ha’azinu hashamayim</i>. It’s easy to spot from across the circle.</p>
+    
+  </div>
+</article>
+<article class="stop" id="stop-20" data-must>
+  <div class="head">
+    <header class="sh"><span class="num">20</span><div class="sh-t"><h3>The Last Line</h3><p class="ref">Deuteronomy 33–34 · <span class="he" lang="he" dir="rtl">לעיני כל ישראל</span></p></div></header>
+    <div class="chips"><span class="chip must">Must-see</span></div>
+    <p class="where"><b>Where</b> The very end, right beside the rollers where you started. <span class="pct">100% around</span> <span class="pct">column 245</span></p>
+  </div>
+  <div class="media">
+    <figure class="spec"><div class="brick" dir="rtl" aria-hidden="true"><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r"><i class="" style="flex-basis:100%"></i></span><span class="r t1"><b>משה לעיני כל ישראל</b></span></div><div class="tiles"><span class="tile"><b lang="he">ל</b><small>last letter</small></span><span class="op">+</span><span class="tile"><b lang="he">ב</b><small>first letter</small></span><span class="op">=</span><span class="tile hi"><b lang="he" dir="rtl">לב</b><small>lev, heart</small></span></div><figcaption class="cap">The Torah ends partway across its last line.</figcaption></figure>
+    <figure class="photo"><img src="img/c245-last-line.jpg" alt="The bottom of the last column: the final line stops partway across." width="1400" height="450" loading="lazy" decoding="async"><figcaption>Column 245, bottom. The last line ends partway across. This photo was taken before the scroll was finished: ישראל still lacks its final ל, a letter often saved for the completion ceremony. <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure>
+  </div>
+  <div class="body">
+    <p class="look"><b>Look for</b> Scribes plan the whole scroll so the Torah ends in the middle of the last line of the last column <i>(Mishneh Torah, Laws of Tefillin, Mezuzah, and the Torah Scroll 7:7)</i>. The final words, <span class="he" lang="he" dir="rtl">לעיני כל ישראל</span> (<i>l’einei kol Yisrael</i>, before the eyes of all Israel), end partway across, and the rest of the line stays blank.</p>
+    <p class="say"><b>Say</b> The last letter of the Torah is <span class="he" lang="he" dir="rtl">ל</span>. Step over the rollers to the first letter, <span class="he" lang="he" dir="rtl">ב</span>. Together they spell <span class="he" lang="he" dir="rtl">לב</span> (<i>lev</i>), heart. We finish, and we start again right away.</p>
+    <p class="bonus"><b>Bonus</b> A column or two back, Deuteronomy 33:4: <span class="he" lang="he" dir="rtl">תורה צוה לנו משה</span> (<i>Torah tzivah lanu Moshe</i>), the verse the Talmud says children should learn first <i>(Talmud Sukkah 42a)</i>.</p>
+  </div>
+</article>
+</section>
+
+<section class="anywhere" id="anywhere" aria-labelledby="h-any">
+  <h2 id="h-any">Anywhere you stop</h2>
+  <p class="lede">Things to point out on any column while you run between stops.</p>
+  <div class="any-grid"><ul class="any"><li><b>Crowns</b> Seven letters, <span class="he" lang="he" dir="rtl">ש ע ט נ ז ג צ</span>, wear three tiny crowns called <i>tagin</i>. The Talmud imagines Moses watching God tie them on, then visiting Rabbi Akiva’s classroom far in the future and not following the lesson <i>(Talmud Menachot 29b)</i>.</li><li><b>Column tops</b> In many scrolls, almost every column begins with <span class="he" lang="he" dir="rtl">ו</span>. The style is called <i>Vavei HaAmudim</i>, “hooks of the pillars” (Exodus 27:10). Six columns open with fixed words whose first letters spell <span class="he" lang="he" dir="rtl">ביה שמו</span> (Psalm 68:5): B’reishit, Y’hudah, Haba’im, Sh’mor, Mah Tovu, and V’a’idah. All six are on this tour.</li><li><b>No vowels</b> No vowels, no trope marks, no verse numbers, no punctuation. Whoever reads from the scroll prepares all of that ahead of time.</li><li><b>Two kinds of breaks</b> A <i>p’tuchah</i> (open break) leaves the rest of a line blank. A <i>s’tumah</i> (closed break) leaves a gap in the middle of a line. They are the Torah’s paragraphs.</li><li><b>Seams</b> Sheets of parchment are sewn together with sinew (<i>gid</i>). Find a seam and count how many columns fit on one sheet.</li><li><b>Forty-two lines</b> Count the lines in any column. Many scrolls have forty-two in every one.</li><li><b>Stretched letters</b> To end each line exactly at the margin, the <i>sofer</i> (scribe) stretches a few letters extra wide. Look for a long, flat letter at the end of a line.</li><li><b>God’s name</b> Before writing God’s name, the <i>sofer</i> says it is being written for its holiness. A mistake in the Name can’t be erased.</li></ul><figure class="photo"><img src="img/c038-crowns.jpg" alt="Close-up of letters with small crowns (tagin) on top." width="1200" height="171" loading="lazy" decoding="async"><figcaption>Crowns on ש, ע, and צ (column 38). <span class="credit">Photo: Elihu Shannon, CC BY-SA 3.0</span></figcaption></figure></div>
+</section>
+<section class="credits" aria-labelledby="h-credits"><h2 id="h-credits">Photo credits</h2><p>All photos except those at stop 14 show one scroll: a Sefer Torah written by the scribe Elihu Shannon of Kibbutz Sa’ad, Israel, in 2011. Source: <a href="https://commons.wikimedia.org/wiki/File:Sefer-Torah-Elihu-Shannon-2.djvu">Wikimedia Commons</a>. License: <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>. The photos here are cropped and converted to grayscale, and they are shared under the same license. The scroll was photographed before the scribe’s final corrections and before its last letters were written.</p><p>The stop 14 photos show a different scroll, photographed by NYC Guru and released into the public domain (<a href="https://commons.wikimedia.org/wiki/File:ParashaPinchas.png">Wikimedia Commons</a>).</p></section>
+<p class="foot">Letter positions computed from <i>Miqra according to the Masorah</i> (via Sefaria). Percentages are approximate.</p>
+</div>
+<dialog id="lb" aria-label="Enlarged photo"><img alt=""><p></p><button type="button">Close</button></dialog>
+<script>(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('mustToggle');
+  function setMust(on) {
+    root.classList.toggle('only-must', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    try { localStorage.setItem('scrollTour.mustOnly', on ? '1' : '0'); } catch (e) {}
+  }
+  var saved = false;
+  try { saved = localStorage.getItem('scrollTour.mustOnly') === '1'; } catch (e) {}
+  setMust(saved);
+  btn.addEventListener('click', function () { setMust(!root.classList.contains('only-must')); });
+
+  // Tapping a pin for a hidden stop turns the filter off so the jump lands.
+  document.querySelectorAll('.ring a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var t = document.querySelector(a.getAttribute('href'));
+      if (t && !t.hasAttribute('data-must')) setMust(false);
+    });
+  });
+
+  var dlg = document.getElementById('lb');
+  var big = dlg.querySelector('img');
+  var cap = dlg.querySelector('p');
+  function close() { try { dlg.close(); } catch (e) { dlg.removeAttribute('open'); } }
+  document.querySelectorAll('.photo img').forEach(function (img) {
+    img.addEventListener('click', function () {
+      big.src = img.currentSrc || img.src;
+      big.alt = img.alt;
+      cap.textContent = img.alt;
+      try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); }
+    });
+  });
+  dlg.addEventListener('click', close);
+})();
+</script>
+</body>
+</html>
