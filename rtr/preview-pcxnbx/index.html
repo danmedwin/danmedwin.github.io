@@ -197,7 +197,15 @@ h1 em { font-style: italic; color: var(--gold); }
 .paper .eyebrow { color: var(--gold-ink); }
 
 .section-inner { max-width: 1100px; margin: 0 auto; padding: var(--space-2xl) var(--space-xl); }
-.soon .section-inner { padding-top: 0; }
+
+/* Tools follow learning on the same paper, so a rule marks where one ends. */
+.tools .section-inner { padding-top: 0; }
+.tools .section-inner::before {
+  content: '';
+  display: block;
+  margin-bottom: var(--space-2xl);
+  border-top: 1px solid var(--line-ink);
+}
 
 h2 {
   font-family: var(--serif);
@@ -300,16 +308,16 @@ h2 {
 .go svg { width: 14px; height: 14px; transition: transform 0.2s ease; }
 .card:hover .go svg { transform: translateX(4px); }
 
-/* ---------------------------------------------------------- coming soon --- */
-
-.soon-panel {
-  padding: var(--space-xl);
-  border: 1.5px dashed rgba(15, 27, 45, 0.22);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.5);
+/* A featured tool: the picture beside the words while there is room. The grid row takes
+   the taller of the two, and the picture fills it. */
+.card.wide { display: grid; grid-template-columns: minmax(0, 56fr) minmax(0, 44fr); }
+.card.wide .shot {
+  height: 100%;
+  aspect-ratio: auto;
+  object-position: top left;
+  border-bottom: 0;
+  border-right: 1px solid var(--line-ink);
 }
-.soon-panel h2 { font-size: clamp(1.5rem, 2.6vw, 1.9rem); margin-bottom: var(--space-sm); }
-.soon-panel p:last-child { margin: 0; max-width: 40em; color: var(--ink-soft); font-size: 1.05rem; line-height: 1.7; }
 
 /* ------------------------------------------------------------- footer ---- */
 
@@ -394,6 +402,8 @@ h2 {
   .hero-inner { grid-template-columns: 1fr; gap: var(--space-xl); }
   .source { max-width: none; padding-top: var(--space-lg); border-top: 1px solid var(--line); }
   .cards { grid-template-columns: minmax(0, 600px); }
+  .card.wide { display: flex; max-width: 600px; }
+  .card.wide .shot { height: auto; aspect-ratio: 16 / 9; border-right: 0; border-bottom: 1px solid var(--line-ink); }
 }
 
 @media (max-width: 760px) {
@@ -401,7 +411,7 @@ h2 {
   .hero-inner { padding: var(--space-xl) var(--space-md) var(--space-2xl); }
   .section-inner { padding: var(--space-xl) var(--space-md); }
   .card-body { padding: var(--space-md) var(--space-md) var(--space-lg); }
-  .soon-panel { padding: var(--space-lg); }
+  .tools .section-inner::before { margin-bottom: var(--space-xl); }
   .contact { grid-template-columns: 1fr; gap: var(--space-lg); }
   .portrait { width: 144px; }
 }
@@ -489,13 +499,21 @@ h2 {
   </div>
 </section>
 
-<section class="paper soon" aria-labelledby="tools">
+<section class="paper tools" aria-labelledby="tools">
   <div class="section-inner">
-    <div class="soon-panel">
-      <p class="eyebrow"><span lang="he" dir="rtl">בְּקָרוֹב</span> Coming soon</p>
-      <h2 id="tools">Educational tools</h2>
-      <p>I’m building educational tools to go with this learning. Each one will appear here as it’s ready.</p>
-    </div>
+    <p class="eyebrow"><span lang="he" dir="rtl">כֵּלִים</span> Educational tools</p>
+    <h2 id="tools">Climb up to learn, come back down to teach</h2>
+    <p class="intro">Rambam reads the angels on Jacob’s ladder as prophets who climb up to learn and come back down to teach (<i>Guide for the Perplexed</i> 1:15). I built Voices of the Ladder to follow that pattern: everyone climbs in their own group, then comes back down to teach their family.</p>
+
+    <article class="card wide">
+      <img class="shot" src="/rtr/img/voices.webp" width="1200" height="675" alt="The Voices of the Ladder page: its title in English and Hebrew, and four versions, for grades K–2, 3–4, 5–7, and parents, each with a row of character portraits.">
+      <div class="card-body">
+        <p class="kicker">Grades K–7 and parents</p>
+        <h3><a href="https://techrabbi.org/jacobs-ladder/voices/">Voices of the Ladder</a> <span lang="he" dir="rtl">קוֹלוֹת הַסֻּלָּם</span></h3>
+        <p class="desc">A group chooses one of ten characters, from Jacob and the stone that was his pillow to Rashi and Rambam. Each tells their side of the night at Bethel, answers the group’s questions, and asks some of their own. Any line drawn from a text opens a card with the Hebrew and the Revised JPS. Every visit ends with a rung: one line to carry back to your family.</p>
+        <span class="go" aria-hidden="true">Meet the voices <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
   </div>
 </section>
 
