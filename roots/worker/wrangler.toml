@@ -1,0 +1,16 @@
+name = "shoresh-explorer"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://techrabbi.org,https://www.techrabbi.org,https://danmedwin.github.io"
+MODEL = "claude-sonnet-5-5"
+
+# 20 fresh lookups per visitor per minute. Cached answers do not count.
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "1701"
+simple = { limit = 20, period = 60 }
+
+# The API key is a secret, never stored here:
+#   npx wrangler secret put ANTHROPIC_API_KEY

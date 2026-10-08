@@ -92,6 +92,16 @@
       "note": "Needs a camera and a Claude API key you supply."
     },
     {
+      "id": "hebrew-roots",
+      "name": "Hebrew Roots Explorer",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/roots/",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "Type a Hebrew root to see the words that grow from it, and tap any word's gematria to find other words with the same value.",
+      "created": "2026-06-01",
+      "updated": "2026-10-08"
+    },
+    {
       "id": "glyphrush",
       "name": "Glyph Rush",
       "cat": "games",

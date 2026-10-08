@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hebrew Roots Explorer | Tech Rabbi</title>
+<meta name="description" content="Type a Hebrew root to see the words that grow from it, where they show up in prayer and text, and which other words share their gematria.">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+<link rel="canonical" href="https://techrabbi.org/roots/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hebrew Roots Explorer">
+<meta property="og:description" content="The words that grow from a Hebrew root, and the numbers that connect them.">
+<meta property="og:url" content="https://techrabbi.org/roots/">
+<meta name="theme-color" content="#0E1A2B">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --night:#0E1A2B;     /* page */
+  --deep:#15253A;      /* raised surfaces */
+  --lift:#1E3350;      /* hover, input */
+  --gold:#C9A84C;      /* Hebrew, values, primary action */
+  --gold-soft:#E6D193; /* gold text on dark at small sizes */
+  --parchment:#EFE7D3; /* body text */
+  --muted:rgba(239,231,211,.68);
+  --faint:rgba(239,231,211,.45);
+  --rule:rgba(201,168,76,.18);
+  --rule-strong:rgba(201,168,76,.4);
+  --error:#F0A090;
+  --heb:"Frank Ruhl Libre","Noto Serif Hebrew","David",serif;
+  --ui:"Alegreya Sans",system-ui,sans-serif;
+  --measure:40rem;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100vh;background:var(--night);color:var(--parchment);
+  font:1.0625rem/1.55 var(--ui);
+  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(201,168,76,.12),transparent 70%);
+  background-repeat:no-repeat;
+}
+:lang(he),.he{font-family:var(--heb)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold-soft);outline-offset:3px;border-radius:4px}
+a{color:var(--gold-soft)}
+
+.wrap{max-width:var(--measure);margin:0 auto;padding:0 16px}
+
+/* Hero */
+header.hero{padding:56px 0 8px;text-align:center}
+.hero .hero-word{
+  font:900 clamp(4.5rem,18vw,7.5rem)/1 var(--heb);color:var(--gold);margin:0;
+  letter-spacing:.02em;
+}
+.hero h1{font:500 1.5rem/1.2 var(--heb);margin:.6rem 0 .5rem;color:var(--parchment)}
+.hero p{margin:0 auto;max-width:31rem;color:var(--muted)}
+
+/* Search */
+form.search{margin:32px 0 0;display:flex;gap:10px}
+.search input{
+  flex:1;min-width:0;padding:12px 16px;border-radius:10px;
+  font:500 1.75rem/1.2 var(--heb);color:var(--parchment);
+  background:var(--lift);border:1.5px solid var(--rule-strong);
+}
+.search input::placeholder{color:var(--faint);font-size:1.25rem}
+.search input:focus{outline:none;border-color:var(--gold)}
+.btn-primary{
+  padding:0 22px;border:0;border-radius:10px;cursor:pointer;
+  background:var(--gold);color:var(--night);font-weight:700;font-size:1.0625rem;
+}
+.btn-primary:hover{background:var(--gold-soft)}
+.btn-primary:disabled{opacity:.55;cursor:wait}
+.samples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0 0;padding:0;list-style:none}
+.samples button{
+  font:500 1.25rem/1 var(--heb);padding:6px 14px 8px;border-radius:999px;cursor:pointer;
+  background:transparent;border:1px solid var(--rule-strong);color:var(--gold-soft);
+}
+.samples button:hover{background:var(--deep)}
+.samples-label{width:100%;text-align:center;color:var(--faint);font-size:.9375rem;margin:20px 0 0}
+
+/* Status */
+.status{text-align:center;color:var(--muted);padding:40px 0 8px;font-style:italic}
+.status.error{color:var(--error);font-style:normal}
+.spinner{width:28px;height:28px;margin:0 auto 12px;border-radius:50%;border:3px solid var(--rule);border-top-color:var(--gold);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Tally: how a value is built */
+.tally{display:flex;flex-direction:row-reverse;justify-content:flex-start;gap:4px;align-items:flex-end;flex-wrap:wrap}
+.tally .t{display:flex;flex-direction:column;align-items:center;min-width:2.1rem;padding:4px 4px 3px;border-radius:6px;background:rgba(201,168,76,.08)}
+.tally .t b{font:700 1.375rem/1.1 var(--heb);color:var(--gold)}
+.tally .t span{font-size:.8125rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.tally .eq{align-self:center;padding:0 6px;color:var(--faint);font-size:1.125rem}
+.tally .sum{align-self:center;font:700 1.375rem/1 var(--heb);color:var(--gold-soft);font-variant-numeric:tabular-nums}
+
+/* Root heading */
+.root-head{margin:48px 0 8px;padding-bottom:16px;border-bottom:1px solid var(--rule-strong);display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.root-head h2{margin:0;font:400 1.125rem/1.3 var(--ui);color:var(--muted)}
+.root-head h2 .he{display:block;text-align:left;font:700 2.75rem/1.1 var(--heb);color:var(--gold);letter-spacing:.12em;margin-top:2px}
+
+/* Lexicon entries */
+.lexicon{list-style:none;margin:0;padding:0}
+.entry{border-bottom:1px solid var(--rule)}
+.entry-row{display:flex;align-items:center;gap:12px}
+.entry-toggle{
+  flex:1;min-width:0;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;
+  text-align:left;background:none;border:0;padding:14px 0;cursor:pointer;
+}
+.entry-word{grid-column:1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.entry-word .he{font:700 1.875rem/1.15 var(--heb);color:var(--gold)}
+.entry-word .tr{font-style:italic;color:var(--muted)}
+.entry-meaning{grid-column:1;color:var(--parchment)}
+.chev{grid-column:2;grid-row:1/span 2;width:10px;height:10px;border-right:2px solid var(--gold);border-bottom:2px solid var(--gold);transform:rotate(45deg);transition:transform .2s;margin-top:-4px}
+.entry-toggle[aria-expanded="true"] .chev{transform:rotate(225deg);margin-top:4px}
+.value{
+  flex:none;min-width:3.5rem;padding:6px 12px;border-radius:999px;cursor:pointer;
+  background:transparent;border:1px solid var(--rule-strong);color:var(--gold-soft);
+  font:700 1.0625rem/1 var(--ui);font-variant-numeric:tabular-nums;
+}
+.value:hover,.value[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--night)}
+.entry-body{padding:0 0 18px}
+.tags{display:flex;gap:6px;margin:0 0 12px;flex-wrap:wrap}
+.tag{font-size:.875rem;padding:1px 9px;border-radius:5px;background:var(--deep);color:var(--muted)}
+.tag.binyan{color:var(--gold-soft)}
+.context{margin:12px 0 0;padding:2px 0 2px 14px;border-left:3px solid var(--gold);color:var(--parchment);max-width:36rem}
+.explore{
+  margin-top:14px;padding:7px 14px;border-radius:8px;cursor:pointer;
+  background:var(--deep);border:1px solid var(--rule-strong);color:var(--gold-soft);
+}
+.explore:hover{background:var(--lift)}
+.explore .he{font-weight:700;font-size:1.125rem}
+
+/* Dialog: gematria companions */
+dialog{
+  width:min(40rem,calc(100vw - 32px));max-height:min(86vh,52rem);padding:0;
+  border:1px solid var(--rule-strong);border-radius:16px;background:var(--deep);color:var(--parchment);
+  box-shadow:0 30px 80px rgba(0,0,0,.55);
+}
+dialog::backdrop{background:rgba(4,9,18,.72)}
+dialog[open]{animation:rise .22s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.dlg{display:flex;flex-direction:column;max-height:inherit}
+.dlg-head{position:relative;padding:22px 20px 18px;border-bottom:1px solid var(--rule-strong)}
+.dlg-head h2{margin:0 48px 4px 0;font:700 1.75rem/1.15 var(--heb);color:var(--gold)}
+.dlg-head p{margin:0 0 12px;color:var(--muted)}
+.dlg-head p .he{color:var(--parchment);font-size:1.25rem}
+.dlg-head .tally{justify-content:flex-end}
+.close{position:absolute;top:14px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:1.5rem;line-height:1}
+.close:hover{background:var(--lift);color:var(--parchment)}
+.dlg-body{overflow-y:auto;padding:4px 20px 20px;overscroll-behavior:contain}
+.dlg-body .entry-word .he{font-size:1.625rem}
+.more{display:block;margin:20px auto 0;padding:10px 20px;border-radius:10px;cursor:pointer;background:transparent;border:1px solid var(--rule-strong);color:var(--gold-soft)}
+.more:hover{background:var(--lift)}
+.more:disabled{opacity:.5;cursor:wait}
+.note{color:var(--faint);font-size:.9375rem;text-align:center;margin:16px 0 0}
+
+@media (max-width:560px){
+  header.hero{padding-top:40px}
+  dialog{width:100vw;max-width:100vw;max-height:88vh;margin:auto 0 0;border-radius:18px 18px 0 0;border-bottom:0}
+  .search input{font-size:1.5rem}
+}
+
+footer{max-width:var(--measure);margin:72px auto 0;padding:24px 16px 40px;border-top:1px solid var(--rule);color:var(--faint);font-size:.9375rem;text-align:center}
+footer p{margin:0 0 6px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="hero-word" lang="he" dir="rtl" aria-hidden="true">שֹׁרֶשׁ</p>
+    <h1>Hebrew Roots Explorer</h1>
+    <p>Type a root to see the words that grow from it. Tap any number to find other words with the same gematria.</p>
+  </header>
+
+  <form class="search" id="search" role="search">
+    <input id="root" name="root" lang="he" dir="rtl" autocomplete="off" autocapitalize="off" spellcheck="false"
+           placeholder="הקלידו שורש" aria-label="Hebrew root, two to four letters">
+    <button class="btn-primary" id="go" type="submit">Explore</button>
+  </form>
+  <p class="samples-label" id="samples-label">Or start with one of these</p>
+  <ul class="samples" aria-labelledby="samples-label" id="samples"></ul>
+
+  <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+
+  <section id="results" hidden>
+    <div class="root-head">
+      <h2 id="root-title"></h2>
+      <div class="tally" id="root-tally" aria-hidden="true"></div>
+    </div>
+    <ul class="lexicon" id="words"></ul>
+  </section>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg">
+    <div class="dlg-head">
+      <h2 id="dlg-title"></h2>
+      <p id="dlg-sub"></p>
+      <div class="tally" id="dlg-tally" aria-hidden="true"></div>
+      <button class="close" id="dlg-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="dlg-body">
+      <div id="dlg-status" class="status" role="status" aria-live="polite" hidden></div>
+      <ul class="lexicon" id="companions"></ul>
+      <button class="more" id="more" type="button" hidden></button>
+    </div>
+  </div>
+</dialog>
+
+<footer>
+  <p>Gematria here uses the standard count (mispar hechrachi), with final letters worth the same as their regular forms.</p>
+  <p>Word lists and notes are written by Claude. Check them against a dictionary or a teacher before you build a lesson on them.</p>
+  <p><a href="/apps/">More tools from Tech Rabbi</a></p>
+</footer>
+
+<script>
+/* ── Settings ── */
+// The Cloudflare Worker that holds the API key. See roots/worker/README.md.
+const API_URL = 'https://shoresh-explorer.REPLACE-WITH-YOUR-SUBDOMAIN.workers.dev';
+
+const SAMPLES = ['שלם','קדש','ברך','אור','חיה','למד','כתב','שמר','דבר','עבד'];
+
+/* ── Gematria ── */
+const G = {'א':1,'ב':2,'ג':3,'ד':4,'ה':5,'ו':6,'ז':7,'ח':8,'ט':9,'י':10,'כ':20,'ך':20,'ל':30,'מ':40,'ם':40,
+  'נ':50,'ן':50,'ס':60,'ע':70,'פ':80,'ף':80,'צ':90,'ץ':90,'ק':100,'ר':200,'ש':300,'ת':400};
+const strip = s => String(s || '').replace(/[֑-ׇ]/g, '');
+const letters = s => [...strip(s)].filter(c => G[c]);
+const gematria = s => letters(s).reduce((n, c) => n + G[c], 0);
+
+/* ── DOM helper ── */
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid);
+  return el;
+}
+const heb = (text, extra) => h('span', { class: 'he' + (extra ? ' ' + extra : ''), lang: 'he', dir: 'rtl' }, text);
+
+function tally(word) {
+  const ls = letters(word);
+  const frag = document.createDocumentFragment();
+  if (!ls.length) return frag;
+  ls.forEach(c => frag.append(h('span', { class: 't' }, h('b', { lang: 'he' }, c), h('span', null, String(G[c])))));
+  frag.append(h('span', { class: 'eq' }, '='), h('span', { class: 'sum' }, String(gematria(word))));
+  return frag;
+}
+
+/* ── API ── */
+async function api(body) {
+  let res;
+  try {
+    res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch {
+    throw new Error('Could not reach the word service. Check your connection and try again.');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `The word service answered with an error (${res.status}). Try again.`);
+  return Array.isArray(data.words) ? data.words : [];
+}
+
+/* ── Elements ── */
+const $ = id => document.getElementById(id);
+const form = $('search'), input = $('root'), go = $('go');
+const statusEl = $('status'), results = $('results'), wordsEl = $('words');
+const dlg = $('dlg'), dlgStatus = $('dlg-status'), compEl = $('companions'), moreBtn = $('more');
+
+function setStatus(el, text, { error = false, spin = false } = {}) {
+  el.hidden = !text;
+  el.className = 'status' + (error ? ' error' : '');
+  el.replaceChildren(...(spin ? [h('div', { class: 'spinner', 'aria-hidden': 'true' })] : []), text || '');
+}
+
+/* ── Entries ── */
+function entry(w, opts) {
+  const id = 'e' + Math.random().toString(36).slice(2, 9);
+  const body = h('div', { class: 'entry-body', id, hidden: true },
+    (w.partOfSpeech || w.binyan) && h('div', { class: 'tags' },
+      w.partOfSpeech && h('span', { class: 'tag' }, w.partOfSpeech),
+      w.binyan && h('span', { class: 'tag binyan' }, w.binyan)),
+    h('div', { class: 'tally', 'aria-hidden': 'true' }, tally(w.hebrew)),
+    w.context && h('p', { class: 'context' }, w.context),
+    opts.explore && w.shoresh && h('button', { class: 'explore', type: 'button', onclick: () => { dlg.close(); explore(w.shoresh); } },
+      'Explore the root ', heb(w.shoresh)));
+
+  const toggle = h('button', { class: 'entry-toggle', type: 'button', 'aria-expanded': 'false', 'aria-controls': id,
+      onclick: () => { const open = toggle.getAttribute('aria-expanded') !== 'true'; toggle.setAttribute('aria-expanded', open); body.hidden = !open; } },
+    h('span', { class: 'entry-word' }, heb(w.hebrew), w.transliteration && h('span', { class: 'tr' }, w.transliteration)),
+    h('span', { class: 'entry-meaning' }, w.meaning),
+    h('span', { class: 'chev', 'aria-hidden': 'true' }));
+
+  const value = gematria(w.hebrew);
+  const row = h('div', { class: 'entry-row' }, toggle,
+    opts.value && h('button', { class: 'value', type: 'button', 'aria-pressed': 'false',
+      'aria-label': `${value}: find other words worth ${value}`, 'data-value': value,
+      onclick: e => openCompanions(value, w.hebrew, e.currentTarget) }, String(value)));
+  return h('li', { class: 'entry' }, row, body);
+}
+
+/* ── Explore a root ── */
+let busy = false;
+async function explore(raw) {
+  const root = letters(raw).join('');
+  input.value = root;
+  if (root.length < 2 || root.length > 4) {
+    setStatus(statusEl, 'Type a root of two to four Hebrew letters, like שלם or ברך.', { error: true });
+    return;
+  }
+  if (busy) return;
+  busy = true; go.disabled = true;
+  history.replaceState(null, '', '#' + encodeURIComponent(root));
+  results.hidden = true;
+  setStatus(statusEl, 'Gathering the words that grow from ' + root + '…', { spin: true });
+  try {
+    const words = await api({ mode: 'root', root });
+    if (!words.length) { setStatus(statusEl, `No words came back for ${root}. Check the spelling, or try a different root.`, { error: true }); return; }
+    $('root-title').replaceChildren('Words from the root', heb(root));
+    $('root-tally').replaceChildren(tally(root));
+    wordsEl.replaceChildren(...words.map(w => entry(w, { value: true })));
+    setStatus(statusEl, '');
+    results.hidden = false;
+    results.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  } catch (err) {
+    setStatus(statusEl, err.message, { error: true });
+  } finally {
+    busy = false; go.disabled = false;
+  }
+}
+
+/* ── Gematria companions ── */
+let current = null; // { value, source, words, chip }
+async function openCompanions(value, source, chip) {
+  document.querySelectorAll('.value[aria-pressed="true"]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  chip.setAttribute('aria-pressed', 'true');
+  current = { value, source, words: [], chip };
+  $('dlg-title').textContent = `Words worth ${value}`;
+  $('dlg-sub').replaceChildren('Same value as ', heb(source));
+  $('dlg-tally').replaceChildren(tally(source));
+  compEl.replaceChildren();
+  moreBtn.hidden = true;
+  dlg.showModal();
+  setStatus(dlgStatus, 'Finding words with the same value…', { spin: true });
+  try {
+    const words = await api({ mode: 'gematria', value, source: strip(source) });
+    if (current?.value !== value) return;
+    addCompanions(words);
+  } catch (err) {
+    setStatus(dlgStatus, err.message, { error: true });
+  }
+}
+
+function addCompanions(words) {
+  current.words.push(...words);
+  compEl.append(...words.map(w => entry(w, { explore: true })));
+  if (!current.words.length) {
+    setStatus(dlgStatus, `No words with a value of exactly ${current.value} came back this time. Try finding more.`);
+  } else {
+    setStatus(dlgStatus, '');
+  }
+  moreBtn.textContent = `Find more words worth ${current.value}`;
+  moreBtn.hidden = false; moreBtn.disabled = false;
+}
+
+moreBtn.addEventListener('click', async () => {
+  if (!current) return;
+  const { value } = current;
+  moreBtn.disabled = true;
+  moreBtn.textContent = 'Finding more…';
+  try {
+    const words = await api({ mode: 'more', value, source: strip(current.source), exclude: current.words.map(w => strip(w.hebrew)) });
+    if (current?.value !== value) return;
+    if (!words.length) { moreBtn.textContent = 'No new words this time. Try again'; moreBtn.disabled = false; return; }
+    addCompanions(words);
+  } catch (err) {
+    setStatus(dlgStatus, err.message, { error: true });
+    moreBtn.textContent = `Find more words worth ${value}`; moreBtn.disabled = false;
+  }
+});
+
+$('dlg-close').addEventListener('click', () => dlg.close());
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); }); // tap the backdrop
+dlg.addEventListener('close', () => {
+  const chip = current?.chip;
+  current = null;
+  document.querySelectorAll('.value[aria-pressed="true"]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  if (chip && chip.isConnected) chip.focus();
+});
+
+/* ── Start ── */
+form.addEventListener('submit', e => { e.preventDefault(); explore(input.value); });
+$('samples').append(...SAMPLES.map(r => h('li', null, h('button', { type: 'button', lang: 'he', onclick: () => explore(r) }, r))));
+const fromHash = decodeURIComponent(location.hash.slice(1));
+if (fromHash) explore(fromHash);
+</script>
+</body>
+</html>
