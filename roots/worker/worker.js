@@ -28,7 +28,7 @@ const gematria = (s) => [...lettersOnly(s)].reduce((n, c) => n + (G[c] || 0), 0)
 
 /* ── Prompts ── */
 
-const ROOT_PROMPT = `You are a Hebrew language expert and scholar of Jewish liturgy and texts. Given a Hebrew root (shoresh), return a JSON array of 8-12 words derived from it. For EACH word include:
+const ROOT_PROMPT = `You are a Hebrew language expert and scholar of Jewish liturgy and texts. Given a Hebrew root (shoresh), return a list of 8-12 words derived from it. For EACH word include:
 - "hebrew": the Hebrew word, with nikud
 - "transliteration": English transliteration
 - "meaning": concise English meaning
@@ -36,10 +36,10 @@ const ROOT_PROMPT = `You are a Hebrew language expert and scholar of Jewish litu
 - "binyan": for a verb, its binyan (Pa'al, Pi'el, Hif'il, etc.), otherwise null
 - "context": a substantive 1-2 sentence note on where this word appears in Jewish liturgy, Torah, Talmud, modern Hebrew, or Jewish life. Be specific: name the prayer, parashah, tractate, or setting. This is the most important field.
 
-If the input is not a real Hebrew root, return an empty array.
-Return ONLY a valid JSON array. No markdown fences, no commentary. Start with [ and end with ].`;
+If the input is not a real Hebrew root, report an empty list.
+`;
 
-const GEMATRIA_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a JSON array of 10-12 notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals the given value exactly. Add up each word letter by letter before including it. Do NOT include the source word or trivial spelling variations of it. For each word include:
+const GEMATRIA_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a list of 10-12 notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals the given value exactly. Add up each word letter by letter before including it. Do NOT include the source word or trivial spelling variations of it. For each word include:
 - "hebrew": the Hebrew word
 - "transliteration": English transliteration
 - "meaning": concise English meaning
@@ -47,16 +47,16 @@ const GEMATRIA_PROMPT = `You are a Hebrew language and gematria expert. Given a 
 - "context": the most important field. 1-2 sentences on how THIS word might connect thematically, spiritually, or conceptually to the SOURCE word, drawing on Jewish thought, midrash, liturgy, or language.
 
 Prioritize words well known in Jewish liturgy, Torah, or tradition.
-Return ONLY a valid JSON array. No markdown fences, no commentary. Start with [ and end with ].`;
+`;
 
-const MORE_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a JSON array of 8-10 MORE notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals that value exactly. Add up each word letter by letter before including it. EXCLUDE the source word and every word already listed. For each word include:
+const MORE_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a list of 8-10 MORE notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals that value exactly. Add up each word letter by letter before including it. EXCLUDE the source word and every word already listed. For each word include:
 - "hebrew": the Hebrew word
 - "transliteration": English transliteration
 - "meaning": concise English meaning
 - "shoresh": the Hebrew root of this word (root letters only, no nikud)
 - "context": 1-2 sentences on how THIS word might connect to the SOURCE word, drawing on Jewish thought, midrash, liturgy, or language.
 
-Return ONLY a valid JSON array. No markdown fences, no commentary. Start with [ and end with ].`;
+`;
 
 /* ── Helpers ── */
 
@@ -83,13 +83,6 @@ function originAllowed(origin, env) {
   return list.includes(origin);
 }
 
-function extractArray(text) {
-  const s = text.indexOf('[');
-  const e = text.lastIndexOf(']');
-  if (s === -1 || e <= s) return null;
-  try { return JSON.parse(text.slice(s, e + 1)); } catch { return null; }
-}
-
 const str = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
 
 function cleanWord(w) {
@@ -104,6 +97,30 @@ function cleanWord(w) {
   };
 }
 
+// Claude reports its answer through a tool call, so the API hands back
+// structured data. Hebrew abbreviations with a plain " (like רבש"ע) used to
+// break hand-parsed JSON; this way there is nothing to parse.
+const WORD_FIELDS = {
+  hebrew: { type: 'string' },
+  transliteration: { type: 'string' },
+  meaning: { type: 'string' },
+  partOfSpeech: { type: 'string' },
+  binyan: { type: ['string', 'null'] },
+  shoresh: { type: 'string' },
+  context: { type: 'string' },
+};
+const REPORT_TOOL = {
+  name: 'report_words',
+  description: 'Report the list of Hebrew words requested.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      words: { type: 'array', items: { type: 'object', properties: WORD_FIELDS, required: ['hebrew', 'meaning'] } },
+    },
+    required: ['words'],
+  },
+};
+
 async function askClaude(env, system, user) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -114,8 +131,10 @@ async function askClaude(env, system, user) {
     },
     body: JSON.stringify({
       model: env.MODEL || 'claude-sonnet-5-5',
-      max_tokens: 3000,
-      system,
+      max_tokens: 4000,
+      system: system + '\n\nGive your answer by calling the report_words tool.',
+      tools: [REPORT_TOOL],
+      tool_choice: { type: 'tool', name: 'report_words' },
       messages: [{ role: 'user', content: user }],
     }),
   });
@@ -124,7 +143,13 @@ async function askClaude(env, system, user) {
     throw new Error('upstream');
   }
   const data = await res.json();
-  return (data.content || []).map((b) => b.text || '').join('');
+  const call = (data.content || []).find((b) => b.type === 'tool_use');
+  const words = call && call.input && call.input.words;
+  if (!Array.isArray(words)) {
+    console.log('No word list in reply. stop_reason:', data.stop_reason, JSON.stringify(data.content).slice(0, 1500));
+    throw new Error('format');
+  }
+  return words.filter((w) => w && typeof w === 'object');
 }
 
 /* ── Request handling ── */
@@ -153,9 +178,7 @@ function parseRequest(body) {
 
 async function answer(req, env) {
   if (req.mode === 'root') {
-    const text = await askClaude(env, ROOT_PROMPT, `Hebrew root: ${req.root}`);
-    const arr = extractArray(text);
-    if (!arr) throw new Error('format');
+    const arr = await askClaude(env, ROOT_PROMPT, `Hebrew root: ${req.root}`);
     return arr.map(cleanWord).filter((w) => w.hebrew);
   }
 
@@ -163,9 +186,7 @@ async function answer(req, env) {
   const user = req.mode === 'gematria'
     ? `Gematria value: ${req.value}\nSource word (EXCLUDE it, but use it for the connection notes): ${req.source}`
     : `Gematria value: ${req.value}\nSource word (EXCLUDE it, but use it for the connection notes): ${req.source}\nAlready listed (EXCLUDE all): ${req.exclude.join(', ')}`;
-  const text = await askClaude(env, req.mode === 'gematria' ? GEMATRIA_PROMPT : MORE_PROMPT, user);
-  const arr = extractArray(text);
-  if (!arr) throw new Error('format');
+  const arr = await askClaude(env, req.mode === 'gematria' ? GEMATRIA_PROMPT : MORE_PROMPT, user);
 
   const seen = new Set([sourceLetters, ...req.exclude.map(lettersOnly)]);
   return arr

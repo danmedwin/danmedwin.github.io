@@ -32,7 +32,7 @@ What it does:
 
 3. `wrangler deploy` prints the Worker's address, something like
    `https://shoresh-explorer.yourname.workers.dev`. Put it in
-   `roots/index.html` where it says `REPLACE-WITH-YOUR-SUBDOMAIN`.
+   `API_URL` near the top of the script in `roots/index.html` (currently https://shoresh-explorer.dan-medwin.workers.dev).
 
 4. In console.anthropic.com, set a monthly spend limit on the workspace that
    holds this key. That is the backstop if the site ever gets popular.
