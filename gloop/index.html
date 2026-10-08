@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Gloop">
+<meta name="apple-mobile-web-app-title" content="Glob">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#E8E9E3">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <style>html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
-<title>Gloop</title>
+<title>Glob</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap">
@@ -100,7 +100,7 @@ canvas{display:block; width:100%; height:100%; touch-action:none}
 <div class="app">
   <header class="top">
     <button class="modebtn" id="modeBtn" aria-label="Choose a game">
-      <span class="mark">Gloop</span>
+      <span class="mark">Glob</span>
       <span class="sub"><span id="modeName">Studio</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5l3 3 3-3"/></svg></span>
     </button>
     <div class="hud" aria-live="polite">
@@ -1318,6 +1318,9 @@ const pool = {
 const GLAZE = { name: 'Glaze', c: [.93, .94, .9], glaze: true };
 const MATCH_PAINTS = [...PAINTS, GLAZE];
 const MATCH_OK = 10; // ΔE that counts as a match
+const MATCH_PUSH = .6; // share of the shot's speed a hit gives the blob
+const MATCH_HINT_NAMES = ['red', 'yellow', 'blue', 'white', 'black'];
+const matchPct = d => Math.round(clamp(100 - d, 0, 100)); // 90% and up counts as a match
 const match = {
   key: 'match', name: 'Mix Match', blurb: 'Mix blobs to match the circles.',
   sel: 0,
@@ -1325,28 +1328,31 @@ const match = {
     this.level = store.get('matchLevel', 1);
     this.build();
     setAction('restart', 'Restart this level', () => this.reset());
-    hint('Pick a paint, then flick it at a blob. Each hit mixes in the paint and pushes the blob.');
+    hint('Pick a paint, then flick straight up from below the line. Each hit mixes in paint and pushes the blob.');
   },
   geometry() {
-    const U = Math.min(W, H); this.U = U;
-    this.br = U * .034; this.r0 = U * .062; this.cr = U * (this.level > 4 ? .12 : .13);
-    this.launchY = H * .8; this.spot = [W / 2, H - Math.max(this.br * 2.6, (H - this.launchY) * .5)];
+    const U = Math.min(W, H), n = this.goals ? this.goals.length : 1; this.U = U;
+    this.br = U * .034; this.r0 = U * .062;
+    this.cr = Math.min(U * .13, W / n * .42);
+    this.launchY = H * .8;
+    this.slope = U * .75;   // the board tilts gently toward you, so blobs roll back
+    this.cupY = Math.max(this.cr + 46, H * .26);
   },
   build() {
-    this.geometry();
-    const L = this.level, R = rng(L * 104729 + 7), U = this.U;
+    const L = this.level, R = rng(L * 104729 + 7);
     const n = L === 1 ? 1 : L <= 3 ? 2 : L <= 6 ? 3 : 4;
+    this.goals = new Array(n); this.geometry();
     const maxHits = Math.min(4, 1 + Math.ceil(L / 2));
     const pick = a => a[Math.floor(R() * a.length)];
     const goals = [];
     // targets are made by really mixing shots into the start colour, so every one is reachable
     for (let i = 0; i < n; i++) {
-      for (let tries = 0; tries < 40; tries++) {
+      for (let tries = 0; tries < 60; tries++) {
         const start = pick([0, 1, 2, 3]);
         let col = PAINTS[start].c.slice(), A = this.r0 * this.r0;
         const hits = 1 + Math.floor(R() * maxHits), recipe = [];
         for (let k = 0; k < hits; k++) {
-          const s = R() < .12 ? 4 : pick([0, 1, 2, 3].filter(j => j !== start || k > 0));
+          const s = R() < .1 ? 4 : pick([0, 1, 2, 3].filter(j => j !== start || k > 0));
           col = mixPaint(col, A, PAINTS[s].c, this.br * this.br); A += this.br * this.br; recipe.push(s);
         }
         if (deltaE(col, PAINTS[start].c) < 26) continue;
@@ -1355,130 +1361,145 @@ const match = {
         break;
       }
     }
-    // place circles up top and starting blobs between them and the launch line
-    const placed = [], free = (x, y, r) => placed.every(([px, py, pr]) => Math.hypot(px - x, py - y) > pr + r + U * .04);
-    const spotIn = (y0, y1, r) => {
-      for (let t = 0; t < 200; t++) { const x = r + U * .03 + R() * (W - 2 * (r + U * .03)), y = y0 + R() * (y1 - y0); if (free(x, y, r)) return [x, y]; }
-      return [W / 2, (y0 + y1) / 2];
-    };
-    this.goals = goals.map(g => { const [x, y] = spotIn(H * .06 + this.cr, H * .48, this.cr); placed.push([x, y, this.cr]); return { ...g, x, y }; });
-    for (const g of this.goals) { const [x, y] = spotIn(H * .42, this.launchY - this.r0 * 2.2, this.r0 * 1.4); placed.push([x, y, this.r0 * 1.4]); g.bx = x; g.by = y; }
+    this.goals = goals;
     this.par = goals.reduce((a, g) => a + g.hits, 0) + goals.length;
+    this.layout();
     this.reset();
   },
+  layout() { // one straight column per goal: cup on top, blob on the rail below it
+    this.geometry();
+    const n = this.goals.length;
+    this.goals.forEach((g, i) => { g.x = W * (i + .5) / n; g.y = this.cupY; });
+  },
   reset() {
-    blobs = []; this.shots = 0; this.status = 'aim'; this.solved = false;
-    for (const g of this.goals) { const b = makeBlob(g.bx, g.by, this.r0, PAINTS[g.start].c); b.r = 1; b.goalBlob = true; blobs.push(b); }
+    blobs = []; this.shots = 0; this.status = 'aim'; aim.id = null; this.ball = null;
+    this.goals.forEach((g, i) => {
+      const b = makeBlob(g.x, this.launchY - this.r0 - 2, this.r0, PAINTS[g.start].c);
+      b.r = 1; b.goal = i; b.hits = 0; blobs.push(b);
+    });
     const [sc, sg] = layer(); this.stain = sc; this.sg = sg;
-    this.renderLayer(); this.spawn(); hideSheet(); this.tray(); this.updateHud();
-  },
-  spawn() {
-    const p = MATCH_PAINTS[this.sel];
-    const b = makeBlob(this.spot[0], this.spot[1], this.br, p.c);
-    b.ready = true; b.shot = true; b.glaze = !!p.glaze; if (b.glaze) b.alpha = .6; b.r = 1;
-    blobs.push(b); this.ready = b; this.status = 'aim';
-  },
-  setPaint(i) {
-    this.sel = i; this.tray();
-    const b = this.ready;
-    if (b && !b.holders.length) { const p = MATCH_PAINTS[i]; b.col = p.c.slice(); b.tcol = p.c.slice(); b.glaze = !!p.glaze; b.alpha = b.glaze ? .6 : null; poke(b, -Math.PI / 2, 1); }
+    this.renderLayer(); hideSheet(); this.tray(); this.updateHud();
   },
   tray() {
     const tray = $('tray'); tray.innerHTML = '';
     const wells = el('div', { className: 'wells' });
     MATCH_PAINTS.forEach((p, i) => {
-      const b = el('button', { className: 'well' + (p.glaze ? ' glaze' : '') });
+      const b = el('button', { className: 'well' });
       b.style.background = p.glaze ? 'repeating-linear-gradient(45deg,#F4F4EF 0 5px,#DCDDD5 5px 10px)' : css(p.c);
       b.setAttribute('aria-label', p.name); b.setAttribute('aria-pressed', i === this.sel);
-      b.onclick = () => this.setPaint(i);
+      b.onclick = () => { this.sel = i; this.tray(); };
       wells.append(b);
     });
     tray.append(wells, el('div', { className: 'traynote', textContent: `${MATCH_PAINTS[this.sel].name} · Level ${this.level} · Par ${this.par}` }));
   },
-  matched() { // pair resting blobs with circles: right colour, centre well inside
-    const used = new Set(), res = [];
-    for (const g of this.goals) {
-      const b = blobs.find(o => o.goalBlob && !o.gone && !used.has(o) && Math.hypot(o.x - g.x, o.y - g.y) < Math.max(this.cr - o.r * .5, this.cr * .45) && deltaE(o.tcol, g.target) < MATCH_OK);
-      if (b) used.add(b);
-      res.push(!!b);
-    }
-    return res;
-  },
+  blobFor(i) { return blobs.find(b => b.goal === i && !b.gone); },
+  inCup(b, g) { return Math.hypot(b.x - g.x, b.y - g.y) < Math.max(this.cr - b.r * .5, this.cr * .45); },
+  matched() { return this.goals.map((g, i) => { const b = this.blobFor(i); return !!b && this.inCup(b, g) && deltaE(b.tcol, g.target) < MATCH_OK; }); },
   updateHud() {
-    const m = this.matched(), k = m.filter(Boolean).length;
+    const k = this.matched().filter(Boolean).length;
     hud(`Matched ${k} of ${this.goals.length}`, `${this.shots} shot${this.shots === 1 ? '' : 's'}`, null);
   },
   renderLayer() {
     const [lc, g] = layer(); this.layer = lc;
-    g.strokeStyle = 'rgba(36,37,44,.22)'; g.setLineDash([6, 6]); g.lineWidth = 1.5;
-    g.beginPath(); g.moveTo(14, this.launchY); g.lineTo(W - 14, this.launchY); g.stroke(); g.setLineDash([]);
+    // the rail the blobs rest on, and the flick zone under it
+    g.fillStyle = 'rgba(36,37,44,.045)'; g.fillRect(0, this.launchY, W, H - this.launchY);
+    g.strokeStyle = 'rgba(36,37,44,.3)'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(10, this.launchY); g.lineTo(W - 10, this.launchY); g.stroke();
+    // faint lanes so "straight up" is obvious
+    g.strokeStyle = 'rgba(36,37,44,.07)'; g.lineWidth = 1; g.setLineDash([2, 8]);
+    for (const c of this.goals) { g.beginPath(); g.moveTo(c.x, c.y + this.cr); g.lineTo(c.x, H); g.stroke(); }
+    g.setLineDash([]);
   },
-  closest(b) { return Math.min(...this.goals.map(g => deltaE(b.tcol, g.target))); },
+  bestNext(b, g) { // which single paint would bring this blob closest to its target?
+    const now = deltaE(b.tcol, g.target), A = b.tr * b.tr, a = this.br * this.br;
+    let best = null;
+    PAINTS.forEach((p, i) => { const d = deltaE(mixPaint(b.tcol, A, p.c, a), g.target); if (!best || d < best.d) best = { i, d }; });
+    return best.d < now - .5 ? MATCH_HINT_NAMES[best.i] : null;
+  },
   down(p) {
-    const b = this.ready;
-    if (!b || this.status !== 'aim' || b.holders.length) return;
-    if (Math.hypot(p.x - b.x, p.y - b.y) > Math.max(44, b.r * 3)) return;
-    p.blob = b; p.ox = p.x - b.x; p.oy = p.y - b.y; b.holders = [p.id];
-    p.trail = [[performance.now(), p.x, p.y]];
-    hint('');
+    if (this.status !== 'aim' || p.y < this.launchY || this.ball) return;
+    const pnt = MATCH_PAINTS[this.sel];
+    const b = makeBlob(p.x, Math.max(p.y, this.launchY + this.br), this.br, pnt.c);
+    b.shot = true; b.glaze = !!pnt.glaze; if (b.glaze) b.alpha = .6; b.r = this.br * .5;
+    b.holders = [p.id]; p.blob = b; p.ox = p.oy = 0; p.trail = [[performance.now(), p.x, p.y]];
+    blobs.push(b); this.ball = b; blop(MAX_R, 'spawn'); hint('');
   },
   move(p) { flick.move(p); },
   up(p) {
-    const b = p.blob; if (!b || b !== this.ready) return;
+    const b = p.blob; if (!b || b !== this.ball) return;
     b.holders = [];
     const tr = p.trail || []; tr.push([performance.now(), p.x, p.y]);
     const a = tr[0], z = tr[tr.length - 1], dt = (z[0] - a[0]) / 1000;
     let vx = dt > .008 ? (z[1] - a[1]) / dt : 0, vy = dt > .008 ? (z[2] - a[2]) / dt : 0;
     const sp = Math.hypot(vx, vy);
-    if (sp < 160 || vy > -60) return; // not a flick: it slides back to the spot
+    if (sp < 160 || vy > -60) { b.gone = { t: 0, r0: b.r, x: b.x, y: b.y }; this.ball = null; return; } // not a flick
     const cap = this.U * 8; if (sp > cap) { vx *= cap / sp; vy *= cap / sp; }
-    b.vx = vx; b.vy = vy; b.ready = false; this.ready = null;
+    b.vx = vx; b.vy = vy; this.ball = null;
     this.shots++; this.status = 'rolling'; sfx.flick(); this.updateHud();
   },
   hit(blob, shot) {
-    const before = this.closest(blob);
+    const g = this.goals[blob.goal], before = deltaE(blob.tcol, g.target);
     if (shot.glaze) { // glaze pushes without tinting
-      const As = blob.tr * blob.tr, Ao = shot.tr * shot.tr;
-      blob.vx = (blob.vx * As + shot.vx * Ao) / (As + Ao); blob.vy = (blob.vy * As + shot.vy * Ao) / (As + Ao);
+      blob.vx += shot.vx * MATCH_PUSH; blob.vy += shot.vy * MATCH_PUSH;
       shot.gone = { t: 0, into: blob, r0: shot.r }; poke(blob, Math.atan2(shot.y - blob.y, shot.x - blob.x), 1.4); blop(blob.tr, 'merge');
-    } else absorb(blob, shot);
-    blob.count = 1;
-    this.sg.fillStyle = css(shot.tcol, .18); this.sg.beginPath(); this.sg.arc(blob.x, blob.y, blob.tr * 1.4, 0, TAU); this.sg.fill();
-    if (!shot.glaze) {
-      const after = this.closest(blob);
-      toast(after < MATCH_OK ? `${nameColor(blob.tcol)}: that’s a match!` : after < before - 1 ? `${nameColor(blob.tcol)}: closer!` : `${nameColor(blob.tcol)}: further off`, 1300);
+      return;
     }
+    const [svx, svy] = [shot.vx, shot.vy];
+    absorb(blob, shot); blob.count = 1; blob.hits++;
+    blob.vx += svx * MATCH_PUSH - blob.vx * .5; blob.vy += svy * MATCH_PUSH - blob.vy * .5;
+    this.sg.fillStyle = css(shot.tcol, .18); this.sg.beginPath(); this.sg.arc(blob.x, blob.y, blob.tr * 1.4, 0, TAU); this.sg.fill();
+    const after = deltaE(blob.tcol, g.target), pct = matchPct(after), nm = nameColor(blob.tcol);
+    if (after < MATCH_OK) { toast(`${nm} · ${pct}%: that’s the colour! Now get it in the circle.`, 2200); return; }
+    const tip = this.bestNext(blob, g);
+    if (blob.hits >= 2) toast(tip ? `${nm} · ${pct}% · try more ${tip}` : `${nm} · ${pct}% · too far gone. Tap restart to mix it again.`, 2600);
+    else toast(`${nm} · ${pct}% · ${after < before - 1 ? 'closer!' : 'further off'}`, 1800);
   },
   step(dt) {
     let moving = false;
     for (const b of [...blobs]) {
       if (!settle(b, dt)) continue;
       const hs = holdersOf(b);
-      if (b.ready) {
-        if (hs.length) { followPointers(b, hs, dt); b.y = Math.max(b.y, this.launchY + b.r); }
-        else { const k = 1 - Math.exp(-dt * 10); b.x += (this.spot[0] - b.x) * k; b.y += (this.spot[1] - b.y) * k; b.vx = b.vy = 0; }
-        boardWalls(b); continue;
+      if (b === this.ball && hs.length) { // a ball squeezed out under the finger, waiting to be flicked
+        followPointers(b, hs, dt); b.y = Math.max(b.y, this.launchY + b.r); boardWalls(b); continue;
       }
-      const was = Math.hypot(b.vx, b.vy) > 0;
-      if (roll(b, dt, b.shot ? 1.3 : 1.6, b.shot ? 160 : 190)) { moving = true; if (Math.hypot(b.vx, b.vy) > 50) streak(this.sg, b, b.glaze ? .03 : .05); }
-      else if (was && b.shot) b.gone = { t: 0, r0: b.r, x: b.x, y: b.y, dur: .5 }; // a miss dries up
-      boardWalls(b, .55);
+      if (b.shot) {
+        const was = Math.hypot(b.vx, b.vy) > 0;
+        if (roll(b, dt, 1.3, 160)) { moving = true; if (Math.hypot(b.vx, b.vy) > 50) streak(this.sg, b, b.glaze ? .03 : .05); }
+        else if (was) b.gone = { t: 0, r0: b.r, x: b.x, y: b.y, dur: .5 }; // a miss dries up
+        boardWalls(b, .55);
+        continue;
+      }
+      // goal blobs: the tilt pulls them back toward you; each cup is a dip that catches slow blobs
+      const g = this.goals[b.goal], U = this.U;
+      const dx = g.x - b.x, dy = g.y - b.y, d = Math.hypot(dx, dy), inCup = d < this.cr;
+      b.vy += this.slope * dt;
+      if (inCup && d > 1) { const pull = this.slope * 3.2 * (d / this.cr); b.vx += dx / d * pull * dt; b.vy += dy / d * pull * dt; }
+      const sp = Math.hypot(b.vx, b.vy), k = inCup ? 4 : .9, c = (inCup ? .45 : .28) * U;
+      if (sp > 0) { const n = Math.max(0, sp * Math.exp(-dt * k) - c * dt); b.vx *= n / sp; b.vy *= n / sp; }
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      boardWalls(b, .45);
+      if (b.y > this.launchY - b.r) { b.y = this.launchY - b.r; if (b.vy > 0) { if (b.vy > 160) poke(b, Math.PI / 2, Math.min(1.2, b.vy / 600)); b.vy *= -.25; if (Math.abs(b.vy) < 25) b.vy = 0; } }
+      const onRail = b.y >= this.launchY - b.r - .5;
+      if (onRail) b.vx *= Math.exp(-dt * 3);
+      // resting on the rail or settled in a cup counts as still, even though the tilt keeps nudging
+      if (Math.hypot(b.vx, b.vy) > (onRail || inCup ? 14 : 2)) moving = true;
+      else if (onRail || inCup) { b.vx *= .6; b.vy *= .6; }
     }
-    const L = blobs.filter(b => !b.gone && !b.ready);
+    const L = blobs.filter(b => !b.gone && b !== this.ball);
     for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {
       const a = L[i], b = L[j]; if (a.gone || b.gone) continue;
       if (a.shot && b.shot) continue;
       if (a.shot || b.shot) {
         const shot = a.shot ? a : b, blob = shot === a ? b : a;
         if (Math.hypot(a.x - b.x, a.y - b.y) < (a.r + b.r) * .85) this.hit(blob, shot);
-      } else bounceBalls(a, b, .8);
+      } else bounceBalls(a, b, .6);
     }
     if (blobs.some(b => b.gone && b.gone.t < 1)) moving = true;
     blobs = blobs.filter(b => !b.gone || b.gone.t < 1);
     this.updateHud();
     if (this.status === 'rolling' && !moving) {
+      this.status = 'aim';
       if (this.matched().every(Boolean)) this.win();
-      else this.spawn();
     }
   },
   win() {
@@ -1501,11 +1522,23 @@ const match = {
     const m = this.matched();
     this.goals.forEach((g, i) => {
       ctx.fillStyle = css(g.target, m[i] ? .3 : .16); ctx.beginPath(); ctx.arc(g.x, g.y, this.cr, 0, TAU); ctx.fill();
-      ctx.fillStyle = css(g.target); ctx.beginPath(); ctx.arc(g.x, g.y, this.cr * .24, 0, TAU); ctx.fill(); // the colour to match, as a solid chip
+      ctx.fillStyle = css(g.target); ctx.beginPath(); ctx.arc(g.x, g.y, this.cr * .24, 0, TAU); ctx.fill(); // the colour to match
       ctx.strokeStyle = css(g.target); ctx.lineWidth = m[i] ? 6 : 4; ctx.setLineDash(m[i] ? [] : [10, 7]);
       ctx.beginPath(); ctx.arc(g.x, g.y, this.cr, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      // comparison chip above the cup: target | now, and how close
+      const b = this.blobFor(i);
+      if (b) {
+        const s = 20, y = g.y - this.cr - s - 10, x = g.x - s - 17;
+        ctx.save(); ctx.shadowColor = 'rgba(20,20,30,.2)'; ctx.shadowBlur = 3 * DPR;
+        ctx.fillStyle = css(g.target); ctx.fillRect(x, y, s, s);
+        ctx.fillStyle = css(b.col); ctx.fillRect(x + s, y, s, s); ctx.restore();
+        ctx.strokeStyle = 'rgba(36,37,44,.35)'; ctx.lineWidth = 1; ctx.strokeRect(x + .5, y + .5, s * 2 - 1, s - 1);
+        const pct = matchPct(deltaE(b.tcol, g.target));
+        ctx.fillStyle = pct >= 90 ? '#2E7D4F' : '#24252C'; ctx.font = `700 15px ${getComputedStyle(document.body).fontFamily}`;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(`${pct}%`, x + s * 2 + 5, y + s / 2);
+      }
       if (m[i]) { // check mark on the rim
-        const x = g.x + this.cr * .72, y = g.y - this.cr * .72;
+        const x = g.x + this.cr * .72, y = g.y + this.cr * .72;
         ctx.fillStyle = css(g.target); ctx.beginPath(); ctx.arc(x, y, 11, 0, TAU); ctx.fill();
         ctx.strokeStyle = lab(g.target)[0] > 60 ? '#24252C' : '#fff'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(x - 5, y); ctx.lineTo(x - 1, y + 4); ctx.lineTo(x + 5, y - 4); ctx.stroke();
@@ -1513,16 +1546,10 @@ const match = {
     });
     for (const b of blobs) if (b.gone) drawBlob(b);
     for (const b of blobs) if (!b.gone) drawBlob(b);
-    const b = this.ready;
-    if (b && b.holders.length) {
-      ctx.strokeStyle = 'rgba(36,37,44,.3)'; ctx.lineWidth = 2; ctx.setLineDash([3, 4]);
-      ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 2.1, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
-    }
   },
   resize(ow, oh) {
     for (const b of blobs) { b.x *= W / ow; b.y *= H / oh; }
-    for (const g of this.goals) { g.x *= W / ow; g.y *= H / oh; g.bx *= W / ow; g.by *= H / oh; }
-    this.geometry(); this.renderLayer();
+    this.layout(); this.renderLayer();
     const [sc, sg] = layer(); this.stain = sc; this.sg = sg;
   },
 };
