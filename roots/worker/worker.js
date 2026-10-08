@@ -133,8 +133,9 @@ async function askClaude(env, system, user) {
       model: env.MODEL || 'claude-sonnet-5-5',
       max_tokens: 4000,
       system: system + '\n\nGive your answer by calling the report_words tool.',
+      // This model does not accept a forced tool_choice, so the prompt asks for
+      // the tool and a text fallback below catches a plain-text reply.
       tools: [REPORT_TOOL],
-      tool_choice: { type: 'tool', name: 'report_words' },
       messages: [{ role: 'user', content: user }],
     }),
   });
@@ -144,7 +145,12 @@ async function askClaude(env, system, user) {
   }
   const data = await res.json();
   const call = (data.content || []).find((b) => b.type === 'tool_use');
-  const words = call && call.input && call.input.words;
+  let words = call && call.input && call.input.words;
+  if (!Array.isArray(words)) {
+    const text = (data.content || []).map((b) => b.text || '').join('');
+    const s = text.indexOf('['), e = text.lastIndexOf(']');
+    try { if (s !== -1 && e > s) words = JSON.parse(text.slice(s, e + 1)); } catch { /* logged below */ }
+  }
   if (!Array.isArray(words)) {
     console.log('No word list in reply. stop_reason:', data.stop_reason, JSON.stringify(data.content).slice(0, 1500));
     throw new Error('format');
