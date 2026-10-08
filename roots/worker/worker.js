@@ -39,7 +39,7 @@ const ROOT_PROMPT = `You are a Hebrew language expert and scholar of Jewish litu
 If the input is not a real Hebrew root, report an empty list.
 `;
 
-const GEMATRIA_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a list of 10-12 notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals the given value exactly. Add up each word letter by letter before including it. Do NOT include the source word or trivial spelling variations of it. For each word include:
+const GEMATRIA_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a list of 10-12 notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals the given value exactly. Do not show or belabor the arithmetic: a server checks every value afterward and drops any that miss, so favor well-known words you are confident about. Do NOT include the source word or trivial spelling variations of it. For each word include:
 - "hebrew": the Hebrew word
 - "transliteration": English transliteration
 - "meaning": concise English meaning
@@ -49,7 +49,7 @@ const GEMATRIA_PROMPT = `You are a Hebrew language and gematria expert. Given a 
 Prioritize words well known in Jewish liturgy, Torah, or tradition.
 `;
 
-const MORE_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a list of 8-10 MORE notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals that value exactly. Add up each word letter by letter before including it. EXCLUDE the source word and every word already listed. For each word include:
+const MORE_PROMPT = `You are a Hebrew language and gematria expert. Given a numerical value and a source word, return a list of 8-10 MORE notable Hebrew words whose standard gematria (mispar hechrachi, final letters count the same as regular letters) equals that value exactly. Do not show or belabor the arithmetic: a server checks every value afterward and drops any that miss, so favor well-known words you are confident about. EXCLUDE the source word and every word already listed. For each word include:
 - "hebrew": the Hebrew word
 - "transliteration": English transliteration
 - "meaning": concise English meaning
@@ -131,7 +131,7 @@ async function askClaude(env, system, user) {
     },
     body: JSON.stringify({
       model: env.MODEL || 'claude-sonnet-5-5',
-      max_tokens: 4000,
+      max_tokens: 16000,
       system: system + '\n\nGive your answer by calling the report_words tool.',
       // This model does not accept a forced tool_choice, so the prompt asks for
       // the tool and a text fallback below catches a plain-text reply.
