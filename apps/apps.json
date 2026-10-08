@@ -1,5 +1,5 @@
 {
-  "version": "0.7.1",
+  "version": "0.7.2",
   "categories": [
     {
       "id": "jewish",
@@ -235,6 +235,17 @@
       "desc": "A daily digest of the artificial intelligence news that matters for faith, ethics, and Jewish life.",
       "created": "2026-07-10",
       "updated": "2026-07-13"
+    },
+    {
+      "id": "conflict-atlas",
+      "name": "World Conflict Atlas",
+      "cat": "tools",
+      "url": "https://techrabbi.org/conflict-atlas/",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "A zoomable map of the world's active wars, shaded by who is aligned with whom, with arrows for recent strikes and a card for each conflict.",
+      "created": "2026-10-04",
+      "updated": "2026-10-05",
+      "note": "A snapshot as of October 4, 2026. It does not update on its own."
     },
     {
       "id": "family-dinners",
