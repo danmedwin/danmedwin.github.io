@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "categories": [
     {
       "id": "jewish",
@@ -41,33 +41,6 @@
       "note": "Opens in demo mode. The real sign-up asks a congregation for its access word."
     },
     {
-      "id": "siddur-ocr",
-      "name": "Siddur OCR",
-      "cat": "jewish",
-      "url": "https://techrabbi.org/JBI/",
-      "repo": "danmedwin/JBI",
-      "desc": "Built for JBI. Turns scanned prayer book pages into clean Word documents for blind and low vision worshipers.",
-      "created": "2026-04-14",
-      "updated": "2026-07-20",
-      "labels": [
-        "Staff Only"
-      ],
-      "note": "Runs on a Claude API key you supply. Nothing is sent to a server of mine."
-    },
-    {
-      "id": "layout-lab",
-      "name": "Layout Lab",
-      "cat": "jewish",
-      "url": "https://techrabbi.org/JBI/LayoutLab.html",
-      "repo": "danmedwin/JBI",
-      "desc": "Mark up the anatomy of a prayer book page so the next scan reads it in the right order.",
-      "created": "2026-07-20",
-      "updated": "2026-07-27",
-      "labels": [
-        "Staff Only"
-      ]
-    },
-    {
       "id": "digital-mensches",
       "name": "Digital Mensches",
       "cat": "jewish",
@@ -76,6 +49,36 @@
       "desc": "Ten guidelines for ethical online behavior, with the programs a camp or school needs to teach them.",
       "created": "2026-07-08",
       "updated": "2026-08-04"
+    },
+    {
+      "id": "why-pray",
+      "name": "Why Do We Pray?",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/why-pray/",
+      "repo": "danmedwin/why-pray",
+      "desc": "Nine flip cards on why people pray, from science and from tradition, made for a middle school class to tap through together.",
+      "created": "2026-08-30",
+      "updated": "2026-08-30"
+    },
+    {
+      "id": "shofar",
+      "name": "The Shofar",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/shofar/",
+      "repo": "danmedwin/shofar",
+      "desc": "A 25 minute shofar lesson you can run from the smartboard, with the four calls, a flip-card board, and a T'kiah G'dolah stopwatch to finish.",
+      "created": "2026-09-08",
+      "updated": "2026-09-08"
+    },
+    {
+      "id": "simchat-torah",
+      "name": "Simchat Torah: The Unrolled Torah",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/simchat-torah/",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "Twenty stops to point out when the whole scroll is unrolled in a circle, each with photos from a real Torah and something to say.",
+      "created": "2026-09-29",
+      "updated": "2026-10-07"
     },
     {
       "id": "torah-nav",
