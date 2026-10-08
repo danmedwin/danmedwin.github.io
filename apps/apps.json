@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.7.1",
   "categories": [
     {
       "id": "jewish",
@@ -49,6 +49,16 @@
       "desc": "Ten guidelines for ethical online behavior, with the programs a camp or school needs to teach them.",
       "created": "2026-07-08",
       "updated": "2026-08-04"
+    },
+    {
+      "id": "jewish-special",
+      "name": "What Is Special About Being Jewish?",
+      "cat": "jewish",
+      "url": "https://techrabbi.org/jewish-special/",
+      "repo": "danmedwin/jewish-special",
+      "desc": "Nine flip cards for first graders, from Shabbat to asking questions, plus a full screen card about Israel, our homeland.",
+      "created": "2026-08-30",
+      "updated": "2026-08-31"
     },
     {
       "id": "why-pray",
