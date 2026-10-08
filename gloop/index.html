@@ -169,6 +169,14 @@ function hsl([r, g, b]) {
   return [(h * 60 + 360) % 360, s, l];
 }
 const HUES = [[12,'Red'],[24,'Vermilion'],[40,'Orange'],[52,'Amber'],[66,'Yellow'],[90,'Chartreuse'],[155,'Green'],[180,'Teal'],[205,'Cerulean'],[240,'Blue'],[265,'Indigo'],[292,'Violet'],[325,'Magenta'],[348,'Rose'],[361,'Red']];
+// CIE Lab distance (ΔE76): about 2 is barely visible, 10 reads as "close", 30+ as a different colour.
+function lab(c) {
+  const f = v => v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4), h = t => t > .008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  const r = f(c[0]), g = f(c[1]), b = f(c[2]);
+  const x = h((r * .4124 + g * .3576 + b * .1805) / .95047), y = h(r * .2126 + g * .7152 + b * .0722), z = h((r * .0193 + g * .1192 + b * .9505) / 1.08883);
+  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+}
+function deltaE(a, b) { const A = lab(a), B = lab(b); return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); }
 function nameColor(c) {
   const [h, s, l] = hsl(c);
   if (s < .12 || l < .06) return l < .2 ? 'Charcoal' : l < .4 ? 'Slate' : l < .65 ? 'Grey' : l < .85 ? 'Silver' : 'Chalk';
@@ -329,6 +337,10 @@ function blobPath(b) {
   return p;
 }
 function drawBlob(b, g = ctx) {
+  if (b.alpha == null) return paintBlob(b, g);
+  g.save(); g.globalAlpha = b.alpha; paintBlob(b, g); g.restore();
+}
+function paintBlob(b, g) {
   if (b.r < .5) return;
   const p = blobPath(b);
   g.save();
@@ -1298,8 +1310,224 @@ const pool = {
   },
 };
 
+/* ======================================================================
+   MIX MATCH — flick paint at blobs to mix them to a target colour and
+   knock them into the matching circle
+   ====================================================================== */
+const GLAZE = { name: 'Glaze', c: [.93, .94, .9], glaze: true };
+const MATCH_PAINTS = [...PAINTS, GLAZE];
+const MATCH_OK = 10; // ΔE that counts as a match
+const match = {
+  key: 'match', name: 'Mix Match', blurb: 'Flick paint at a blob to mix it to the circle’s colour, and knock it into the circle.',
+  sel: 0,
+  enter() {
+    this.level = store.get('matchLevel', 1);
+    this.build();
+    setAction('restart', 'Restart this level', () => this.reset());
+    hint('Pick a paint, then flick it at a blob. Each hit mixes in the paint and pushes the blob.');
+  },
+  geometry() {
+    const U = Math.min(W, H); this.U = U;
+    this.br = U * .034; this.r0 = U * .062; this.cr = U * (this.level > 4 ? .12 : .13);
+    this.launchY = H * .8; this.spot = [W / 2, H - Math.max(this.br * 2.6, (H - this.launchY) * .5)];
+  },
+  build() {
+    this.geometry();
+    const L = this.level, R = rng(L * 104729 + 7), U = this.U;
+    const n = L === 1 ? 1 : L <= 3 ? 2 : L <= 6 ? 3 : 4;
+    const maxHits = Math.min(4, 1 + Math.ceil(L / 2));
+    const pick = a => a[Math.floor(R() * a.length)];
+    const goals = [];
+    // targets are made by really mixing shots into the start colour, so every one is reachable
+    for (let i = 0; i < n; i++) {
+      for (let tries = 0; tries < 40; tries++) {
+        const start = pick([0, 1, 2, 3]);
+        let col = PAINTS[start].c.slice(), A = this.r0 * this.r0;
+        const hits = 1 + Math.floor(R() * maxHits), recipe = [];
+        for (let k = 0; k < hits; k++) {
+          const s = R() < .12 ? 4 : pick([0, 1, 2, 3].filter(j => j !== start || k > 0));
+          col = mixPaint(col, A, PAINTS[s].c, this.br * this.br); A += this.br * this.br; recipe.push(s);
+        }
+        if (deltaE(col, PAINTS[start].c) < 26) continue;
+        if (goals.some(g => deltaE(g.target, col) < 22)) continue;
+        goals.push({ start, target: col, hits, recipe });
+        break;
+      }
+    }
+    // place circles up top and starting blobs between them and the launch line
+    const placed = [], free = (x, y, r) => placed.every(([px, py, pr]) => Math.hypot(px - x, py - y) > pr + r + U * .04);
+    const spotIn = (y0, y1, r) => {
+      for (let t = 0; t < 200; t++) { const x = r + U * .03 + R() * (W - 2 * (r + U * .03)), y = y0 + R() * (y1 - y0); if (free(x, y, r)) return [x, y]; }
+      return [W / 2, (y0 + y1) / 2];
+    };
+    this.goals = goals.map(g => { const [x, y] = spotIn(H * .06 + this.cr, H * .48, this.cr); placed.push([x, y, this.cr]); return { ...g, x, y }; });
+    for (const g of this.goals) { const [x, y] = spotIn(H * .42, this.launchY - this.r0 * 2.2, this.r0 * 1.4); placed.push([x, y, this.r0 * 1.4]); g.bx = x; g.by = y; }
+    this.par = goals.reduce((a, g) => a + g.hits, 0) + goals.length;
+    this.reset();
+  },
+  reset() {
+    blobs = []; this.shots = 0; this.status = 'aim'; this.solved = false;
+    for (const g of this.goals) { const b = makeBlob(g.bx, g.by, this.r0, PAINTS[g.start].c); b.r = 1; b.goalBlob = true; blobs.push(b); }
+    const [sc, sg] = layer(); this.stain = sc; this.sg = sg;
+    this.renderLayer(); this.spawn(); hideSheet(); this.tray(); this.updateHud();
+  },
+  spawn() {
+    const p = MATCH_PAINTS[this.sel];
+    const b = makeBlob(this.spot[0], this.spot[1], this.br, p.c);
+    b.ready = true; b.shot = true; b.glaze = !!p.glaze; if (b.glaze) b.alpha = .6; b.r = 1;
+    blobs.push(b); this.ready = b; this.status = 'aim';
+  },
+  setPaint(i) {
+    this.sel = i; this.tray();
+    const b = this.ready;
+    if (b && !b.holders.length) { const p = MATCH_PAINTS[i]; b.col = p.c.slice(); b.tcol = p.c.slice(); b.glaze = !!p.glaze; b.alpha = b.glaze ? .6 : null; poke(b, -Math.PI / 2, 1); }
+  },
+  tray() {
+    const tray = $('tray'); tray.innerHTML = '';
+    const wells = el('div', { className: 'wells' });
+    MATCH_PAINTS.forEach((p, i) => {
+      const b = el('button', { className: 'well' + (p.glaze ? ' glaze' : '') });
+      b.style.background = p.glaze ? 'repeating-linear-gradient(45deg,#F4F4EF 0 5px,#DCDDD5 5px 10px)' : css(p.c);
+      b.setAttribute('aria-label', p.name); b.setAttribute('aria-pressed', i === this.sel);
+      b.onclick = () => this.setPaint(i);
+      wells.append(b);
+    });
+    tray.append(wells, el('div', { className: 'traynote', textContent: `${MATCH_PAINTS[this.sel].name} · Level ${this.level} · Par ${this.par}` }));
+  },
+  matched() { // pair resting blobs with circles: right colour, centre well inside
+    const used = new Set(), res = [];
+    for (const g of this.goals) {
+      const b = blobs.find(o => o.goalBlob && !o.gone && !used.has(o) && Math.hypot(o.x - g.x, o.y - g.y) < Math.max(this.cr - o.r * .5, this.cr * .45) && deltaE(o.tcol, g.target) < MATCH_OK);
+      if (b) used.add(b);
+      res.push(!!b);
+    }
+    return res;
+  },
+  updateHud() {
+    const m = this.matched(), k = m.filter(Boolean).length;
+    hud(`Matched ${k} of ${this.goals.length}`, `${this.shots} shot${this.shots === 1 ? '' : 's'}`, null);
+  },
+  renderLayer() {
+    const [lc, g] = layer(); this.layer = lc;
+    g.strokeStyle = 'rgba(36,37,44,.22)'; g.setLineDash([6, 6]); g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(14, this.launchY); g.lineTo(W - 14, this.launchY); g.stroke(); g.setLineDash([]);
+  },
+  closest(b) { return Math.min(...this.goals.map(g => deltaE(b.tcol, g.target))); },
+  down(p) {
+    const b = this.ready;
+    if (!b || this.status !== 'aim' || b.holders.length) return;
+    if (Math.hypot(p.x - b.x, p.y - b.y) > Math.max(44, b.r * 3)) return;
+    p.blob = b; p.ox = p.x - b.x; p.oy = p.y - b.y; b.holders = [p.id];
+    p.trail = [[performance.now(), p.x, p.y]];
+    hint('');
+  },
+  move(p) { flick.move(p); },
+  up(p) {
+    const b = p.blob; if (!b || b !== this.ready) return;
+    b.holders = [];
+    const tr = p.trail || []; tr.push([performance.now(), p.x, p.y]);
+    const a = tr[0], z = tr[tr.length - 1], dt = (z[0] - a[0]) / 1000;
+    let vx = dt > .008 ? (z[1] - a[1]) / dt : 0, vy = dt > .008 ? (z[2] - a[2]) / dt : 0;
+    const sp = Math.hypot(vx, vy);
+    if (sp < 160 || vy > -60) return; // not a flick: it slides back to the spot
+    const cap = this.U * 8; if (sp > cap) { vx *= cap / sp; vy *= cap / sp; }
+    b.vx = vx; b.vy = vy; b.ready = false; this.ready = null;
+    this.shots++; this.status = 'rolling'; sfx.flick(); this.updateHud();
+  },
+  hit(blob, shot) {
+    const before = this.closest(blob);
+    if (shot.glaze) { // glaze pushes without tinting
+      const As = blob.tr * blob.tr, Ao = shot.tr * shot.tr;
+      blob.vx = (blob.vx * As + shot.vx * Ao) / (As + Ao); blob.vy = (blob.vy * As + shot.vy * Ao) / (As + Ao);
+      shot.gone = { t: 0, into: blob, r0: shot.r }; poke(blob, Math.atan2(shot.y - blob.y, shot.x - blob.x), 1.4); blop(blob.tr, 'merge');
+    } else absorb(blob, shot);
+    blob.count = 1;
+    this.sg.fillStyle = css(shot.tcol, .18); this.sg.beginPath(); this.sg.arc(blob.x, blob.y, blob.tr * 1.4, 0, TAU); this.sg.fill();
+    if (!shot.glaze) {
+      const after = this.closest(blob);
+      toast(after < MATCH_OK ? `${nameColor(blob.tcol)}: that’s a match!` : after < before - 1 ? `${nameColor(blob.tcol)}: closer!` : `${nameColor(blob.tcol)}: further off`, 1300);
+    }
+  },
+  step(dt) {
+    let moving = false;
+    for (const b of [...blobs]) {
+      if (!settle(b, dt)) continue;
+      const hs = holdersOf(b);
+      if (b.ready) {
+        if (hs.length) { followPointers(b, hs, dt); b.y = Math.max(b.y, this.launchY + b.r); }
+        else { const k = 1 - Math.exp(-dt * 10); b.x += (this.spot[0] - b.x) * k; b.y += (this.spot[1] - b.y) * k; b.vx = b.vy = 0; }
+        boardWalls(b); continue;
+      }
+      const was = Math.hypot(b.vx, b.vy) > 0;
+      if (roll(b, dt, b.shot ? 1.3 : 1.6, b.shot ? 160 : 190)) { moving = true; if (Math.hypot(b.vx, b.vy) > 50) streak(this.sg, b, b.glaze ? .03 : .05); }
+      else if (was && b.shot) b.gone = { t: 0, r0: b.r, x: b.x, y: b.y, dur: .5 }; // a miss dries up
+      boardWalls(b, .55);
+    }
+    const L = blobs.filter(b => !b.gone && !b.ready);
+    for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {
+      const a = L[i], b = L[j]; if (a.gone || b.gone) continue;
+      if (a.shot && b.shot) continue;
+      if (a.shot || b.shot) {
+        const shot = a.shot ? a : b, blob = shot === a ? b : a;
+        if (Math.hypot(a.x - b.x, a.y - b.y) < (a.r + b.r) * .85) this.hit(blob, shot);
+      } else bounceBalls(a, b, .8);
+    }
+    if (blobs.some(b => b.gone && b.gone.t < 1)) moving = true;
+    blobs = blobs.filter(b => !b.gone || b.gone.t < 1);
+    this.updateHud();
+    if (this.status === 'rolling' && !moving) {
+      if (this.matched().every(Boolean)) this.win();
+      else this.spawn();
+    }
+  },
+  win() {
+    this.status = 'done'; sfx.win();
+    const stars = this.shots <= this.par ? 3 : this.shots <= this.par + 3 ? 2 : 1;
+    const all = store.get('matchStars', {}); all[this.level] = Math.max(all[this.level] || 0, stars); store.set('matchStars', all);
+    store.set('matchLevel', this.level + 1);
+    setTimeout(() => showSheet(card => {
+      card.append(el('h2', { textContent: `Level ${this.level} matched!` }));
+      card.append(el('div', { className: 'stars' }, [0, 1, 2].map(i => el('span', { className: i < stars ? 'on' : '' }))));
+      card.append(el('p', { textContent: `${this.shots} shots (par ${this.par}). You mixed ${this.goals.map(g => nameColor(g.target).toLowerCase()).join(', ')}.` }));
+      card.append(buttons([['Replay', () => { store.set('matchLevel', this.level); this.reset(); }], ['Next level', () => { this.level++; this.build(); }, true]]));
+    }), 400);
+  },
+  draw() {
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (this.stain) ctx.drawImage(this.stain, 0, 0);
+    if (this.layer) ctx.drawImage(this.layer, 0, 0);
+    ctx.restore();
+    const m = this.matched();
+    this.goals.forEach((g, i) => {
+      ctx.fillStyle = css(g.target, m[i] ? .3 : .16); ctx.beginPath(); ctx.arc(g.x, g.y, this.cr, 0, TAU); ctx.fill();
+      ctx.fillStyle = css(g.target); ctx.beginPath(); ctx.arc(g.x, g.y, this.cr * .24, 0, TAU); ctx.fill(); // the colour to match, as a solid chip
+      ctx.strokeStyle = css(g.target); ctx.lineWidth = m[i] ? 6 : 4; ctx.setLineDash(m[i] ? [] : [10, 7]);
+      ctx.beginPath(); ctx.arc(g.x, g.y, this.cr, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      if (m[i]) { // check mark on the rim
+        const x = g.x + this.cr * .72, y = g.y - this.cr * .72;
+        ctx.fillStyle = css(g.target); ctx.beginPath(); ctx.arc(x, y, 11, 0, TAU); ctx.fill();
+        ctx.strokeStyle = lab(g.target)[0] > 60 ? '#24252C' : '#fff'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x - 5, y); ctx.lineTo(x - 1, y + 4); ctx.lineTo(x + 5, y - 4); ctx.stroke();
+      }
+    });
+    for (const b of blobs) if (b.gone) drawBlob(b);
+    for (const b of blobs) if (!b.gone) drawBlob(b);
+    const b = this.ready;
+    if (b && b.holders.length) {
+      ctx.strokeStyle = 'rgba(36,37,44,.3)'; ctx.lineWidth = 2; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 2.1, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+    }
+  },
+  resize(ow, oh) {
+    for (const b of blobs) { b.x *= W / ow; b.y *= H / oh; }
+    for (const g of this.goals) { g.x *= W / ow; g.y *= H / oh; g.bx *= W / ow; g.by *= H / oh; }
+    this.geometry(); this.renderLayer();
+    const [sc, sg] = layer(); this.stain = sc; this.sg = sg;
+  },
+};
+
 /* ---------- modes ---------- */
-const MODES = { studio, maze, flick, golf, pool };
+const MODES = { studio, match, maze, flick, golf, pool };
 if (location.hostname === 'localhost') window.__gloop = { MODES, get blobs() { return blobs; } }; // local testing only
 let mode = studio;
 function setMode(key, data) {
@@ -1334,6 +1562,12 @@ function drawPickIcon(canvas, key) {
     g.strokeStyle = '#24252C'; g.lineWidth = 3; g.beginPath(); g.moveTo(64, 70); g.lineTo(64, 22); g.stroke();
     g.fillStyle = '#C2412F'; g.beginPath(); g.moveTo(64, 22); g.lineTo(88, 30); g.lineTo(64, 38); g.closePath(); g.fill();
     dot(30, 92, 9, PAINTS[1].c);
+  }
+  if (key === 'match') {
+    const t = mixPaint(PAINTS[1].c, 1, PAINTS[2].c, 1);
+    g.fillStyle = css(t, .2); g.beginPath(); g.arc(68, 40, 26, 0, TAU); g.fill();
+    g.strokeStyle = css(t); g.lineWidth = 5; g.setLineDash([9, 6]); g.stroke(); g.setLineDash([]);
+    dot(40, 80, 15, PAINTS[1].c); dot(78, 98, 7, PAINTS[2].c);
   }
   if (key === 'pool') {
     g.fillStyle = '#3A3B45'; g.fillRect(0, 0, s, 10); g.fillRect(0, s - 10, s, 10); g.fillRect(0, 0, 10, s); g.fillRect(s - 10, 0, 10, s);
