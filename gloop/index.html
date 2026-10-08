@@ -873,7 +873,7 @@ const flick = {
 };
 
 /* ======================================================================
-   Shared pieces for the pull-back shot games (Mini Golf, Paint Pool)
+   Shared pieces for the flick-and-roll games (Mini Golf, Paint Pool)
    ====================================================================== */
 // Rolling on felt or turf: drag proportional to speed plus a constant, so balls actually stop.
 function roll(b, dt, k, c) {
@@ -923,37 +923,46 @@ function bounceBalls(a, b, e = .94) {
   }
   return true;
 }
-// Pull-back aiming: drag anywhere, away from where you want the ball to go, then let go.
-const aim = { id: null, sx: 0, sy: 0, x: 0, y: 0 };
-function aimRead() {
-  const dx = aim.sx - aim.x, dy = aim.sy - aim.y, L = Math.hypot(dx, dy);
-  return { dx: L ? dx / L : 0, dy: L ? dy / L : -1, pow: clamp(L / (Math.min(W, H) * .42), 0, 1) };
+// Flick shots (as in Bullseye): touch the ball, swipe, let go. The last moment of the swipe sets direction and speed.
+const aim = { id: null, sx: 0, sy: 0, x: 0, y: 0, trail: [] };
+function aimDown(p, ball) {
+  if (aim.id != null || !ball || Math.hypot(p.x - ball.x, p.y - ball.y) > Math.max(44, ball.r * 3.5)) return false;
+  Object.assign(aim, { id: p.id, sx: p.x, sy: p.y, x: p.x, y: p.y, trail: [[performance.now(), p.x, p.y]] });
+  hint(''); return true;
 }
-function aimDown(p) { if (aim.id != null) return; Object.assign(aim, { id: p.id, sx: p.x, sy: p.y, x: p.x, y: p.y }); hint(''); }
-function aimMove(p) { if (aim.id === p.id) { aim.x = p.x; aim.y = p.y; } }
-function aimUp(p) { if (aim.id !== p.id) return null; aim.id = null; const a = aimRead(); return a.pow < .05 ? null : a; }
-function drawAimArrow(b) {
-  const { dx, dy, pow } = aimRead(), U = Math.min(W, H);
-  const len = U * .08 + pow * U * .45;
+function aimMove(p) {
+  if (aim.id !== p.id) return;
+  aim.x = p.x; aim.y = p.y;
+  const now = performance.now(); aim.trail.push([now, p.x, p.y]);
+  while (aim.trail.length > 2 && now - aim.trail[0][0] > 90) aim.trail.shift();
+}
+// Returns the shot velocity, or null when the finger didn't really flick (held still, or barely moved).
+function aimUp(p, vmax, scale = 1) {
+  if (aim.id !== p.id) return null;
+  aim.id = null;
+  const tr = aim.trail; tr.push([performance.now(), p.x, p.y]);
+  const a = tr[0], z = tr[tr.length - 1], dt = (z[0] - a[0]) / 1000;
+  if (dt < .008) return null;
+  let vx = (z[1] - a[1]) / dt * scale, vy = (z[2] - a[2]) / dt * scale;
+  const sp = Math.hypot(vx, vy); if (sp < 100) return null;
+  if (sp > vmax) { vx *= vmax / sp; vy *= vmax / sp; }
+  return { vx, vy, pow: Math.min(1, sp / vmax) };
+}
+// While a finger is on the ball: a ring on the ball and a faint line to the finger.
+function drawFlickTouch(b) {
   ctx.save();
-  ctx.strokeStyle = 'rgba(36,37,44,.12)'; ctx.lineWidth = 2; ctx.setLineDash([2, 5]);
-  ctx.beginPath(); ctx.moveTo(aim.sx, aim.sy); ctx.lineTo(aim.x, aim.y); ctx.stroke();
-  ctx.setLineDash([]);
-  const ex = b.x + dx * len, ey = b.y + dy * len;
-  ctx.strokeStyle = `rgba(36,37,44,${.35 + pow * .5})`; ctx.lineWidth = 3; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(b.x + dx * b.r * 1.6, b.y + dy * b.r * 1.6); ctx.lineTo(ex, ey); ctx.stroke();
-  const a = Math.atan2(dy, dx), h = 9;
-  ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex - Math.cos(a - .5) * h, ey - Math.sin(a - .5) * h);
-  ctx.moveTo(ex, ey); ctx.lineTo(ex - Math.cos(a + .5) * h, ey - Math.sin(a + .5) * h); ctx.stroke();
-  // power ring
-  ctx.strokeStyle = pow > .85 ? '#C2412F' : '#B8892B'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 2.2, -Math.PI / 2, -Math.PI / 2 + pow * TAU); ctx.stroke();
+  ctx.strokeStyle = 'rgba(36,37,44,.35)'; ctx.lineWidth = 2; ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 2.1, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  if (Math.hypot(aim.x - b.x, aim.y - b.y) > b.r * 2.1) {
+    ctx.strokeStyle = 'rgba(36,37,44,.18)'; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(aim.x, aim.y); ctx.stroke();
+  }
   ctx.restore();
 }
 function streak(g, b, a) { g.fillStyle = css(b.col, a); g.beginPath(); g.arc(b.x, b.y, b.r * .75, 0, TAU); g.fill(); }
 
 /* ======================================================================
-   MINI GOLF — six holes, pull back to putt
+   MINI GOLF — six holes, flick to putt
    ====================================================================== */
 // Coordinates are fractions of the board (x of width, y of height); sizes are fractions of the short side.
 const HOLES = [
@@ -965,12 +974,12 @@ const HOLES = [
   { par: 3, tee: [.15, .9], cup: [.15, .12], walls: [[0, .5, .74, .5], [.66, 0, 1, .24], [1, .76, .66, 1]] },
 ];
 const golf = {
-  key: 'golf', name: 'Mini Golf', blurb: 'Six holes. Drag back to aim and putt your paint into the cup.',
+  key: 'golf', name: 'Mini Golf', blurb: 'Six holes. Flick your paint ball into the cup.',
   enter() {
     this.idx = 0; this.cards = [];
     this.load();
     setAction('restart', 'Start over from hole 1', () => { this.idx = 0; this.cards = []; this.load(); });
-    hint('Drag back anywhere to aim, like pulling a slingshot. Let go to putt.');
+    hint('Touch the ball and flick it toward the cup. Gentle flicks for short putts.');
   },
   load() {
     const h = HOLES[this.idx], U = Math.min(W, H), P = ([x, y]) => [x * W, y * H];
@@ -1038,12 +1047,11 @@ const golf = {
     const m = this.mill, c = Math.cos(m.a) * m.len, s = Math.sin(m.a) * m.len;
     return [m.x - c, m.y - s, m.x + c, m.y + s];
   },
-  down(p) { if (this.status === 'aim') aimDown(p); },
+  down(p) { if (this.status === 'aim') aimDown(p, this.ball); },
   move(p) { aimMove(p); },
   up(p) {
-    const a = aimUp(p); if (!a || this.status !== 'aim') return;
-    const v = this.U * 4.6 * Math.pow(a.pow, 1.15);
-    this.ball.vx = a.dx * v; this.ball.vy = a.dy * v;
+    const a = aimUp(p, this.U * 4.6, .85); if (!a || this.status !== 'aim') return;
+    this.ball.vx = a.vx; this.ball.vy = a.vy;
     this.strokes++; this.status = 'rolling'; sfx.putt(); this.updateHud();
   },
   step(dt) {
@@ -1125,7 +1133,7 @@ const golf = {
       ctx.fillStyle = '#3A3B45'; ctx.beginPath(); ctx.arc(this.mill.x, this.mill.y, this.wt * .9, 0, TAU); ctx.fill();
     }
     drawBlob(this.ball);
-    if (aim.id != null && this.status === 'aim') drawAimArrow(this.ball);
+    if (aim.id != null && this.status === 'aim') drawFlickTouch(this.ball);
   },
   resize() { this.load(); },
 };
@@ -1135,11 +1143,11 @@ const golf = {
    ====================================================================== */
 const POOL_COLORS = [[.84, .12, .17], [.98, .84, .14], [.10, .23, .75], [.95, .5, .1], [.15, .55, .25], [.45, .2, .6], [.95, .55, .7], [.1, .55, .55], [.45, .27, .12], [.11, .11, .13]];
 const pool = {
-  key: 'pool', name: 'Paint Pool', blurb: 'Drag back to cue. Sink all ten balls; each pocket mixes the paint that falls in.',
+  key: 'pool', name: 'Paint Pool', blurb: 'Flick the white ball. Sink all ten; each pocket mixes the paint that falls in.',
   enter() {
     this.newGame();
     setAction('restart', 'Rack them up again', () => this.newGame());
-    hint('Drag back anywhere to pull the cue, then let go. Don’t sink the white!');
+    hint('Touch the white ball and flick it into the rack. Don’t sink the white!');
   },
   geometry() {
     const U = Math.min(W, H); this.U = U;
@@ -1184,12 +1192,11 @@ const pool = {
     g.beginPath(); g.moveTo(m, this.head[1]); g.lineTo(W - m, this.head[1]); g.stroke(); g.setLineDash([]);
     g.fillStyle = 'rgba(36,37,44,.25)'; g.beginPath(); g.arc(W / 2, H * .34, 2.5, 0, TAU); g.fill();
   },
-  down(p) { if (this.status === 'aim') aimDown(p); },
+  down(p) { if (this.status === 'aim' && this.cue && !this.cue.gone) aimDown(p, this.cue); },
   move(p) { aimMove(p); },
   up(p) {
-    const a = aimUp(p); if (!a || this.status !== 'aim') return;
-    const v = this.U * 7 * Math.pow(a.pow, 1.2);
-    this.cue.vx = a.dx * v; this.cue.vy = a.dy * v;
+    const a = aimUp(p, this.U * 7); if (!a || this.status !== 'aim') return;
+    this.cue.vx = a.vx; this.cue.vy = a.vy;
     this.shots++; this.status = 'rolling'; sfx.cue(a.pow); this.updateHud();
   },
   nearPocket(b) { return this.pockets.some(p => Math.hypot(p.x - b.x, p.y - b.y) < p.r * 1.45); },
@@ -1266,26 +1273,22 @@ const pool = {
     for (const b of blobs) if (!b.gone) drawBlob(b);
     const b = this.cue;
     if (aim.id != null && this.status === 'aim' && b && !b.gone) {
-      const { dx, dy, pow } = aimRead(), U = this.U;
-      const { t, hit } = this.guide(b, dx, dy);
-      ctx.save();
-      ctx.strokeStyle = 'rgba(36,37,44,.3)'; ctx.setLineDash([3, 6]); ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + dx * t, b.y + dy * t); ctx.stroke(); ctx.setLineDash([]);
-      ctx.strokeStyle = 'rgba(36,37,44,.35)'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(b.x + dx * t, b.y + dy * t, b.r, 0, TAU); ctx.stroke();
-      if (hit) { // which way the struck ball will go
-        const gx = b.x + dx * t, gy = b.y + dy * t, nx = (hit.x - gx) / (b.r + hit.r), ny = (hit.y - gy) / (b.r + hit.r);
-        ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(hit.x + nx * U * .15, hit.y + ny * U * .15); ctx.stroke();
+      drawFlickTouch(b);
+      // once the finger is moving, show where a flick that way would send the white
+      const mx = aim.x - aim.sx, my = aim.y - aim.sy, ml = Math.hypot(mx, my);
+      if (ml > b.r * 1.5) {
+        const dx = mx / ml, dy = my / ml, U = this.U, { t, hit } = this.guide(b, dx, dy);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(36,37,44,.3)'; ctx.setLineDash([3, 6]); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + dx * t, b.y + dy * t); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(36,37,44,.35)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(b.x + dx * t, b.y + dy * t, b.r, 0, TAU); ctx.stroke();
+        if (hit) { // which way the struck ball will go
+          const gx = b.x + dx * t, gy = b.y + dy * t, nx = (hit.x - gx) / (b.r + hit.r), ny = (hit.y - gy) / (b.r + hit.r);
+          ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(hit.x + nx * U * .15, hit.y + ny * U * .15); ctx.stroke();
+        }
+        ctx.restore();
       }
-      // the cue stick, drawn back from the ball by the pull
-      const back = b.r * 1.5 + pow * U * .2, sx = b.x - dx * back, sy = b.y - dy * back, ex = sx - dx * U * .7, ey = sy - dy * U * .7;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = 'rgba(20,20,30,.18)'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(sx + 2, sy + 4); ctx.lineTo(ex + 2, ey + 4); ctx.stroke();
-      const gr = ctx.createLinearGradient(sx, sy, ex, ey); gr.addColorStop(0, '#E9DFC6'); gr.addColorStop(.06, '#E9DFC6'); gr.addColorStop(.07, '#C79A5B'); gr.addColorStop(1, '#5A3A22');
-      ctx.strokeStyle = gr; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
-      ctx.strokeStyle = pow > .85 ? '#C2412F' : '#B8892B'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 2, -Math.PI / 2, -Math.PI / 2 + pow * TAU); ctx.stroke();
-      ctx.restore();
     }
   },
   resize(ow, oh) {
