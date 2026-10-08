@@ -65,7 +65,7 @@ canvas{display:block; width:100%; height:100%; touch-action:none}
 .toast{position:absolute; left:50%; top:14px; transform:translateX(-50%); width:max-content; max-width:calc(100% - 32px); box-sizing:border-box; padding:8px 14px; border-radius:12px; background:var(--ink); color:var(--slab); font-size:13px; line-height:1.35; text-align:center; pointer-events:none; opacity:0; transition:opacity .3s}
 .toast.show{opacity:1}
 .sheet{position:absolute; inset:0; display:grid; place-items:center; padding:16px; background:rgba(232,233,227,.72); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)}
-.card{width:100%; max-width:340px; background:var(--slab); border-radius:20px; padding:20px; box-shadow:0 10px 40px rgba(20,20,30,.18), inset 0 0 0 1px var(--rim); display:flex; flex-direction:column; gap:14px; box-sizing:border-box}
+.card{width:100%; max-width:340px; max-height:100%; overflow:auto; background:var(--slab); border-radius:20px; padding:20px; box-shadow:0 10px 40px rgba(20,20,30,.18), inset 0 0 0 1px var(--rim); display:flex; flex-direction:column; gap:14px; box-sizing:border-box}
 .card h2{margin:0; font-size:24px; font-weight:800; letter-spacing:-.02em; text-wrap:balance; font-variation-settings:"opsz" 96}
 .card p{margin:0; color:var(--muted); font-size:14px; line-height:1.45}
 .card .big{font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1; font-variant-numeric:tabular-nums}
@@ -230,6 +230,11 @@ const sfx = {
   win() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, f * 1.01, .22, .12, 'triangle'), i * 90)); },
   flick() { tone(300, 900, .12, .08, 'triangle'); },
   ring(v) { tone(400 + v * 60, 420 + v * 60, .25, .1, 'triangle'); },
+  putt() { tone(700, 500, .07, .12, 'triangle'); },
+  cue(p) { tone(900, 700, .05, .06 + p * .1, 'square'); },
+  click(v) { const now = performance.now(); if (now - (sfx.lastClick || 0) < 30) return; sfx.lastClick = now; tone(2200, 1900, .04, clamp(v / 4000, .02, .12), 'triangle'); },
+  boing() { tone(300, 620, .18, .1, 'triangle'); },
+  cup() { [330, 247].forEach((f, i) => setTimeout(() => tone(f, f * .9, .12, .14, 'triangle'), i * 70)); },
 };
 
 /* ---------- blobs ---------- */
@@ -299,12 +304,13 @@ function settle(b, dt) {
   for (let i = 0; i < N; i++) o[i] = clamp(o[i] + ov[i] * dt, -.35, .35);
   return true;
 }
-function boardWalls(b, e = .5) {
+function boardWalls(b, e = .5) { boxWalls(b, 0, 0, W, H, e); }
+function boxWalls(b, x0, y0, x1, y1, e = .5) {
   const bump = (ang, v) => { if (v > 80) { poke(b, ang, Math.min(1.5, v / 600)); if (v > 300) blop(b.r, 'wall'); } };
-  if (b.x < b.r) { b.x = b.r; if (b.vx < 0) { bump(Math.PI, -b.vx); b.vx *= -e; } }
-  if (b.x > W - b.r) { b.x = W - b.r; if (b.vx > 0) { bump(0, b.vx); b.vx *= -e; } }
-  if (b.y < b.r) { b.y = b.r; if (b.vy < 0) { bump(-Math.PI / 2, -b.vy); b.vy *= -e; } }
-  if (b.y > H - b.r) { b.y = H - b.r; if (b.vy > 0) { bump(Math.PI / 2, b.vy); b.vy *= -e; } }
+  if (b.x < x0 + b.r) { b.x = x0 + b.r; if (b.vx < 0) { bump(Math.PI, -b.vx); b.vx *= -e; } }
+  if (b.x > x1 - b.r) { b.x = x1 - b.r; if (b.vx > 0) { bump(0, b.vx); b.vx *= -e; } }
+  if (b.y < y0 + b.r) { b.y = y0 + b.r; if (b.vy < 0) { bump(-Math.PI / 2, -b.vy); b.vy *= -e; } }
+  if (b.y > y1 - b.r) { b.y = y1 - b.r; if (b.vy > 0) { bump(Math.PI / 2, b.vy); b.vy *= -e; } }
 }
 function blobPath(b) {
   const pts = [], a = b.as, pinch = b.holders.length === 2 ? (a - 1) * .38 : 0;
@@ -559,7 +565,7 @@ const maze = {
     const dropCells = mid.filter((_, i) => !spongeIdx.has(i));
     shuffle(dropCells);
     this.drops = dropCells.slice(0, 2 + Math.floor(L / 2)).map(cell => {
-      const [x, y] = ctr(cell); const b = makeBlob(x, y, c * .1, PAINTS[Math.floor(R() * 4)].c); return b;
+      const [x, y] = ctr(cell); const b = makeBlob(x, y, c * .1, PAINTS[Math.floor(R() * 4)].c); b.hx = x; b.hy = y; return b;
     });
     this.walls = walls; this.start = ctr(startCell); this.goal = ctr(far);
     this.paint = PAINTS[(L - 1) % 3].c;
@@ -570,7 +576,7 @@ const maze = {
     const c = this.c;
     this.r0 = c * .27;
     this.ball = makeBlob(this.start[0], this.start[1], this.r0, this.paint);
-    for (const d of this.drops) { d.gone = null; d.r = d.tr = c * .1; }
+    for (const d of this.drops) { d.gone = null; d.r = d.tr = c * .1; d.x = d.hx; d.y = d.hy; d.vx = d.vy = 0; d.o.fill(0); d.ov.fill(0); }
     for (const s of this.sponges) { s.stain = [.86, .74, .5]; s.soak = 0; }
     this.status = 'play'; this.time = 0;
     if (!fresh) this.ball.r = 1;
@@ -866,12 +872,437 @@ const flick = {
   },
 };
 
+/* ======================================================================
+   Shared pieces for the pull-back shot games (Mini Golf, Paint Pool)
+   ====================================================================== */
+// Rolling on felt or turf: drag proportional to speed plus a constant, so balls actually stop.
+function roll(b, dt, k, c) {
+  const sp = Math.hypot(b.vx, b.vy); if (!sp) return false;
+  const n = Math.max(0, sp * Math.exp(-dt * k) - c * dt);
+  if (n < 5) { b.vx = b.vy = 0; return false; }
+  b.vx *= n / sp; b.vy *= n / sp; b.x += b.vx * dt; b.y += b.vy * dt;
+  return true;
+}
+// Circle against a thick line segment; (wvx, wvy) is the wall's own velocity, for moving parts.
+function segCollide(b, x1, y1, x2, y2, thick, e, wvx = 0, wvy = 0) {
+  const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy;
+  const t = L2 ? clamp(((b.x - x1) * dx + (b.y - y1) * dy) / L2, 0, 1) : 0;
+  const px = x1 + dx * t, py = y1 + dy * t;
+  let nx = b.x - px, ny = b.y - py; const d = Math.hypot(nx, ny), rr = b.r * .95 + thick / 2;
+  if (d >= rr || d < 1e-6) return false;
+  nx /= d; ny /= d; b.x = px + nx * rr; b.y = py + ny * rr;
+  const vn = (b.vx - wvx) * nx + (b.vy - wvy) * ny;
+  if (vn < 0) {
+    b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny;
+    if (-vn > 100) poke(b, Math.atan2(-ny, -nx), Math.min(1.3, -vn / 500));
+    if (-vn > 350) blop(b.r, 'wall');
+  }
+  return true;
+}
+function circleCollide(b, cx, cy, cr, e) {
+  let nx = b.x - cx, ny = b.y - cy; const d = Math.hypot(nx, ny), rr = b.r * .95 + cr;
+  if (d >= rr || d < 1e-6) return false;
+  nx /= d; ny /= d; b.x = cx + nx * rr; b.y = cy + ny * rr;
+  const vn = b.vx * nx + b.vy * ny;
+  if (vn < 0) { b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny; poke(b, Math.atan2(-ny, -nx), 1.2); sfx.boing(); }
+  return true;
+}
+// Two balls of equal weight bounce apart (no merging in these games).
+function bounceBalls(a, b, e = .94) {
+  let nx = b.x - a.x, ny = b.y - a.y; const d = Math.hypot(nx, ny), min = a.r + b.r;
+  if (d >= min || d < 1e-6) return false;
+  nx /= d; ny /= d; const ov = (min - d) / 2;
+  a.x -= nx * ov; a.y -= ny * ov; b.x += nx * ov; b.y += ny * ov;
+  const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+  if (rv < 0) {
+    const j = -(1 + e) * rv / 2;
+    a.vx -= j * nx; a.vy -= j * ny; b.vx += j * nx; b.vy += j * ny;
+    const amt = Math.min(1.2, -rv / 700);
+    poke(a, Math.atan2(ny, nx), amt); poke(b, Math.atan2(-ny, -nx), amt);
+    sfx.click(-rv);
+  }
+  return true;
+}
+// Pull-back aiming: drag anywhere, away from where you want the ball to go, then let go.
+const aim = { id: null, sx: 0, sy: 0, x: 0, y: 0 };
+function aimRead() {
+  const dx = aim.sx - aim.x, dy = aim.sy - aim.y, L = Math.hypot(dx, dy);
+  return { dx: L ? dx / L : 0, dy: L ? dy / L : -1, pow: clamp(L / (Math.min(W, H) * .42), 0, 1) };
+}
+function aimDown(p) { if (aim.id != null) return; Object.assign(aim, { id: p.id, sx: p.x, sy: p.y, x: p.x, y: p.y }); hint(''); }
+function aimMove(p) { if (aim.id === p.id) { aim.x = p.x; aim.y = p.y; } }
+function aimUp(p) { if (aim.id !== p.id) return null; aim.id = null; const a = aimRead(); return a.pow < .05 ? null : a; }
+function drawAimArrow(b) {
+  const { dx, dy, pow } = aimRead(), U = Math.min(W, H);
+  const len = U * .08 + pow * U * .45;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(36,37,44,.12)'; ctx.lineWidth = 2; ctx.setLineDash([2, 5]);
+  ctx.beginPath(); ctx.moveTo(aim.sx, aim.sy); ctx.lineTo(aim.x, aim.y); ctx.stroke();
+  ctx.setLineDash([]);
+  const ex = b.x + dx * len, ey = b.y + dy * len;
+  ctx.strokeStyle = `rgba(36,37,44,${.35 + pow * .5})`; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(b.x + dx * b.r * 1.6, b.y + dy * b.r * 1.6); ctx.lineTo(ex, ey); ctx.stroke();
+  const a = Math.atan2(dy, dx), h = 9;
+  ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex - Math.cos(a - .5) * h, ey - Math.sin(a - .5) * h);
+  ctx.moveTo(ex, ey); ctx.lineTo(ex - Math.cos(a + .5) * h, ey - Math.sin(a + .5) * h); ctx.stroke();
+  // power ring
+  ctx.strokeStyle = pow > .85 ? '#C2412F' : '#B8892B'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 2.2, -Math.PI / 2, -Math.PI / 2 + pow * TAU); ctx.stroke();
+  ctx.restore();
+}
+function streak(g, b, a) { g.fillStyle = css(b.col, a); g.beginPath(); g.arc(b.x, b.y, b.r * .75, 0, TAU); g.fill(); }
+
+/* ======================================================================
+   MINI GOLF — six holes, pull back to putt
+   ====================================================================== */
+// Coordinates are fractions of the board (x of width, y of height); sizes are fractions of the short side.
+const HOLES = [
+  { par: 2, tee: [.5, .88], cup: [.5, .14], walls: [[.3, .5, .7, .5, 2.4]] },
+  { par: 3, tee: [.2, .88], cup: [.8, .14], walls: [[0, .62, .64, .62], [.36, .36, 1, .36]] },
+  { par: 3, tee: [.5, .88], cup: [.5, .13], walls: [[0, .5, .28, .5], [.72, .5, 1, .5]], mill: { c: [.5, .5], len: .27, w: 1.5 } },
+  { par: 3, tee: [.22, .88], cup: [.76, .16], pond: { c: [.47, .5], r: .27 }, mud: [.55, .64, 1, .8] },
+  { par: 2, tee: [.5, .9], cup: [.5, .12], bumpers: [[.27, .4, .075], [.73, .4, .075], [.5, .6, .085]] },
+  { par: 3, tee: [.15, .9], cup: [.15, .12], walls: [[0, .5, .74, .5], [.66, 0, 1, .24], [1, .76, .66, 1]] },
+];
+const golf = {
+  key: 'golf', name: 'Mini Golf', blurb: 'Six holes. Drag back to aim and putt your paint into the cup.',
+  enter() {
+    this.idx = 0; this.cards = [];
+    this.load();
+    setAction('restart', 'Start over from hole 1', () => { this.idx = 0; this.cards = []; this.load(); });
+    hint('Drag back anywhere to aim, like pulling a slingshot. Let go to putt.');
+  },
+  load() {
+    const h = HOLES[this.idx], U = Math.min(W, H), P = ([x, y]) => [x * W, y * H];
+    this.U = U; this.br = U * .03; this.cupR = this.br * 1.75; this.wt = U * .03;
+    this.walls = (h.walls || []).map(([x1, y1, x2, y2, t]) => ({ x1: x1 * W, y1: y1 * H, x2: x2 * W, y2: y2 * H, t: this.wt * (t || 1) }));
+    this.bumpers = (h.bumpers || []).map(([x, y, r]) => ({ x: x * W, y: y * H, r: r * U }));
+    this.pond = h.pond ? { x: h.pond.c[0] * W, y: h.pond.c[1] * H, r: h.pond.r * U } : null;
+    this.mud = h.mud ? { x0: h.mud[0] * W, y0: h.mud[1] * H, x1: h.mud[2] * W, y1: h.mud[3] * H } : null;
+    this.mill = h.mill ? { x: h.mill.c[0] * W, y: h.mill.c[1] * H, len: h.mill.len * U, w: h.mill.w, a: 0 } : null;
+    [this.cx, this.cy] = P(h.cup); this.tee = P(h.tee);
+    blobs = [];
+    this.ball = makeBlob(this.tee[0], this.tee[1], this.br, PAINTS[this.idx % 3].c);
+    this.ball.r = 1; blobs.push(this.ball);
+    this.rest = this.tee.slice(); this.strokes = 0; this.status = 'aim'; aim.id = null;
+    const [sc, sg] = layer(); this.stain = sc; this.sg = sg;
+    this.renderLayer(); hideSheet(); this.tray(); this.updateHud();
+  },
+  updateHud() { hud(`Hole ${this.idx + 1} · Par ${HOLES[this.idx].par}`, `${this.strokes} stroke${this.strokes === 1 ? '' : 's'}`, null); },
+  tray() {
+    const tray = $('tray'); tray.innerHTML = '';
+    const row = el('div', { className: 'queue' });
+    HOLES.forEach((h, i) => {
+      const d = el('i', { className: i < this.idx ? 'used' : i === this.idx ? 'next' : '' });
+      d.style.background = i < this.idx ? css(PAINTS[i % 3].c) : i === this.idx ? css(PAINTS[i % 3].c) : 'var(--rim)';
+      row.append(d);
+    });
+    const done = this.cards.reduce((a, s) => a + s, 0), par = HOLES.slice(0, this.cards.length).reduce((a, h) => a + h.par, 0);
+    const diff = done - par, rel = this.cards.length ? (diff === 0 ? 'even' : diff > 0 ? `+${diff}` : `−${-diff}`) : 'tee off';
+    const best = store.get('golfBest', null);
+    tray.append(row, el('div', { className: 'traynote', textContent: `Total ${done} (${rel})${best != null ? ` · Best ${best}` : ''}` }));
+  },
+  renderLayer() {
+    const [lc, g] = layer(); this.layer = lc;
+    if (this.mud) {
+      const m = this.mud; g.fillStyle = 'rgba(122,92,60,.28)';
+      g.beginPath(); g.roundRect ? g.roundRect(m.x0, m.y0, m.x1 - m.x0, m.y1 - m.y0, 14) : g.rect(m.x0, m.y0, m.x1 - m.x0, m.y1 - m.y0); g.fill();
+      g.fillStyle = 'rgba(90,64,40,.25)';
+      for (let i = 0; i < 40; i++) { const x = m.x0 + ((i * 37) % 100) / 100 * (m.x1 - m.x0), y = m.y0 + ((i * 61) % 100) / 100 * (m.y1 - m.y0); g.beginPath(); g.arc(x, y, 2 + (i % 3), 0, TAU); g.fill(); }
+    }
+    if (this.pond) {
+      const p = this.pond, gr = g.createRadialGradient(p.x, p.y, p.r * .2, p.x, p.y, p.r);
+      gr.addColorStop(0, '#B9CBD3'); gr.addColorStop(1, '#D3DEE1');
+      g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.fill();
+      g.strokeStyle = 'rgba(70,100,115,.35)'; g.lineWidth = 1.5;
+      for (let i = 0; i < 4; i++) { g.beginPath(); const y = p.y - p.r * .45 + i * p.r * .3, w = p.r * (.5 - Math.abs(i - 1.5) * .08); for (let k = 0; k <= 12; k++) { const x = p.x - w + k / 12 * 2 * w; g[k ? 'lineTo' : 'moveTo'](x, y + Math.sin(k * 1.3) * 2.5); } g.stroke(); }
+    }
+    // tee mark
+    g.strokeStyle = 'rgba(36,37,44,.2)'; g.setLineDash([3, 4]); g.lineWidth = 1.5;
+    g.beginPath(); g.arc(this.tee[0], this.tee[1], this.br * 2, 0, TAU); g.stroke(); g.setLineDash([]);
+    // cup: a paint can sunk in the green, with a little flag
+    const { cx, cy, cupR } = this;
+    g.fillStyle = '#9A9DA4'; g.beginPath(); g.arc(cx, cy, cupR + 2.5, 0, TAU); g.fill();
+    g.fillStyle = '#15161B'; g.beginPath(); g.arc(cx, cy, cupR, 0, TAU); g.fill();
+    g.strokeStyle = '#24252C'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx, cy - cupR * 3.4); g.stroke();
+    g.fillStyle = '#C2412F'; g.beginPath(); g.moveTo(cx, cy - cupR * 3.4); g.lineTo(cx + cupR * 1.6, cy - cupR * 2.95); g.lineTo(cx, cy - cupR * 2.5); g.closePath(); g.fill();
+    // walls and bumpers
+    g.save(); g.shadowColor = 'rgba(20,20,30,.28)'; g.shadowBlur = 5 * DPR; g.shadowOffsetY = 2 * DPR;
+    g.strokeStyle = '#3A3B45'; g.lineCap = 'round';
+    for (const w of this.walls) { g.lineWidth = w.t; g.beginPath(); g.moveTo(w.x1, w.y1); g.lineTo(w.x2, w.y2); g.stroke(); }
+    for (const b of this.bumpers) { g.fillStyle = '#3A3B45'; g.beginPath(); g.arc(b.x, b.y, b.r, 0, TAU); g.fill(); }
+    g.restore();
+    for (const b of this.bumpers) { g.strokeStyle = '#B8892B'; g.lineWidth = 3; g.beginPath(); g.arc(b.x, b.y, b.r * .62, 0, TAU); g.stroke(); }
+  },
+  millEnds() {
+    const m = this.mill, c = Math.cos(m.a) * m.len, s = Math.sin(m.a) * m.len;
+    return [m.x - c, m.y - s, m.x + c, m.y + s];
+  },
+  down(p) { if (this.status === 'aim') aimDown(p); },
+  move(p) { aimMove(p); },
+  up(p) {
+    const a = aimUp(p); if (!a || this.status !== 'aim') return;
+    const v = this.U * 4.6 * Math.pow(a.pow, 1.15);
+    this.ball.vx = a.dx * v; this.ball.vy = a.dy * v;
+    this.strokes++; this.status = 'rolling'; sfx.putt(); this.updateHud();
+  },
+  step(dt) {
+    const b = this.ball;
+    if (this.mill) this.mill.a += this.mill.w * dt;
+    settle(b, dt);
+    if (this.status === 'sunk' || this.status === 'splash') {
+      this.timer -= dt;
+      if (this.timer > 0) return;
+      if (this.status === 'splash') {
+        Object.assign(b, { x: this.rest[0], y: this.rest[1], vx: 0, vy: 0, gone: null, r: 1 }); b.tr = this.br;
+        this.status = 'aim'; return;
+      }
+      this.cards[this.idx] = this.strokes;
+      if (this.idx < HOLES.length - 1) { this.idx++; this.load(); } else this.finish();
+      return;
+    }
+    const inMud = this.mud && b.x > this.mud.x0 && b.x < this.mud.x1 && b.y > this.mud.y0 && b.y < this.mud.y1;
+    const moving = roll(b, dt, inMud ? 5 : 1.2, inMud ? 420 : 150);
+    for (const w of this.walls) segCollide(b, w.x1, w.y1, w.x2, w.y2, w.t, .55);
+    if (this.mill) {
+      const [x1, y1, x2, y2] = this.millEnds(), m = this.mill;
+      // velocity of the blade where the ball touches it
+      const dx = x2 - x1, dy = y2 - y1, t = clamp(((b.x - x1) * dx + (b.y - y1) * dy) / (dx * dx + dy * dy), 0, 1);
+      const px = x1 + dx * t, py = y1 + dy * t;
+      if (segCollide(b, x1, y1, x2, y2, this.wt * 1.1, .5, -m.w * (py - m.y), m.w * (px - m.x)) && this.status === 'aim') { this.status = 'rolling'; aim.id = null; }
+    }
+    for (const k of this.bumpers) circleCollide(b, k.x, k.y, k.r, 1.25);
+    boxWalls(b, 0, 0, W, H, .6);
+    const sp = Math.hypot(b.vx, b.vy);
+    if (sp > 40) streak(this.sg, b, .06);
+    // the cup: slow balls drop, fast ones lip out
+    const dc = Math.hypot(this.cx - b.x, this.cy - b.y);
+    if (dc < this.cupR * 1.4 && sp < this.U * 1.6 && dc > 1) { const pull = this.U * 3 * dt; b.vx += (this.cx - b.x) / dc * pull; b.vy += (this.cy - b.y) / dc * pull; }
+    if (dc < this.cupR * .85) {
+      if (sp < this.U * 1.3) {
+        this.status = 'sunk'; this.timer = 1.1; b.vx = b.vy = 0;
+        b.gone = { t: 0, x: this.cx, y: this.cy, r0: b.r, dur: .35 };
+        sfx.cup(); toast(this.strokes === 1 ? 'Hole in one!' : this.scoreName(this.strokes - HOLES[this.idx].par), 1400);
+        return;
+      } else { const a = (Math.random() - .5) * .9, c = Math.cos(a), s = Math.sin(a); [b.vx, b.vy] = [(b.vx * c - b.vy * s) * .7, (b.vx * s + b.vy * c) * .7]; }
+    }
+    if (this.pond && Math.hypot(this.pond.x - b.x, this.pond.y - b.y) < this.pond.r - b.r * .3) {
+      this.strokes++; this.status = 'splash'; this.timer = .9; b.vx = b.vy = 0;
+      b.gone = { t: 0, x: b.x, y: b.y, r0: b.r, dur: .5 }; sfx.fall();
+      toast('Splash! Turpentine. +1 stroke', 1600); this.updateHud(); return;
+    }
+    if (this.status === 'rolling' && !moving) {
+      if (this.strokes >= 8) { // pick up after 8
+        this.status = 'sunk'; this.timer = .6; toast('Picked up after 8 strokes', 1400); return;
+      }
+      this.status = 'aim'; this.rest = [b.x, b.y];
+    }
+  },
+  scoreName(d) { return ({ '-3': 'Albatross!', '-2': 'Eagle!', '-1': 'Birdie!', '0': 'Par', '1': 'Bogey', '2': 'Double bogey' })[d] || `+${d}`; },
+  finish() {
+    this.status = 'done'; sfx.win();
+    const total = this.cards.reduce((a, s) => a + s, 0), par = HOLES.reduce((a, h) => a + h.par, 0), diff = total - par;
+    const best = store.get('golfBest', null), isBest = best == null || total < best;
+    if (isBest) store.set('golfBest', total);
+    this.tray();
+    showSheet(card => {
+      card.append(el('h2', { textContent: isBest ? 'New best round!' : 'Round complete' }));
+      card.append(el('div', { className: 'big', textContent: `${total}` }));
+      card.append(el('p', { textContent: `${diff === 0 ? 'Even par' : diff > 0 ? `${diff} over par` : `${-diff} under par`} (par ${par}). Holes: ${this.cards.join(' · ')}.${best != null && !isBest ? ` Best: ${best}.` : ''}` }));
+      card.append(buttons([['Play again', () => { this.idx = 0; this.cards = []; this.load(); }, true]]));
+    });
+  },
+  draw() {
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (this.layer) ctx.drawImage(this.layer, 0, 0);
+    if (this.stain) ctx.drawImage(this.stain, 0, 0);
+    ctx.restore();
+    if (this.mill) {
+      const [x1, y1, x2, y2] = this.millEnds();
+      ctx.save(); ctx.shadowColor = 'rgba(20,20,30,.3)'; ctx.shadowBlur = 6 * DPR; ctx.shadowOffsetY = 3 * DPR;
+      ctx.strokeStyle = '#C2412F'; ctx.lineWidth = this.wt * 1.1; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore();
+      ctx.fillStyle = '#3A3B45'; ctx.beginPath(); ctx.arc(this.mill.x, this.mill.y, this.wt * .9, 0, TAU); ctx.fill();
+    }
+    drawBlob(this.ball);
+    if (aim.id != null && this.status === 'aim') drawAimArrow(this.ball);
+  },
+  resize() { this.load(); },
+};
+
+/* ======================================================================
+   PAINT POOL — sink every ball; each pocket mixes what falls in
+   ====================================================================== */
+const POOL_COLORS = [[.84, .12, .17], [.98, .84, .14], [.10, .23, .75], [.95, .5, .1], [.15, .55, .25], [.45, .2, .6], [.95, .55, .7], [.1, .55, .55], [.45, .27, .12], [.11, .11, .13]];
+const pool = {
+  key: 'pool', name: 'Paint Pool', blurb: 'Drag back to cue. Sink all ten balls; each pocket mixes the paint that falls in.',
+  enter() {
+    this.newGame();
+    setAction('restart', 'Rack them up again', () => this.newGame());
+    hint('Drag back anywhere to pull the cue, then let go. Don’t sink the white!');
+  },
+  geometry() {
+    const U = Math.min(W, H); this.U = U;
+    this.m = U * .065; this.br = U * .033;
+    const m = this.m, pr = this.br * 1.85;
+    this.pockets = [[m, m, pr], [W - m, m, pr], [m, H / 2, pr * .9], [W - m, H / 2, pr * .9], [m, H - m, pr], [W - m, H - m, pr]]
+      .map(([x, y, r], i) => { const old = this.pockets && this.pockets[i]; return { x, y, r, col: old ? old.col : null, n: old ? old.n : 0 }; });
+    this.head = [W / 2, H * .74];
+  },
+  newGame() {
+    this.pockets = null; this.geometry();
+    blobs = []; this.shots = 0; this.sunk = 0; this.status = 'aim'; aim.id = null; this.scratch = false;
+    const r = this.br, ax = W / 2, ay = H * .34, gap = r * 2.04;
+    let i = 0;
+    for (let row = 0; row < 4; row++) for (let j = 0; j <= row; j++) {
+      const b = makeBlob(ax + (j - row / 2) * gap, ay - row * gap * .87, r, POOL_COLORS[i++]); blobs.push(b);
+    }
+    this.cue = makeBlob(this.head[0], this.head[1], r, PAINTS[3].c); this.cue.isCue = true; blobs.push(this.cue);
+    const [sc, sg] = layer(); this.stain = sc; this.sg = sg;
+    this.renderLayer(); hideSheet(); this.tray(); this.updateHud();
+  },
+  updateHud() { hud(`Sunk ${this.sunk} of 10`, `${this.shots} shot${this.shots === 1 ? '' : 's'}`, null); },
+  tray() {
+    const tray = $('tray'); tray.innerHTML = '';
+    const row = el('div', { className: 'queue' });
+    for (const p of this.pockets) { const d = el('i', { className: p.col ? '' : 'used' }); d.style.background = p.col ? css(p.col) : 'var(--rim)'; row.append(d); }
+    const best = store.get('poolBest', null);
+    const names = this.pockets.filter(p => p.col).map(p => nameColor(p.col));
+    tray.append(row, el('div', { className: 'traynote', textContent: names.length ? `Pockets: ${[...new Set(names)].slice(0, 3).join(', ')}` : (best != null ? `Best: ${best} shots` : 'Six pockets, six paint pots') }));
+  },
+  renderLayer() {
+    const [lc, g] = layer(); this.layer = lc;
+    const m = this.m;
+    // rails
+    g.fillStyle = '#3A3B45';
+    g.beginPath(); g.rect(0, 0, W, H); g.rect(m, m, W - 2 * m, H - 2 * m); g.fill('evenodd');
+    g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 2; g.strokeRect(m - 1, m - 1, W - 2 * m + 2, H - 2 * m + 2);
+    g.fillStyle = 'rgba(241,242,236,.5)';
+    for (const f of [.25, .5, .75]) { for (const [x, y] of [[f * W, m / 2], [f * W, H - m / 2], [m / 2, f * H], [W - m / 2, f * H]]) { if (f === .5 && x < W * .1 || f === .5 && x > W * .9) continue; g.beginPath(); g.arc(x, y, 2, 0, TAU); g.fill(); } }
+    // head string and spot
+    g.strokeStyle = 'rgba(36,37,44,.16)'; g.setLineDash([5, 6]); g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(m, this.head[1]); g.lineTo(W - m, this.head[1]); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(36,37,44,.25)'; g.beginPath(); g.arc(W / 2, H * .34, 2.5, 0, TAU); g.fill();
+  },
+  down(p) { if (this.status === 'aim') aimDown(p); },
+  move(p) { aimMove(p); },
+  up(p) {
+    const a = aimUp(p); if (!a || this.status !== 'aim') return;
+    const v = this.U * 7 * Math.pow(a.pow, 1.2);
+    this.cue.vx = a.dx * v; this.cue.vy = a.dy * v;
+    this.shots++; this.status = 'rolling'; sfx.cue(a.pow); this.updateHud();
+  },
+  nearPocket(b) { return this.pockets.some(p => Math.hypot(p.x - b.x, p.y - b.y) < p.r * 1.45); },
+  step(dt) {
+    let moving = false;
+    const L = blobs.filter(b => !b.gone);
+    for (const b of blobs) settle(b, dt);
+    for (const b of L) {
+      if (roll(b, dt, .75, 95)) moving = true;
+      if (Math.hypot(b.vx, b.vy) > 60) streak(this.sg, b, .045);
+    }
+    for (let it = 0; it < 2; it++) for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) bounceBalls(L[i], L[j]);
+    for (const b of L) {
+      if (!this.nearPocket(b)) boxWalls(b, this.m, this.m, W - this.m, H - this.m, .72);
+      boxWalls(b, 0, 0, W, H, .3);
+      for (const p of this.pockets) {
+        const d = Math.hypot(p.x - b.x, p.y - b.y);
+        if (d < p.r && d > 1) { const pull = this.U * 2.5 * dt; b.vx += (p.x - b.x) / d * pull; b.vy += (p.y - b.y) / d * pull; }
+        if (d < p.r * .72) { this.sink(b, p); break; }
+      }
+    }
+    if (blobs.some(b => b.gone && b.gone.t < 1)) moving = true;
+    blobs = blobs.filter(b => !b.gone || b.gone.t < 1);
+    if (this.status === 'rolling' && !moving) {
+      if (this.scratch) {
+        this.scratch = false;
+        let [x, y] = this.head; while (blobs.some(o => !o.gone && Math.hypot(o.x - x, o.y - y) < this.br * 2.2)) x += this.br * 2.3;
+        this.cue = makeBlob(Math.min(x, W - this.m - this.br), y, this.br, PAINTS[3].c); this.cue.isCue = true; this.cue.r = 1; blobs.push(this.cue);
+      }
+      if (this.sunk >= 10) this.finish(); else this.status = 'aim';
+    }
+  },
+  sink(b, p) {
+    b.gone = { t: 0, x: p.x, y: p.y, r0: b.r, dur: .3 }; b.vx = b.vy = 0;
+    if (b.isCue) { this.scratch = true; this.shots++; sfx.fall(); toast('Scratch! The white went in. +1 shot', 1600); this.updateHud(); return; }
+    p.col = p.col ? mixPaint(p.col, p.n || 1, b.tcol, 1) : b.tcol.slice(); p.n = (p.n || 0) + 1;
+    this.sunk++; sfx.cup(); this.updateHud(); this.tray();
+  },
+  finish() {
+    this.status = 'done'; sfx.win();
+    const best = store.get('poolBest', null), isBest = best == null || this.shots < best;
+    if (isBest) store.set('poolBest', this.shots);
+    const mixes = [...new Set(this.pockets.filter(p => p.col).map(p => nameColor(p.col).toLowerCase()))];
+    showSheet(card => {
+      card.append(el('h2', { textContent: isBest ? 'Table cleared, new best!' : 'Table cleared!' }));
+      card.append(el('div', { className: 'big', textContent: `${this.shots}` }));
+      card.append(el('p', { textContent: `shots to sink all ten.${best != null && !isBest ? ` Best: ${best}.` : ''} Your pockets mixed ${mixes.join(', ')}.` }));
+      card.append(buttons([['Admire it', hideSheet], ['Rack again', () => this.newGame(), true]]));
+    });
+  },
+  guide(b, dx, dy) { // where the cue ball would first touch something
+    let best = Infinity, hit = null;
+    for (const o of blobs) {
+      if (o === b || o.gone) continue;
+      const ox = o.x - b.x, oy = o.y - b.y, proj = ox * dx + oy * dy; if (proj <= 0) continue;
+      const perp2 = ox * ox + oy * oy - proj * proj, R2 = (b.r + o.r) ** 2; if (perp2 > R2) continue;
+      const t = proj - Math.sqrt(R2 - perp2); if (t < best) { best = t; hit = o; }
+    }
+    const m = this.m + b.r;
+    const tw = Math.min(dx > 0 ? (W - m - b.x) / dx : dx < 0 ? (m - b.x) / dx : Infinity, dy > 0 ? (H - m - b.y) / dy : dy < 0 ? (m - b.y) / dy : Infinity);
+    if (tw < best) { best = tw; hit = null; }
+    return { t: Math.max(0, best), hit };
+  },
+  draw() {
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (this.stain) ctx.drawImage(this.stain, 0, 0);
+    if (this.layer) ctx.drawImage(this.layer, 0, 0);
+    ctx.restore();
+    for (const p of this.pockets) {
+      ctx.fillStyle = '#121217'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
+      if (p.col) { ctx.fillStyle = css(p.col); ctx.beginPath(); ctx.arc(p.x, p.y, p.r * .62, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.beginPath(); ctx.arc(p.x - p.r * .2, p.y - p.r * .22, p.r * .18, 0, TAU); ctx.fill(); }
+    }
+    for (const b of blobs) if (b.gone) drawBlob(b);
+    for (const b of blobs) if (!b.gone) drawBlob(b);
+    const b = this.cue;
+    if (aim.id != null && this.status === 'aim' && b && !b.gone) {
+      const { dx, dy, pow } = aimRead(), U = this.U;
+      const { t, hit } = this.guide(b, dx, dy);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(36,37,44,.3)'; ctx.setLineDash([3, 6]); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + dx * t, b.y + dy * t); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(36,37,44,.35)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(b.x + dx * t, b.y + dy * t, b.r, 0, TAU); ctx.stroke();
+      if (hit) { // which way the struck ball will go
+        const gx = b.x + dx * t, gy = b.y + dy * t, nx = (hit.x - gx) / (b.r + hit.r), ny = (hit.y - gy) / (b.r + hit.r);
+        ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(hit.x + nx * U * .15, hit.y + ny * U * .15); ctx.stroke();
+      }
+      // the cue stick, drawn back from the ball by the pull
+      const back = b.r * 1.5 + pow * U * .2, sx = b.x - dx * back, sy = b.y - dy * back, ex = sx - dx * U * .7, ey = sy - dy * U * .7;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(20,20,30,.18)'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(sx + 2, sy + 4); ctx.lineTo(ex + 2, ey + 4); ctx.stroke();
+      const gr = ctx.createLinearGradient(sx, sy, ex, ey); gr.addColorStop(0, '#E9DFC6'); gr.addColorStop(.06, '#E9DFC6'); gr.addColorStop(.07, '#C79A5B'); gr.addColorStop(1, '#5A3A22');
+      ctx.strokeStyle = gr; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.strokeStyle = pow > .85 ? '#C2412F' : '#B8892B'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 2, -Math.PI / 2, -Math.PI / 2 + pow * TAU); ctx.stroke();
+      ctx.restore();
+    }
+  },
+  resize(ow, oh) {
+    for (const b of blobs) { b.x *= W / ow; b.y *= H / oh; }
+    this.geometry(); this.renderLayer();
+    const [sc, sg] = layer(); this.stain = sc; this.sg = sg;
+  },
+};
+
 /* ---------- modes ---------- */
-const MODES = { studio, maze, flick };
+const MODES = { studio, maze, flick, golf, pool };
+if (location.hostname === 'localhost') window.__gloop = { MODES, get blobs() { return blobs; } }; // local testing only
 let mode = studio;
 function setMode(key, data) {
   for (const b of blobs) b.holders = [];
   for (const p of pointers.values()) p.blob = null;
+  aim.id = null;
   hideSheet();
   mode = MODES[key] || studio; store.set('mode', mode.key);
   $('modeName').textContent = mode.name;
@@ -893,6 +1324,19 @@ function drawPickIcon(canvas, key) {
   if (key === 'flick') {
     [[44, '#E3E4DC'], [30, '#F4F4EF'], [16, '#C9A24A']].forEach(([r, c]) => { g.fillStyle = c; g.beginPath(); g.arc(56, 44, r, 0, TAU); g.fill(); g.strokeStyle = 'rgba(36,37,44,.3)'; g.lineWidth = 2; g.stroke(); });
     dot(56, 96, 9, PAINTS[0].c);
+  }
+  if (key === 'golf') {
+    g.fillStyle = '#9A9DA4'; g.beginPath(); g.arc(64, 70, 13, 0, TAU); g.fill();
+    g.fillStyle = '#15161B'; g.beginPath(); g.arc(64, 70, 10, 0, TAU); g.fill();
+    g.strokeStyle = '#24252C'; g.lineWidth = 3; g.beginPath(); g.moveTo(64, 70); g.lineTo(64, 22); g.stroke();
+    g.fillStyle = '#C2412F'; g.beginPath(); g.moveTo(64, 22); g.lineTo(88, 30); g.lineTo(64, 38); g.closePath(); g.fill();
+    dot(30, 92, 9, PAINTS[1].c);
+  }
+  if (key === 'pool') {
+    g.fillStyle = '#3A3B45'; g.fillRect(0, 0, s, 10); g.fillRect(0, s - 10, s, 10); g.fillRect(0, 0, 10, s); g.fillRect(s - 10, 0, 10, s);
+    const r = 9; let i = 0;
+    for (let row = 0; row < 3; row++) for (let j = 0; j <= row; j++) dot(56 + (j - row / 2) * r * 2.1, 52 - row * r * 1.85, r, POOL_COLORS[i++]);
+    dot(56, 88, r, PAINTS[3].c);
   }
 }
 function openMenu() {
@@ -933,6 +1377,7 @@ cv.addEventListener('pointermove', e => {
 function endPointer(e) {
   const p = pointers.get(e.pointerId); if (!p) return;
   pointers.delete(e.pointerId);
+  if (e.type === 'pointercancel' && aim.id === p.id) aim.id = null;
   mode.up(p);
 }
 cv.addEventListener('pointerup', endPointer);
