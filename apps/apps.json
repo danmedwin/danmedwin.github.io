@@ -1,5 +1,5 @@
 {
-  "version": "0.7.2",
+  "version": "0.7.3",
   "categories": [
     {
       "id": "jewish",
@@ -309,6 +309,17 @@
       "desc": "The space inside a language model, drawn as a night sky you can fly through.",
       "created": "2026-07-19",
       "updated": "2026-07-19"
+    },
+    {
+      "id": "glob",
+      "name": "Glob",
+      "cat": "games",
+      "url": "https://techrabbi.org/glob/",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "Squeeze blobs of paint onto your phone and fling them together to mix colors. Five games are built on the paint: a tilt maze, mini golf, pool, a target toss, and color-matching puzzles.",
+      "created": "2026-10-08",
+      "updated": "2026-10-08",
+      "note": "Made for phones. Add it to your home screen to play it like an app."
     }
   ]
 }
