@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 400" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Brief constellations: drifting points that briefly gather into constellations when clicked">
+  <title>Brief constellations</title>
+  <style>
+    svg { cursor: crosshair; }
+    .bg { fill: #16161a; }
+    .dot { fill: #6f6f78; transition: fill 1.4s, r 1.4s; }
+    .dot.on { fill: #D85A30; }
+    .line { fill: none; stroke: #D85A30; stroke-width: 1.2; stroke-linejoin: round; }
+    .caption { fill: #5a5a62; font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  </style>
+  <rect class="bg" x="-2000" y="-2000" width="5000" height="5000"/>
+  <g id="lines"></g>
+  <g id="dots"></g>
+  <text class="caption" x="340" y="388" text-anchor="middle">Click anywhere to start a conversation</text>
+  <script><![CDATA[
+    const NS = "http://www.w3.org/2000/svg", W = 680, H = 380;
+    const svg = document.documentElement;
+    const lines = document.getElementById("lines"), dotLayer = document.getElementById("dots");
+    const dots = [], cons = [];
+
+    for (let i = 0; i < 170; i++) {
+      const el = document.createElementNS(NS, "circle");
+      const r = 1 + Math.random() * 1.6;
+      el.setAttribute("class", "dot");
+      el.setAttribute("r", r);
+      dotLayer.appendChild(el);
+      const a = Math.random() * 6.283, s = 0.05 + Math.random() * 0.15;
+      dots.push({ el, r, x: Math.random() * W, y: Math.random() * H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, c: null });
+    }
+
+    function spawn(cx, cy, now) {
+      const free = dots.filter(d => !d.c)
+        .sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
+      const k = 9 + Math.floor(Math.random() * 7), grp = free.slice(0, k);
+      if (grp.length < 4) return;
+
+      // Connect the group as a nearest-neighbor chain
+      const order = [grp[0]], rest = grp.slice(1);
+      while (rest.length) {
+        const l = order[order.length - 1];
+        let bi = 0, bd = 1e9;
+        rest.forEach((d, i) => { const dd = Math.hypot(d.x - l.x, d.y - l.y); if (dd < bd) { bd = dd; bi = i; } });
+        order.push(rest.splice(bi, 1)[0]);
+      }
+
+      const path = document.createElementNS(NS, "path");
+      path.setAttribute("class", "line");
+      lines.appendChild(path);
+      const con = { order, path, t0: now, cx, cy, freed: false };
+      order.forEach(d => {
+        d.c = con; d.ox = d.x; d.oy = d.y;
+        d.tx = cx + (d.x - cx) * 0.42; d.ty = cy + (d.y - cy) * 0.42;
+        d.ph = Math.random() * 6.283;
+        d.el.setAttribute("class", "dot on");
+        d.el.setAttribute("r", d.r + 1.4);
+      });
+      cons.push(con);
+    }
+
+    const ease = u => u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+    let last = 0;
+
+    function frame(now) {
+      if (now - last > 3800) { last = now; spawn(90 + Math.random() * (W - 180), 70 + Math.random() * (H - 140), now); }
+
+      dots.forEach(d => {
+        const c = d.c;
+        if (c && !c.freed) {
+          const e = (now - c.t0) / 1000;
+          if (e < 1.8) { const u = ease(e / 1.8); d.x = d.ox + (d.tx - d.ox) * u; d.y = d.oy + (d.ty - d.oy) * u; }
+          else { d.x = d.tx + Math.sin(now / 700 + d.ph) * 1.5; d.y = d.ty + Math.cos(now / 800 + d.ph) * 1.5; }
+        } else {
+          d.x += d.vx; d.y += d.vy;
+          if (d.x < -5) d.x = W + 5; if (d.x > W + 5) d.x = -5;
+          if (d.y < -5) d.y = H + 5; if (d.y > H + 5) d.y = -5;
+        }
+        d.el.setAttribute("cx", d.x.toFixed(1));
+        d.el.setAttribute("cy", d.y.toFixed(1));
+      });
+
+      for (let i = cons.length - 1; i >= 0; i--) {
+        const c = cons[i], e = (now - c.t0) / 1000, o = c.order, n = o.length - 1;
+        if (e > 4.6 && !c.freed) {
+          c.freed = true;
+          o.forEach(d => {
+            const a = Math.atan2(d.y - c.cy, d.x - c.cx), s = 0.12 + Math.random() * 0.12;
+            d.vx = Math.cos(a) * s; d.vy = Math.sin(a) * s; d.c = null;
+            d.el.setAttribute("class", "dot");
+            d.el.setAttribute("r", d.r);
+          });
+        }
+        const prog = Math.min(1, e / 2.2) * n;
+        let s = `M${o[0].x.toFixed(1)} ${o[0].y.toFixed(1)}`;
+        for (let j = 1; j <= n; j++) {
+          const f = Math.min(1, prog - (j - 1));
+          if (f <= 0) break;
+          const a = o[j - 1], b = o[j];
+          s += ` L${(a.x + (b.x - a.x) * f).toFixed(1)} ${(a.y + (b.y - a.y) * f).toFixed(1)}`;
+        }
+        c.path.setAttribute("d", s);
+        const op = e < 4.6 ? 0.85 : Math.max(0, 0.85 * (1 - (e - 4.6) / 2.2));
+        c.path.setAttribute("stroke-opacity", op.toFixed(2));
+        if (e > 6.9) { c.path.remove(); cons.splice(i, 1); }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    svg.addEventListener("click", ev => {
+      const pt = svg.createSVGPoint();
+      pt.x = ev.clientX; pt.y = ev.clientY;
+      const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      spawn(p.x, p.y, performance.now());
+    });
+    requestAnimationFrame(frame);
+  ]]></script>
+</svg>

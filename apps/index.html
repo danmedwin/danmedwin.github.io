@@ -417,7 +417,7 @@ const GITHUB_ICON =
 function cardHTML(app) {
   const labels = app.labels.map((l) =>
     `<span class="label" data-kind="${kindFor(l)}">${esc(l)}</span>`).join('');
-  const dates = app.created === app.updated
+  const dates = monthYear(app.created) === monthYear(app.updated)
     ? monthYear(app.created)
     : `${monthYear(app.created)} &rarr; ${monthYear(app.updated)}`;
   const source = app.repo

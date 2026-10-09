@@ -1,5 +1,5 @@
 {
-  "version": "0.7.3",
+  "version": "0.7.4",
   "categories": [
     {
       "id": "jewish",
@@ -320,6 +320,39 @@
       "created": "2026-10-08",
       "updated": "2026-10-08",
       "note": "Made for phones. Add it to your home screen to play it like an app."
+    },
+    {
+      "id": "brief-constellations",
+      "name": "Brief Constellations",
+      "cat": "claude",
+      "url": "https://techrabbi.org/svg-explorations/brief-constellations.svg",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "Drifting points pull together into a constellation wherever you click, hold for a moment, then let go. Claude's picture of what a conversation is.",
+      "created": "2026-10-01",
+      "updated": "2026-10-01",
+      "note": "One SVG file. Click anywhere to start a conversation."
+    },
+    {
+      "id": "every-next-word",
+      "name": "Every Next Word",
+      "cat": "claude",
+      "url": "https://techrabbi.org/svg-explorations/every-next-word.svg",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "A line writes itself one step at a time, choosing from a fan of faint possibilities. Move up for adventurous, down for careful.",
+      "created": "2026-10-01",
+      "updated": "2026-10-09",
+      "note": "One SVG file. On a phone, drag your finger up or down."
+    },
+    {
+      "id": "call-and-response",
+      "name": "Call and Response",
+      "cat": "claude",
+      "url": "https://techrabbi.org/svg-explorations/call-and-response.svg",
+      "repo": "danmedwin/danmedwin.github.io",
+      "desc": "Draw a shape and pause. A second line answers in mirror image, steadier than yours and with a flourish of its own.",
+      "created": "2026-10-01",
+      "updated": "2026-10-01",
+      "note": "One SVG file. Draw with a mouse, or drag a finger on a phone."
     }
   ]
 }

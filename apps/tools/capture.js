@@ -20,6 +20,8 @@ const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const SHOTS = path.join(__dirname, '..', 'shots');
 const CATALOG = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'apps.json'), 'utf8'));
 const WIDTH = 1200;
+// Shoot a local copy before it goes live: CAPTURE_ORIGIN=http://localhost:8765
+const ORIGIN = process.env.CAPTURE_ORIGIN;
 const QUALITY = 0.82;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -36,9 +38,24 @@ const WAIT = {
   'alien-world': 1500, 'thread-hiker': 1500, 'blacktop': 1200, 'race-car-simulator': 1200,
   'glyphrush': 2500, 'threads': 2500, 'palimpsest': 22000, 'streams': 6000, 'mailbox-lab': 5000,
   'cosmic-drift': 5000, 'cosmic-workshop': 4000, 'latent-sky': 6000,
+  'brief-constellations': 1800, 'every-next-word': 9000, 'call-and-response': 3600,
 };
 
 const WARMUPS = {
+  // The SVG explorations only come alive once someone interacts with them.
+  'brief-constellations': async (page) => {
+    for (const [x, y] of [[330, 300], [900, 520], [640, 210]]) {
+      await page.mouse.click(x, y); await sleep(700);
+    }
+  },
+  'every-next-word': async (page) => { await page.mouse.move(640, 260); },
+  'call-and-response': async (page) => {
+    for (let i = 0; i <= 60; i++) {                // a spiral on the left half
+      const t = i / 60 * 4 * Math.PI, r = 30 + i * 3.2;
+      await page.mouse.move(330 + r * Math.cos(t), 380 + r * Math.sin(t));
+      await sleep(20);
+    }
+  },
   'alien-world': async (page) => {
     await page.click('#startBtn'); await sleep(4000);
     await hold(page, 'w', 1800); await sleep(600);
@@ -98,7 +115,8 @@ const WARMUPS = {
   for (const app of targets) {
     const page = await browser.newPage();
     try {
-      await page.goto(app.url, { waitUntil: 'networkidle2', timeout: 45000 });
+      const url = ORIGIN ? app.url.replace('https://techrabbi.org', ORIGIN) : app.url;
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
       await page.evaluate(() => {
         document.querySelectorAll('audio,video').forEach((m) => { m.muted = true; m.pause?.(); });
       }).catch(() => {});
