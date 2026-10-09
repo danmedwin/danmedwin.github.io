@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Understanding and Using AI | Tech Rabbi</title>
+<meta name="description" content="Slides for a hands-on introduction to AI with Rabbi Dan Medwin: what AI is, how to use it, and how to stay safe.">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
+<!--
+  LAYOUT SYSTEM (1920 x 1080 stage, letterboxed)
+
+  cover    navy, faint gold grid and glow (same as the home page hero), serif title
+  section  navy, mono "Part N" kicker, large serif heading, italic subtitle
+  content  paper, mono kicker, serif headline top-left, body below, footer with title and number
+  demo     paper; a navy "You type" bubble with the prompt, then a "Notice" list
+  closing  navy, Hebrew line in gold, call to action, QR card
+
+  Backgrounds: navy and paper only. Cards are white on paper.
+  Type floor: 24px (footer chrome). Body copy 32px and up.
+
+  Keys: arrows / space / PageUp / PageDown, Home, End, F fullscreen,
+        N toggles speaker notes on this screen, P opens a presenter window.
+  Notes live beside each slide in <aside class="notes">.
+-->
+<script>
+/* Fill these in at the venue. Empty values show "ask a volunteer." */
+const CONFIG = {
+  wifiNetwork: '',
+  wifiPassword: '',
+  pageUrl: 'techrabbi.org/ai'
+};
+</script>
+<style>
+:root{
+  color-scheme: light;
+  --navy:#0f1b2d; --navy-deep:#0b1422; --navy-2:#1a2d4a;
+  --gold:#d4a853; --gold-soft:#e8c97a; --gold-ink:#8a6516; --gold-wash:#f3e7c9;
+  --cream:#eee8db; --paper:#f5f0e8; --white:#ffffff;
+  --slate:#9aa3b4; --ink:#0f1b2d; --ink-soft:#4b5565;
+  --brick:#9b3a2c; --brick-wash:#f6e4de;
+  --line:rgba(255,255,255,.10); --line-ink:rgba(15,27,45,.12);
+  --serif:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --hebrew:'Frank Ruhl Libre', 'Times New Roman', serif;
+  --r:18px;
+  --shadow:0 12px 36px rgba(15,27,45,.07);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#05090f;color:var(--ink);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+.view{position:fixed;inset:0;overflow:hidden}
+.stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.5)}
+.stage > section{position:absolute;inset:0;display:none;overflow:hidden}
+.stage > section.active{display:block}
+.notes{display:none}
+[lang="he"]{font-family:var(--hebrew);direction:rtl;unicode-bidi:isolate}
+em{font-style:italic}
+
+/* ---------- shared type ---------- */
+.kicker{margin:0;font:500 24px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink)}
+h1,h2,h3,p{margin:0}
+h2{font:700 84px/1.08 var(--serif);color:var(--navy);letter-spacing:-.005em;text-wrap:balance}
+.lede{font:400 38px/1.4 var(--sans);color:var(--ink-soft);max-width:1500px}
+
+/* ---------- content slides ---------- */
+.content{background:var(--paper);padding:84px 112px 0}
+.content .kicker{margin-bottom:22px}
+.content .body{margin-top:52px}
+.foot{position:absolute;left:112px;right:112px;bottom:44px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line-ink);padding-top:18px;font:400 24px/1 var(--mono);color:var(--ink-soft)}
+.foot b{font-weight:500;color:var(--gold-ink)}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:36px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}
+.card{background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:40px 44px;box-shadow:var(--shadow)}
+.card h3{font:700 40px/1.2 var(--sans);color:var(--navy);margin-bottom:14px}
+.card p{font:400 32px/1.4 var(--sans);color:var(--ink-soft)}
+.card.navy{background:var(--navy);border-color:var(--navy)}
+.card.navy h3{color:var(--gold)}
+.card.navy p{color:var(--cream)}
+
+.statement{background:var(--white);border-left:8px solid var(--gold);border-radius:0 var(--r) var(--r) 0;padding:40px 52px;font:400 48px/1.35 var(--serif);color:var(--navy);box-shadow:var(--shadow)}
+.statement strong{font-weight:700}
+
+.callout{margin-top:44px;background:var(--navy);color:var(--cream);border-radius:var(--r);padding:30px 44px;font:500 34px/1.35 var(--sans)}
+.callout b{color:var(--gold);font-weight:600}
+
+/* numbered rows */
+.rows{display:grid;gap:22px}
+.row{display:grid;grid-template-columns:84px 1fr;align-items:center;gap:32px;background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:26px 40px;box-shadow:var(--shadow)}
+.num{width:84px;height:84px;border-radius:50%;background:var(--navy);color:var(--gold);display:grid;place-items:center;font:700 42px/1 var(--serif)}
+.row h3{font:700 40px/1.2 var(--sans);color:var(--navy)}
+.row p{font:400 32px/1.35 var(--sans);color:var(--ink-soft);margin-top:6px}
+.rows.compact{gap:18px}
+.rows.compact .row{padding:20px 40px}
+.rows.compact .num{width:72px;height:72px;font-size:36px}
+.rows.inline{gap:16px}
+.rows.inline .row{grid-template-columns:72px 400px 1fr;gap:28px;padding:18px 36px}
+.rows.inline .num{width:72px;height:72px;font-size:36px}
+.rows.inline .row > div:not(.num){display:contents}
+.rows.inline .row p{margin-top:0}
+
+/* check and cross lists */
+.marks{list-style:none;margin:0;padding:0;display:grid;gap:24px}
+.marks li{display:grid;grid-template-columns:56px 1fr;gap:20px;align-items:start;font:400 36px/1.38 var(--sans);color:var(--ink)}
+.marks li::before{font:700 40px/1.1 var(--sans);text-align:center}
+.marks.yes li::before{content:"✓";color:var(--gold-ink)}
+.marks.no li::before{content:"✗";color:var(--brick)}
+.marks li strong{font-weight:700;color:var(--navy)}
+.marks li span{color:var(--ink-soft)}
+.marks.big{gap:46px}
+.marks.big li{font-size:42px;grid-template-columns:64px 1fr}
+.marks.big li::before{font-size:46px}
+
+.dodont{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.dodont .col{background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.dodont .col h3{padding:22px 40px;font:700 34px/1 var(--mono);letter-spacing:.12em;color:var(--white)}
+.dodont .do h3{background:var(--navy);color:var(--gold)}
+.dodont .dont h3{background:var(--brick)}
+.dodont ul{list-style:none;margin:0;padding:34px 40px 40px;display:grid;gap:26px}
+.dodont li{font:400 37px/1.35 var(--sans);color:var(--ink);padding-left:34px;position:relative}
+.dodont li::before{content:"";position:absolute;left:0;top:.55em;width:14px;height:14px;border-radius:50%;background:var(--gold)}
+.dodont .dont li::before{background:var(--brick)}
+
+/* tiles (3 x 2) */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px}
+.tile{background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:36px 40px;box-shadow:var(--shadow);border-top:6px solid var(--gold)}
+.tile h3{font:700 38px/1.2 var(--sans);color:var(--navy);margin-bottom:10px}
+.tile p{font:400 31px/1.38 var(--sans);color:var(--ink-soft)}
+
+/* demo slides */
+.demo .body{display:grid;grid-template-columns:1.25fr 1fr;gap:64px;align-items:start}
+.bubble{background:var(--navy);border-radius:28px 28px 28px 6px;padding:44px 52px 50px;box-shadow:0 18px 50px rgba(15,27,45,.18)}
+.bubble .who{font:500 24px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
+.bubble p{font:400 46px/1.38 var(--sans);color:var(--cream)}
+.bubble .chip{display:inline-flex;align-items:center;gap:14px;margin-bottom:24px;padding:14px 22px;border:2px dashed rgba(212,168,83,.6);border-radius:12px;font:500 28px/1.2 var(--mono);color:var(--gold-soft)}
+.notice h3{font:500 26px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:28px}
+
+/* timeline */
+.timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px;position:relative}
+.era{background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:36px 34px 40px;box-shadow:var(--shadow);min-height:380px;display:flex;flex-direction:column}
+.era .when{font:500 26px/1 var(--mono);color:var(--gold-ink);letter-spacing:.06em}
+.era h3{font:700 46px/1.15 var(--serif);color:var(--navy);margin:26px 0 18px}
+.era p{font:400 31px/1.38 var(--sans);color:var(--ink-soft);margin-top:auto}
+.era.now{background:var(--navy);border-color:var(--navy)}
+.era.now .when{color:var(--gold)}
+.era.now h3{color:var(--cream)}
+.era.now p{color:var(--cream)}
+
+/* next-word bars */
+.predict{display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:start}
+.typed{background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:34px 44px;box-shadow:var(--shadow)}
+.typed .who{font:500 24px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:16px}
+.typed p{font:400 52px/1.3 var(--serif);color:var(--navy)}
+.typed .blank{display:inline-block;min-width:200px;border-bottom:4px solid var(--gold);margin-left:8px}
+.bars{margin-top:36px;display:grid;gap:20px}
+.bars .who{font:500 24px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink)}
+.bar{display:grid;grid-template-columns:200px 1fr 110px;align-items:center;gap:22px}
+.bar .w{font:700 40px/1 var(--sans);color:var(--navy)}
+.bar .track{height:44px;background:rgba(15,27,45,.07);border-radius:10px;overflow:hidden}
+.bar .fill{height:100%;background:var(--navy);border-radius:10px}
+.bar:first-of-type .fill{background:var(--gold)}
+.bar .pct{font:500 32px/1 var(--mono);color:var(--ink-soft);text-align:right}
+.bars .fine{font:400 24px/1.3 var(--sans);color:var(--ink-soft);font-style:italic}
+
+/* table */
+.compare{width:100%;border-collapse:separate;border-spacing:0;background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.compare th,.compare td{padding:22px 30px;text-align:left;font:400 30px/1.3 var(--sans);color:var(--ink);border-bottom:1px solid var(--line-ink)}
+.compare thead th{background:var(--navy);color:var(--gold);font:700 32px/1.2 var(--sans)}
+.compare tbody th{font-weight:700;color:var(--navy);background:rgba(212,168,83,.10);width:300px}
+.compare tr:last-child th,.compare tr:last-child td{border-bottom:0}
+.compare.roomy th,.compare.roomy td{padding:34px 34px;font-size:33px}
+.compare.roomy tbody th{width:290px}
+
+/* assistant cards */
+.asst{display:flex;flex-direction:column}
+.asst .by{font:500 24px/1 var(--mono);letter-spacing:.08em;color:var(--gold-ink);margin-bottom:12px}
+.asst h3{font:700 54px/1.1 var(--serif);color:var(--navy);margin-bottom:8px}
+.asst .url{font:500 28px/1 var(--mono);color:var(--ink-soft);margin-bottom:28px}
+.asst ul{margin:0;padding:0;list-style:none;display:grid;gap:14px}
+.asst li{font:400 31px/1.35 var(--sans);color:var(--ink);padding-left:30px;position:relative}
+.asst li::before{content:"";position:absolute;left:0;top:.55em;width:12px;height:12px;border-radius:50%;background:var(--gold)}
+
+/* prompts to try */
+.prompts{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.prompt{background:var(--white);border:1px solid var(--line-ink);border-left:8px solid var(--gold);border-radius:0 var(--r) var(--r) 0;padding:28px 36px;box-shadow:var(--shadow)}
+.prompt .tag{font:500 22px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:12px}
+.prompt p{font:400 32px/1.36 var(--sans);color:var(--navy)}
+
+/* QR card */
+.qr{background:var(--white);border-radius:var(--r);padding:30px 30px 24px;display:inline-grid;justify-items:center;gap:18px;box-shadow:0 18px 50px rgba(0,0,0,.22)}
+.qr svg{width:300px;height:300px;display:block}
+.qr span{font:500 32px/1 var(--mono);color:var(--navy)}
+
+/* ---------- navy slides ---------- */
+.cover,.section,.closing{background:var(--navy);color:var(--cream)}
+.cover::before,.section::before,.closing::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 18% 55%,rgba(212,168,83,.10) 0%,transparent 58%),radial-gradient(ellipse at 82% 18%,rgba(26,45,74,.75) 0%,transparent 52%)}
+.cover::after,.section::after,.closing::after{content:"";position:absolute;inset:0;opacity:.035;background-image:linear-gradient(rgba(212,168,83,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,83,.6) 1px,transparent 1px);background-size:80px 80px}
+.cover > *,.section > *,.closing > *{position:relative;z-index:1}
+
+.cover{padding:120px 140px}
+.cover .kicker{color:var(--gold)}
+.cover h1{margin-top:150px;font:700 150px/1.02 var(--serif);color:var(--cream);letter-spacing:-.01em}
+.cover h1 em{color:var(--gold)}
+.cover .sub{margin-top:34px;font:italic 400 58px/1.25 var(--serif);color:var(--cream)}
+.cover-quote{position:absolute;right:140px;top:570px;width:780px;text-align:right}
+.cover-quote [lang="he"]{font:700 56px/1.35 var(--hebrew);color:var(--gold)}
+.cover-quote .en{margin-top:14px;font:italic 400 29px/1.4 var(--serif);color:var(--cream)}
+.cover-quote .who{margin-top:14px;font:500 24px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+.cover .by{position:absolute;left:140px;right:140px;bottom:150px;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:30px;font:500 34px/1.3 var(--sans);color:var(--cream)}
+.keys{position:absolute;left:140px;right:140px;bottom:44px;margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1.45fr .75fr;gap:48px;font:400 24px/1.4 var(--sans);color:var(--slate)}
+.keys kbd{display:inline-block;margin-right:10px;padding:2px 10px;border:1px solid rgba(154,163,180,.55);border-radius:6px;font:500 22px/1.2 var(--mono);color:var(--cream)}
+.cover .by span:last-child{font:400 28px/1 var(--mono);color:var(--slate);letter-spacing:.04em}
+
+.section{padding:0 160px}
+.stage > section.section.active{display:flex;flex-direction:column;justify-content:center}
+.section .kicker{color:var(--gold);font-size:28px}
+.section h2{margin-top:30px;font-size:132px;color:var(--cream)}
+.section .sub{margin-top:30px;font:italic 400 54px/1.3 var(--serif);color:var(--slate)}
+
+.closing{padding:96px 140px}
+
+/* ---------- chrome ---------- */
+.counter{position:fixed;right:18px;bottom:14px;font:500 14px/1 var(--mono);color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:7px 10px;border-radius:6px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:5}
+.counter.show{opacity:1}
+.notes-panel{position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;background:rgba(11,20,34,.96);color:var(--cream);padding:18px 24px 22px;font:400 17px/1.55 var(--sans);border-top:2px solid var(--gold);display:none;z-index:6}
+.notes-panel.show{display:block}
+.notes-panel h4{margin:0 0 8px;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.notes-panel p{margin:0 0 10px;max-width:72em}
+
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{height:auto;overflow:visible;background:none}
+  .view{position:static}
+  .stage{position:static;transform:none!important;width:1920px;height:auto;box-shadow:none}
+  .stage > section{position:relative;display:block!important;width:1920px;height:1080px;break-after:page}
+  .section{display:flex!important;flex-direction:column;justify-content:center}
+  .counter,.notes-panel{display:none!important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="qr" viewBox="-2 -2 33 33"><path stroke="#0f1b2d" d="M0 0.5h7m1 0h1m1 0h2m1 0h3m2 0h3m1 0h7m-29 1h1m5 0h1m1 0h1m1 0h3m2 0h4m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m5 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h2m1 0h1m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m8 0h6m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h3m2 0h1m2 0h1m3 0h1m-19 1h3m1 0h1m1 0h1m3 0h3m3 0h1m2 0h3m2 0h3m-28 1h4m3 0h1m1 0h1m1 0h3m1 0h9m3 0h1m-27 1h3m1 0h1m1 0h2m2 0h2m4 0h1m1 0h3m2 0h1m-22 1h2m4 0h2m1 0h1m1 0h2m2 0h5m1 0h1m1 0h1m-28 1h2m1 0h2m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m2 0h3m-29 1h3m1 0h2m1 0h2m1 0h3m1 0h1m1 0h7m1 0h2m1 0h2m-28 1h3m1 0h2m1 0h1m3 0h1m1 0h1m1 0h2m4 0h2m-22 1h1m1 0h1m3 0h1m1 0h1m2 0h2m2 0h1m2 0h1m1 0h1m1 0h2m1 0h2m-29 1h3m1 0h3m1 0h3m1 0h2m1 0h3m7 0h3m-28 1h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m2 0h2m2 0h1m1 0h1m2 0h2m-29 1h1m1 0h1m1 0h3m4 0h5m4 0h1m1 0h3m1 0h1m-27 1h1m3 0h1m3 0h7m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m-28 1h1m3 0h3m2 0h1m7 0h1m2 0h5m1 0h3m-21 1h2m1 0h7m1 0h2m3 0h2m2 0h1m-29 1h7m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m-25 1h1m5 0h1m4 0h2m1 0h1m1 0h1m2 0h2m3 0h2m1 0h1m-28 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m3 0h9m-29 1h1m1 0h3m1 0h1m1 0h2m4 0h3m1 0h4m1 0h1m-24 1h1m1 0h3m1 0h1m1 0h1m3 0h4m1 0h8m1 0h2m-28 1h1m5 0h1m2 0h1m7 0h1m2 0h2m2 0h2m1 0h1m-28 1h7m3 0h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m1 0h1"/></symbol>
+</svg>
+
+<div class="view" id="view">
+<main class="stage" id="stage">
+
+<!-- ============================================================ 1 -->
+<section class="cover" data-screen-label="01 Title">
+  <p class="kicker">Reform Temple of Rockland · Scholar-in-Residence Weekend</p>
+  <h1>Understanding and<br>Using <em>AI</em></h1>
+  <p class="sub">A hands-on introduction</p>
+  <div class="cover-quote">
+    <p lang="he">הַיָּשָׁן יִתְחַדֵּשׁ<br>וְהֶחָדָשׁ יִתְקַדֵּשׁ</p>
+    <p class="en">The old will be renewed, and the new will be sanctified.</p>
+    <p class="who">Rabbi Abraham Isaac Kook</p>
+  </div>
+  <div class="by"><span>Rabbi Dan Medwin, MAJE</span><span>Saturday, November 21, 2026</span></div>
+  <ul class="keys" aria-label="Presenter keys">
+    <li><kbd>N</kbd> shows or hides the speaker notes along the bottom.</li>
+    <li><kbd>P</kbd> opens a separate presenter window with the notes, the next slide’s title, and a timer.</li>
+    <li><kbd>F</kbd> switches to full screen.</li>
+  </ul>
+  <aside class="notes">
+    <p>Up while people arrive and find seats. Point people to the next slide's QR code so they can get connected before we start.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 2 -->
+<section class="content" data-screen-label="02 Get set up">
+  <p class="kicker">Before we start</p>
+  <h2>Let’s get you connected</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr auto;gap:80px;align-items:start">
+    <div class="rows">
+      <div class="row"><div class="num">1</div><div><h3>Join the Wi-Fi</h3><p id="wifi-line">Ask a volunteer for the network and password</p></div></div>
+      <div class="row"><div class="num">2</div><div><h3>Open this page</h3><p>Scan the code, or type <strong style="color:var(--navy)" class="page-url">techrabbi.org/ai</strong></p></div></div>
+      <div class="row"><div class="num">3</div><div><h3>Keep it open</h3><p>Every question we try today is there, ready to copy.</p></div></div>
+    </div>
+    <div class="qr" style="box-shadow:var(--shadow);border:1px solid var(--line-ink)"><svg aria-label="QR code for techrabbi.org/ai"><use href="#qr"/></svg><span class="page-url">techrabbi.org/ai</span></div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Welcome, and thank you for spending part of your Shabbat afternoon with me. Before anything else, let’s get everyone online. The page on this slide has every question we’ll try today, so nobody has to copy from the screen.</p>
+    <p>If you brought a laptop instead of a phone, that works just as well. If you didn’t bring anything, sit next to someone who did. Some of the best learning today will happen between neighbors.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 3 -->
+<section class="content" data-screen-label="03 Agenda">
+  <p class="kicker">Today</p>
+  <h2>What we’ll cover</h2>
+  <div class="body" style="margin-top:40px">
+    <div class="rows compact">
+      <div class="row"><div class="num">1</div><div><h3>What is AI?</h3><p>How it works, in everyday terms</p></div></div>
+      <div class="row"><div class="num">2</div><div><h3>See it in action</h3><p>A live demonstration, including talking to it out loud</p></div></div>
+      <div class="row"><div class="num">3</div><div><h3>Try it yourself</h3><p>Hands-on, on your phone or laptop</p></div></div>
+      <div class="row"><div class="num">4</div><div><h3>Use it wisely</h3><p>At home, at work, and staying safe</p></div></div>
+    </div>
+    <p class="lede" style="margin-top:26px;font-style:italic">Questions are welcome at any time.</p>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Here’s our plan. We’ll start with what AI is and how it works, without any jargon. Then I’ll show you what it looks like to use it, and then you’ll try it yourself with help in the room. We’ll finish with how to use it well, at home and at work, and how to protect yourself from the people who use it to cause harm.</p>
+    <p>Last night we asked the big questions: does AI think, can it be creative. This afternoon is practical. You’ll leave knowing how to use it.</p>
+    <p>We’re all learning together, and there are no silly questions.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 4 -->
+<section class="section" data-screen-label="04 Part 1">
+  <p class="kicker">Part 1</p>
+  <h2>What is AI?</h2>
+  <p class="sub">Understanding it through everyday examples</p>
+  <aside class="notes"><p>About fifteen minutes for this part.</p></aside>
+</section>
+
+<!-- ============================================================ 5 -->
+<section class="content" data-screen-label="05 What is AI">
+  <p class="kicker">Part 1 · What is AI?</p>
+  <h2>A very well-read assistant</h2>
+  <div class="body">
+    <p class="statement">AI is like an assistant who has read <strong>millions of books, articles, and conversations</strong>, and can talk with you about almost any of it.</p>
+    <div class="grid3" style="margin-top:44px">
+      <div class="card"><h3>The reference librarian</h3><p>Has read the whole library and finds what you need in seconds</p></div>
+      <div class="card"><h3>The recipe expert</h3><p>Knows thousands of recipes and suggests a dinner from what’s in your pantry</p></div>
+      <div class="card"><h3>The patient tutor</h3><p>Never gets tired of explaining something a different way</p></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>When people say “AI” today, they usually mean a chatbot: a program you can have a conversation with by typing or talking. Think of a very well-read assistant.</p>
+    <p>Three pictures help. A reference librarian who has read the whole library. A recipe expert who can work with whatever is in your pantry. And a patient tutor who never sighs when you ask the same question a third time.</p>
+    <p>Hold on to that last one. Patience is one of the most useful things about it.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 6 -->
+<section class="content" data-screen-label="06 Next chapter of computing">
+  <p class="kicker">Part 1 · What is AI?</p>
+  <h2>The next chapter of computing</h2>
+  <div class="body">
+    <div class="timeline">
+      <div class="era"><span class="when">1950s–1980s</span><h3>Mainframe computers</h3><p>Huge machines, for experts only</p></div>
+      <div class="era"><span class="when">1980s–2000s</span><h3>Personal computers</h3><p>A computer in every home</p></div>
+      <div class="era"><span class="when">2000s–2010s</span><h3>Smartphones and the internet</h3><p>Information in your pocket</p></div>
+      <div class="era now"><span class="when">2020s–now</span><h3>Artificial intelligence</h3><p>Computers that understand us</p></div>
+    </div>
+    <p class="callout" id="adoption-callout">We’re in the early days, like owning one of the first home computers in 1985. <b>Half of American adults have now tried an AI chatbot.</b></p>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Every few decades, computers become something new. First they filled rooms and only experts could use them. Then they came home. Then they went into our pockets. Now they understand ordinary language, so you can ask for what you want in your own words.</p>
+    <p>Like every new technology, it’s powerful and still young. That means two things: it will keep getting better quickly, and it still makes mistakes. We’ll talk about both.</p>
+    <p>If you feel behind, you aren’t. Pew Research found this year that about half of American adults have used a chatbot. Among people sixty-five and older it’s about one in four, double what it was in 2024. Most of the people in this room are right on time.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 7 -->
+<section class="content" data-screen-label="07 One word at a time">
+  <p class="kicker">Part 1 · How it works</p>
+  <h2>It writes one word at a time</h2>
+  <div class="body predict">
+    <div>
+      <div class="typed"><p class="who">You type</p><p>“The sun rises in the<span class="blank"></span>”</p></div>
+      <div class="bars">
+        <p class="who">AI weighs the next word</p>
+        <div class="bar"><span class="w">east</span><span class="track"><span class="fill" style="width:94%;display:block"></span></span><span class="pct">94%</span></div>
+        <div class="bar"><span class="w">morning</span><span class="track"><span class="fill" style="width:4%;display:block"></span></span><span class="pct">4%</span></div>
+        <div class="bar"><span class="w">sky</span><span class="track"><span class="fill" style="width:2%;display:block"></span></span><span class="pct">2%</span></div>
+        <p class="fine">Numbers are illustrative.</p>
+      </div>
+    </div>
+    <ul class="marks yes">
+      <li><span><strong>It has read an enormous amount</strong> of books, articles, and websites</span></li>
+      <li><span><strong>It learns patterns,</strong> the way you know “once upon a” ends with “time”</span></li>
+      <li><span><strong>It predicts word by word,</strong> so fast it seems instant</span></li>
+      <li><span><strong>Not magic:</strong> very sophisticated pattern matching. That’s why it can sound right and still be wrong.</span></li>
+    </ul>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Here is the one technical idea for today. If I say “the sun rises in the,” you all finish it: east. You’ve heard that sentence so many times that the next word is obvious. AI works the same way. It has read so much that it can predict what word should come next, then the next, then the next, until it has written a whole answer.</p>
+    <p>Notice the last point. It predicts what sounds right. Most of the time, what sounds right is right. Sometimes it isn’t, and the answer sounds just as confident either way. That’s the most important thing to understand about these tools.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 8 -->
+<section class="content" data-screen-label="08 More than sentences">
+  <p class="kicker">Part 1 · What’s new</p>
+  <h2>It does more than finish sentences now</h2>
+  <div class="body">
+    <div class="rows inline">
+      <div class="row"><div class="num">1</div><div><h3>Looks things up</h3><p>Searches the web for current information and shows its sources</p></div></div>
+      <div class="row"><div class="num">2</div><div><h3>Thinks it through</h3><p>Takes a moment to reason through harder questions before answering</p></div></div>
+      <div class="row"><div class="num">3</div><div><h3>Sees</h3><p>Reads a photo, a document, or what your camera is pointed at</p></div></div>
+      <div class="row"><div class="num">4</div><div><h3>Listens and talks</h3><p>Holds a spoken conversation, out loud</p></div></div>
+      <div class="row"><div class="num">5</div><div><h3>Takes action</h3><p>With permission, books a table or calls a store for you. New, and still early.</p></div></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>If you tried one of these a couple of years ago and walked away, a lot has changed. The early chatbots only knew what they had read in training, so they couldn’t tell you anything recent. Today they can search the web and show you where an answer came from.</p>
+    <p>They can take a moment to think before answering a hard question. They can look at a photo you take. You can talk to them out loud and they talk back. And the newest thing, still early, is that some can take actions for you. ChatGPT and Google can book a restaurant table. Google’s AI can call local stores to check prices. The new Siri can send a message for you. We’ll come back to why you should be careful about what you let it do.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 9 -->
+<section class="content" data-screen-label="09 What AI can do">
+  <p class="kicker">Part 1 · What is AI?</p>
+  <h2>What AI can do for you</h2>
+  <div class="body">
+    <div class="tiles">
+      <div class="tile"><h3>Answer questions</h3><p>Like looking it up, but as a conversation</p></div>
+      <div class="tile"><h3>Help with writing</h3><p>Letters, emails, toasts, and cards</p></div>
+      <div class="tile"><h3>Explain anything</h3><p>Complicated ideas in plain words</p></div>
+      <div class="tile"><h3>Brainstorm and plan</h3><p>Trips, parties, projects, and menus</p></div>
+      <div class="tile"><h3>Translate</h3><p>Between dozens of languages, typed or spoken</p></div>
+      <div class="tile"><h3>Read for you</h3><p>Summarize a long document, or explain a photo of a letter</p></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Here’s the everyday list. Answering questions, like a search engine you can talk to. Help writing anything from a thank-you note to a work email. Explaining something complicated in plain words. Brainstorming and planning. Translating. And reading for you: a long document, a confusing letter, the fine print.</p>
+    <p>Which of these would help you this week? Keep that in mind for when we try it.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 10 -->
+<section class="content" data-screen-label="10 Where AI stumbles">
+  <p class="kicker">Part 1 · Limitations</p>
+  <h2>Where AI still stumbles</h2>
+  <div class="body">
+    <ul class="marks no big" style="gap:34px">
+      <li><span><strong>It can sound sure and still be wrong.</strong> It sometimes invents facts, quotes, and even sources.</span></li>
+      <li><span><strong>It tends to agree with you.</strong> Ask it what’s wrong with your idea, and it will tell you.</span></li>
+      <li><span><strong>It only knows your situation if you tell it,</strong> so be thoughtful about what you share.</span></li>
+      <li><span><strong>It isn’t your doctor, lawyer, or financial advisor.</strong> It can help you prepare good questions for them.</span></li>
+    </ul>
+    <p class="callout">In a study by the BBC and European public broadcasters, <b>45% of AI answers about the news</b> had at least one significant error.</p>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Now the honest part. Because it predicts what sounds right, it can be confidently wrong. The technical word is “hallucination.” It has invented book titles, court cases, and quotes. Courts are still fining lawyers this year for filing cases that AI made up. So anything that matters, you check.</p>
+    <p>The study at the bottom is from late 2025: public broadcasters, including the BBC, asked AI assistants about the news, and almost half the answers had a significant error. It’s getting better. It isn’t there yet.</p>
+    <p>Second, these tools are built to be agreeable. If you want real feedback, ask for it: “What are the weaknesses of this plan?”</p>
+    <p>Third, it doesn’t know you. It only knows what you tell it, which is a reason to give it context and also a reason to be careful with private information.</p>
+    <p>And fourth, it doesn’t replace professionals. I use it before a doctor’s appointment to understand terms and write down my questions. Then I ask the doctor.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 11 -->
+<section class="content" data-screen-label="11 Why this matters">
+  <p class="kicker">Part 1 · What is AI?</p>
+  <h2>Why this matters to you</h2>
+  <div class="body">
+    <div class="tiles">
+      <div class="tile"><h3>Save time</h3><p>On everyday tasks you’d rather not do</p></div>
+      <div class="tile"><h3>Learn at your pace</h3><p>Ask the same question as many times as you need</p></div>
+      <div class="tile"><h3>Get unstuck</h3><p>Step-by-step help with a new phone, app, or gadget</p></div>
+      <div class="tile"><h3>Work smarter</h3><p>First drafts, summaries, and spreadsheet help</p></div>
+      <div class="tile"><h3>Solve it yourself</h3><p>More independence with the small problems</p></div>
+      <div class="tile"><h3>Keep up</h3><p>With the tools your family and coworkers already use</p></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Why spend an afternoon on this? Because it can save you time, it lets you learn at your own pace without feeling judged, and it can get you unstuck when technology is frustrating. For those of you who work, it is quickly becoming part of the job. And for all of us, it’s becoming part of the world our families live in.</p>
+    <p>You don’t have to love it. It helps to understand it.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 12 -->
+<section class="section" data-screen-label="12 Part 2">
+  <p class="kicker">Part 2</p>
+  <h2>Meet the assistants</h2>
+  <p class="sub">Finding the right AI for you</p>
+  <aside class="notes"><p>About eight minutes. Keep it reassuring: they all work the same way for what we’re doing today.</p></aside>
+</section>
+
+<!-- ============================================================ 13 -->
+<section class="content" data-screen-label="13 The big three">
+  <p class="kicker">Part 2 · Meet the assistants</p>
+  <h2>The “big three” chatbots</h2>
+  <div class="body grid3" id="big-three">
+    <div class="card asst"><span class="by">by OpenAI</span><h3>ChatGPT</h3><span class="url">chatgpt.com</span>
+      <ul><li>The most popular: 900 million people a week</li><li>The free version now shows ads</li><li>You can try it without an account</li></ul></div>
+    <div class="card asst"><span class="by">by Anthropic</span><h3>Claude</h3><span class="url">claude.ai</span>
+      <ul><li>Known for clear, careful writing</li><li>No ads, and a promise to keep it that way</li><li>Needs a free account</li></ul></div>
+    <div class="card asst"><span class="by">by Google</span><h3>Gemini</h3><span class="url">gemini.google.com</span>
+      <ul><li>Now the assistant on Android phones</li><li>Works with Gmail, Maps, and YouTube</li><li>Live voice can see through your camera</li></ul></div>
+  </div>
+  <p class="callout" style="margin-top:36px">All three have a free version with voice, photos, and web search.</p>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Just as you might choose between Google and Bing for searching, there are a few big AI assistants. These three are the ones you’ll hear about most.</p>
+    <p>ChatGPT, from OpenAI, is the most popular by far: OpenAI reported nine hundred million weekly users this year. One change since last year: the free version now shows ads, below the answers. You can use it without making an account, though you’ll need one for photos.</p>
+    <p>Claude, from Anthropic, is known for clear, careful writing. It has no ads, and Anthropic has publicly promised to keep it that way. It does need an account.</p>
+    <p>Gemini is Google’s. As of September it replaced Google Assistant on Android phones, so if you have an Android, you already have it. It connects to Gmail, Maps, and YouTube, and in its live voice mode you can turn on the camera and show it what you’re looking at.</p>
+    <p>The good news at the bottom: all three have a strong free version.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 14 -->
+<section class="content" data-screen-label="14 Already on your phone">
+  <p class="kicker">Part 2 · Meet the assistants</p>
+  <h2>AI is probably already on your phone</h2>
+  <div class="body grid2" id="on-your-phone" style="gap:30px">
+    <div class="card"><h3>iPhone: the new Siri</h3><p>Built with Google’s Gemini models, it arrived in September with iOS 27 on iPhone 15 Pro and newer. It understands what’s on your screen and can act in your apps.</p></div>
+    <div class="card"><h3>Android: Gemini</h3><p>Gemini replaced Google Assistant in September. Say “Hey Google” or hold the power button.</p></div>
+    <div class="card"><h3>Google Search</h3><p>AI summaries now sit at the top of many searches. For a full conversation, go to <strong style="color:var(--navy)">google.com/ai</strong>.</p></div>
+    <div class="card"><h3>Apps you already use</h3><p>Meta AI in WhatsApp, Facebook, and Instagram. Copilot in Windows and Microsoft Office. Alexa+ on Echo speakers.</p></div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Even if you’ve never opened ChatGPT, you’ve probably been using AI without knowing it.</p>
+    <p>On iPhone, the new Siri arrived in September with iOS 27. Apple built it with Google’s Gemini models. It can understand what’s on your screen and do things in your apps, like sending a message. It needs an iPhone 15 Pro or newer, it’s still labeled beta, and you may need to switch it on in Settings. ChatGPT is also built into Siri if you turn it on.</p>
+    <p>On Android, Gemini replaced Google Assistant this fall. “Hey Google” now brings up Gemini.</p>
+    <p>In Google Search, those AI summaries at the top of the results are AI too. Google’s full conversation mode is at google.com/ai, and that’s what we’ll use for the hands-on part because it doesn’t need an account.</p>
+    <p>And Meta has put AI into WhatsApp, Facebook, and Instagram, Microsoft into Windows and Office, and Amazon into Alexa. One caution about Meta AI: Meta uses what you say to it to personalize the ads you see.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 15 -->
+<section class="content" data-screen-label="15 Quick comparison">
+  <p class="kicker">Part 2 · Meet the assistants</p>
+  <h2>Quick comparison</h2>
+  <div class="body" id="compare-wrap" style="margin-top:40px">
+    <table class="compare">
+      <thead><tr><th></th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+      <tbody>
+        <tr><th>Free version</th><td>Yes, with ads</td><td>Yes, no ads</td><td>Yes, no ads so far</td></tr>
+        <tr><th>Paid plans</th><td>$8, $20, or more a month</td><td>$20 or more a month</td><td>$5, $20, or more a month</td></tr>
+        <tr><th>Account needed?</th><td>No, but photos need one</td><td>Yes</td><td>No on the website</td></tr>
+        <tr><th>Voice</th><td>Free</td><td>Free</td><td>Free, with live camera</td></tr>
+        <tr><th>Best known for</th><td>Most popular, most features</td><td>Clear writing, no ads</td><td>Android and Google apps</td></tr>
+      </tbody>
+    </table>
+    <p class="fine" style="margin-top:20px;font:400 24px/1.3 var(--sans);color:var(--ink-soft)">Prices as of October 2026, in US dollars.</p>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Here’s the side-by-side. The most important row is the first one: all three are free to use, and the free versions are good. Paid plans start around five to twenty dollars a month and add more use and extra features. You don’t need one to start, and nothing today requires one.</p>
+    <p>One difference worth knowing: ChatGPT’s free version shows ads now. Claude has promised never to. Google hasn’t put ads in Gemini so far, but hasn’t ruled it out.</p>
+    <p>Prices change often. These are as of October.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 16 -->
+<section class="content" data-screen-label="16 Which one">
+  <p class="kicker">Part 2 · Meet the assistants</p>
+  <h2>Which one should I use?</h2>
+  <div class="body">
+    <p class="statement">The one you’ll actually open. <strong>Everything you learn today works on all of them.</strong></p>
+    <div class="grid3" style="margin-top:44px" id="which-one">
+      <div class="card"><h3>Gemini</h3><p>If you have an Android phone or already live in Gmail</p></div>
+      <div class="card"><h3>ChatGPT</h3><p>If you want the most popular, with the most features</p></div>
+      <div class="card"><h3>Claude</h3><p>If you want careful explanations and no ads</p></div>
+    </div>
+    <p class="lede" style="margin-top:36px;font-style:italic">You’re never locked in. Try them all for free.</p>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>People always ask which one is best. It’s like asking which restaurant is best: it depends on what you like. For the basics we’re doing today, they’re all very good.</p>
+    <p>If you already use an Android phone or Gmail, Gemini is right there. If your friends and family use ChatGPT, it has the most features and the most how-to videos online. If ads bother you, or you want careful explanations, try Claude.</p>
+    <p>You can’t make a wrong choice. Everything you learn today works the same way on all of them, and you can switch any time. Some people use different ones for different jobs.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 17 -->
+<section class="section" data-screen-label="17 Part 3">
+  <p class="kicker">Part 3</p>
+  <h2>See it in action</h2>
+  <p class="sub">A live demonstration</p>
+  <aside class="notes"><p>About fifteen minutes. Project your phone if you can, so people see the same screen they’ll have in their hands. Narrate every tap.</p></aside>
+</section>
+
+<!-- ============================================================ 18 -->
+<section class="content" data-screen-label="18 How to start">
+  <p class="kicker">Part 3 · Getting started</p>
+  <h2>Three ways to start</h2>
+  <div class="body grid3" id="three-ways">
+    <div class="card navy"><h3>No account needed</h3><p>Open your web browser and type<br><strong style="font:500 40px/1.6 var(--mono);color:var(--white)">google.com/ai</strong><br>This is what we’ll use today.</p></div>
+    <div class="card"><h3>On the web</h3><p>Type <strong style="color:var(--navy)">chatgpt.com</strong>, <strong style="color:var(--navy)">claude.ai</strong>, or <strong style="color:var(--navy)">gemini.google.com</strong>. Works on a phone or laptop.</p></div>
+    <div class="card"><h3>Get the app</h3><p>Search the App Store or Google Play. Check that the maker is OpenAI, Anthropic, or Google. Sign in with Google or Apple.</p></div>
+  </div>
+  <p class="callout" style="margin-top:40px">An account saves your chats and turns on voice and photos. <b>It’s free.</b></p>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>There are three ways in. The easiest, with nothing to download and no account, is Google’s AI Mode: open your web browser and type google.com/ai. That’s what we’ll use for the hands-on part, so nobody gets stuck on a forgotten password.</p>
+    <p>Second, each assistant has a website. ChatGPT and Gemini work in a browser without an account, though without one they don’t save your chats and can’t look at photos. Claude needs an account.</p>
+    <p>Third, the apps. They’re the best experience, especially for voice and photos. One warning: there are copycat apps in the app stores. Check that the maker is OpenAI for ChatGPT, Anthropic for Claude, or Google for Gemini. When it asks you to sign up, “Continue with Google” or “Continue with Apple” means one less password to remember.</p>
+    <p>For the demonstration I’m signed in to each, using a fresh account so you aren’t reading my personal chats.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 19 -->
+<section class="content demo" data-screen-label="19 Example ask a question">
+  <p class="kicker">Example 1 · Ask a question</p>
+  <h2>Ask, and ask for sources</h2>
+  <div class="body">
+    <div class="bubble"><p class="who">You type</p><p>What are some health benefits of walking 30 minutes a day? Please include your sources.</p></div>
+    <div class="notice"><h3>Notice</h3>
+      <ul class="marks yes">
+        <li><span>The question is specific and clear</span></li>
+        <li><span>The answer comes back organized</span></li>
+        <li><span>Sources let you check it yourself</span></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Let’s start simple. I’ll type exactly what’s on the screen. Watch how it organizes the answer into categories, and look for the links at the end. Those are its sources. Tap one to see where the information came from.</p>
+    <p>That habit, asking “where did you get that?”, is the single best protection against the confident-but-wrong problem we talked about.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 20 -->
+<section class="content demo" data-screen-label="20 Example writing help">
+  <p class="kicker">Example 2 · Get writing help</p>
+  <h2>Give it the context</h2>
+  <div class="body">
+    <div class="bubble"><p class="who">You type</p><p>I need to write a thank-you note to my neighbor, who brought me dinner when I was sick. Can you help me write something warm but not too formal?</p></div>
+    <div class="notice"><h3>Notice</h3>
+      <ul class="marks yes">
+        <li><span>It knows who, what, and why: a neighbor, a dinner, an illness</span></li>
+        <li><span>It knows the tone: warm, not formal</span></li>
+        <li><span>Then ask for changes: “shorter,” “funnier,” “from both of us”</span></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Notice how much context is in this question. Who the note is for, what they did, and the tone I want. The more it knows, the better the first draft.</p>
+    <p>And the first draft is only the start. Watch: I’ll ask it to make it shorter. Now I’ll ask it to sign from both of us. It’s a conversation, and you can keep shaping the answer until it sounds like you.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 21 -->
+<section class="content demo" data-screen-label="21 Example photo">
+  <p class="kicker">Example 3 · Show it a photo</p>
+  <h2>Let it read for you</h2>
+  <div class="body">
+    <div class="bubble"><p class="who">You send</p><span class="chip">Photo: a letter from the insurance company</span><p>What is this letter asking me to do? Please explain it in plain English.</p></div>
+    <div class="notice"><h3>Notice</h3>
+      <ul class="marks yes">
+        <li><span>Cover account numbers <em>before</em> you take the photo</span></li>
+        <li><span>Works for menus, labels, manuals, and handwriting</span></li>
+        <li><span>Follow up: “Who should I call about this?”</span></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>This is one of the most useful things it can do, and one most people don’t know about. Tap the plus or the camera button, take a picture, and ask about it. A confusing letter. A medication label. The back of a router. A menu in another language.</p>
+    <p>One rule: before you take the picture, cover anything private, like account numbers or your Social Security number. I’ll use a sample letter for the demonstration.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 22 -->
+<section class="content demo" data-screen-label="22 Example at work">
+  <p class="kicker">Example 4 · Use it at work</p>
+  <h2>Turn rough notes into a draft</h2>
+  <div class="body">
+    <div class="bubble"><p class="who">You type</p><p>Here are my notes from today’s meeting: <span style="color:var(--gold-soft)">[paste your notes]</span>. Turn them into a short email to the team, with each action item and who owns it.</p></div>
+    <div class="notice"><h3>Notice</h3>
+      <ul class="marks yes">
+        <li><span>Paste only what you’re allowed to share</span></li>
+        <li><span>It drafts. You check, edit, and send.</span></li>
+        <li><span>Works for agendas, reports, and proposals</span></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>For those of you who work, here’s a common one. You have scribbled notes from a meeting. Paste them in and ask for a clean email with the action items. It takes the tedious part off your plate.</p>
+    <p>Two cautions. First, only paste what your workplace allows you to share, and many workplaces now have rules about which AI tools you can use. Second, you are still the author. Read it before you send it.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 23 -->
+<section class="content demo" data-screen-label="23 Example voice">
+  <p class="kicker">Example 5 · Talk instead of type</p>
+  <h2>Have a conversation, out loud</h2>
+  <div class="body">
+    <div class="bubble"><p class="who">You say</p><p>I’m making chicken soup for Shabbat. Walk me through it one step at a time, and wait for me to say “next.”</p></div>
+    <div class="notice"><h3>Notice</h3>
+      <ul class="marks yes">
+        <li><span>Hands-free while you cook</span></li>
+        <li><span>It waits, answers questions, and keeps going</span></li>
+        <li><span>No typing on a tiny keyboard</span></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Now my favorite. Instead of typing, I’ll tap the voice button and just talk. I’ll ask it to walk me through chicken soup one step at a time. Listen to how natural it sounds, and watch what happens when I interrupt it with a question.</p>
+    <p>This is a real help if typing on a phone is hard on your hands or your eyes. It’s also the easiest way to use AI while your hands are busy.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 24 -->
+<section class="content" data-screen-label="24 Voice mode how-to">
+  <p class="kicker">Part 3 · Voice mode</p>
+  <h2>How to talk to AI</h2>
+  <div class="body grid2" style="gap:48px">
+    <div class="rows compact" id="voice-steps">
+      <div class="row"><div class="num">1</div><div><h3>Open the app</h3><p>ChatGPT, Claude, or Gemini</p></div></div>
+      <div class="row"><div class="num">2</div><div><h3>Tap the voice button</h3><p>It looks like sound waves. In Gemini, it’s called Live.</p></div></div>
+      <div class="row"><div class="num">3</div><div><h3>Allow the microphone</h3><p>Your phone asks the first time only</p></div></div>
+      <div class="row"><div class="num">4</div><div><h3>Just talk</h3><p>Tap the X or End when you’re done</p></div></div>
+    </div>
+    <div>
+      <div class="card" style="padding:34px 44px">
+        <h3>Tips</h3>
+        <ul class="marks yes" style="gap:14px;margin-top:8px">
+          <li><span>Speak naturally, in your normal voice</span></li>
+          <li><span>A quiet room works best</span></li>
+          <li><span>Use earbuds for privacy</span></li>
+          <li><span>Interrupt any time, like with a person</span></li>
+        </ul>
+      </div>
+      <p class="callout" id="voice-callout" style="margin-top:28px">Free in all three. <b>In Gemini Live, turn on the camera and show it what you’re looking at.</b></p>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Here are the steps. Open the app, tap the voice button, which usually looks like sound waves next to the typing box, and allow the microphone the first time. Then just talk. No special words, no “Hey Siri.” When you’re done, tap the X.</p>
+    <p>Voice is free in all three. Gemini has an extra trick: in Live mode you can turn on your camera and ask about what it sees. Point it at a plant, a gadget, or a menu.</p>
+    <p>Two practical notes. It talks out loud, so use earbuds if you want privacy. And it works best in a quiet room, so with this many people, I recommend trying voice at home tonight.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 25 -->
+<section class="content" data-screen-label="25 Ask better">
+  <p class="kicker">Part 3 · Tips</p>
+  <h2>Ask better, get better</h2>
+  <div class="body dodont">
+    <div class="col do"><h3>DO</h3><ul>
+      <li>Give context: who it’s for and why</li>
+      <li>Say what you want back: a list, three sentences, a friendly tone</li>
+      <li>Ask follow-up questions</li>
+      <li>Invite it to ask <em>you</em> questions first</li>
+      <li>Ask “Where did you get that?”</li>
+    </ul></div>
+    <div class="col dont"><h3>DON’T</h3><ul>
+      <li>Share passwords, account numbers, or your Social Security number</li>
+      <li>Paste confidential work into a personal account</li>
+      <li>Trust important facts without checking</li>
+      <li>Give up if the first answer isn’t right</li>
+    </ul></div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Here’s what we’ve seen, in one place. Talk to it the way you’d brief a smart new assistant on their first day: give them context, tell them what you want back, and keep the conversation going.</p>
+    <p>A trick that works surprisingly well: end your request with “Ask me any questions you need before you start.” It will interview you, and the answer will be much better.</p>
+    <p>And on the right, the guardrails. Keep private numbers private. Keep work data inside the tools your work approves. Check what matters. And don’t give up after one try. Reword it and ask again.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 26 -->
+<section class="section" data-screen-label="26 Part 4">
+  <p class="kicker">Part 4</p>
+  <h2>Try it yourself</h2>
+  <p class="sub">Don’t worry. We’re here to help.</p>
+  <aside class="notes">
+    <p>About twenty minutes, the heart of the program. Everyone opens an assistant together first, and nobody moves on until the room is ready. Volunteers circulate.</p>
+    <p>Common snags: typing into the search box instead of the address bar, small text (show how to pinch to zoom), a forgotten password (use an option that doesn’t need an account today).</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 27 -->
+<section class="content" data-screen-label="27 Questions to try">
+  <p class="kicker">Part 4 · Pick one to start</p>
+  <h2>Questions to try</h2>
+  <div class="body prompts">
+    <div class="prompt"><p class="tag">Cooking</p><p>What’s a simple dinner I can make with chicken, rice, and whatever vegetables I have?</p></div>
+    <div class="prompt"><p class="tag">Writing</p><p>Help me write a birthday message for my granddaughter, who just started college.</p></div>
+    <div class="prompt"><p class="tag">Learning</p><p>Explain what “the cloud” means, in simple terms.</p></div>
+    <div class="prompt"><p class="tag">Work</p><p>I have a job interview for [job]. Ask me five practice questions, one at a time.</p></div>
+    <div class="prompt"><p class="tag">Jewish life</p><p>Jacob dreamed of a ladder to heaven (Genesis 28). Give me three questions my family could discuss about it at dinner.</p></div>
+    <div class="prompt"><p class="tag">Reading</p><p>Recommend three books like [a book you loved], and tell me why.</p></div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Let’s try the first one together. Everyone type the cooking question exactly as it’s written, or copy it from the page. When your answer comes back, compare with your neighbor. Did you get the same recipe? You probably didn’t, and that’s normal. It writes a fresh answer every time.</p>
+    <p>Now pick any question on this slide, or ask something you’ve been curious about: a hobby, a trip, a gift idea, something from the news. I’ll give you five minutes. Volunteers will come around.</p>
+    <p>The Jacob question connects to this morning’s Torah study, if you were with us.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 28 -->
+<section class="content" data-screen-label="28 Take it further">
+  <p class="kicker">Part 4 · Keep the conversation going</p>
+  <h2>Now take it further</h2>
+  <div class="body grid2" style="gap:48px">
+    <div class="card"><h3>Follow-ups to try</h3>
+      <ul class="marks yes" style="gap:14px;margin-top:20px">
+        <li><span>“Make it shorter.”</span></li>
+        <li><span>“Explain that more simply.”</span></li>
+        <li><span>“Give me three more options.”</span></li>
+        <li><span>“Ask me questions first, then try again.”</span></li>
+        <li><span>“Where did you get that?”</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>If it isn’t working</h3>
+      <div style="display:grid;gap:22px;margin-top:20px">
+        <p><strong style="color:var(--navy)">Not what you wanted?</strong> Add detail and ask again.</p>
+        <p><strong style="color:var(--navy)">Too long?</strong> “Give me the short version.”</p>
+        <p><strong style="color:var(--navy)">Too confusing?</strong> “Explain it like I’m new to this.”</p>
+        <p><strong style="color:var(--navy)">Lost?</strong> Start a new chat. You can’t break anything.</p>
+      </div>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Now pick one of your answers and ask a follow-up. This is where it stops feeling like a search engine and starts feeling like a conversation.</p>
+    <p>If something isn’t working, the fix is almost always to say more about what you want. And if you get lost, start a new chat. The worst that can happen is an answer you don’t like. Just try again.</p>
+    <p>If voice mode appeals to you, try it at home in a quiet room. With this many people, the room will be a little noisy for it.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 29 -->
+<section class="section" data-screen-label="29 Part 5">
+  <p class="kicker">Part 5</p>
+  <h2>Use it wisely</h2>
+  <p class="sub">At home, at work, and staying safe</p>
+  <aside class="notes"><p>About twelve minutes. The scams slide matters most; don’t rush it.</p></aside>
+</section>
+
+<!-- ============================================================ 30 -->
+<section class="content" data-screen-label="30 Everyday uses">
+  <p class="kicker">Part 5 · At home</p>
+  <h2>Everyday uses</h2>
+  <div class="body">
+    <table class="compare roomy">
+      <tbody>
+        <tr><th>Personal</th><td>Emails and letters · Shopping lists by aisle · Fixing a gadget, step by step</td></tr>
+        <tr><th>Learning</th><td>A new skill at your own pace · Book ideas · The history behind the news</td></tr>
+        <tr><th>Health</th><td>Understanding a doctor’s terms · Questions for your next appointment · Meal ideas</td></tr>
+        <tr><th>Family</th><td>Gift ideas · Planning a gathering · Understanding the apps your family uses</td></tr>
+        <tr><th>Jewish life</th><td>The story behind a holiday · What a Hebrew word means · Questions for the Shabbat table</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Here are uses I see people come back to. Notice the health row: understanding terms and preparing questions, not diagnosing. And the Jewish life row: it’s a good study partner for the story behind a holiday or the meaning of a Hebrew word. Check what it tells you with a teacher or a trusted source, the same way you would with anything you read online.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 31 -->
+<section class="content" data-screen-label="31 At work">
+  <p class="kicker">Part 5 · At work</p>
+  <h2>AI on the job</h2>
+  <div class="body grid2" style="gap:48px" id="at-work">
+    <div class="card"><h3>Good uses</h3>
+      <ul class="marks yes" style="gap:16px;margin-top:18px">
+        <li><span>First drafts of emails and reports</span></li>
+        <li><span>Summaries of long documents</span></li>
+        <li><span>Meeting notes into action items</span></li>
+        <li><span>Spreadsheet formulas, explained</span></li>
+        <li><span>Rehearsing a hard conversation</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Ground rules</h3>
+      <ul class="marks yes" style="gap:16px;margin-top:18px">
+        <li><span>Check your workplace’s AI policy first</span></li>
+        <li><span>Use the tools your employer provides, like Copilot or Gemini at work</span></li>
+        <li><span>Keep client and confidential information out of personal accounts</span></li>
+        <li><span>You’re responsible for what you send</span></li>
+      </ul>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>For those of you who work, or volunteer, or run a committee here at RTR: AI is very good at the parts of the job that are tedious. A first draft. A summary of a forty-page report. Turning meeting notes into a list of who’s doing what. Explaining what a spreadsheet formula does. One of my favorites: practicing a hard conversation before you have it.</p>
+    <p>The ground rules matter. Many workplaces now have an AI policy, and many provide their own tools, like Microsoft Copilot or Gemini inside Google Workspace, that keep company information protected. Use those. Don’t paste client or confidential information into your personal account. And whatever AI drafts, you’re the one who sends it, so you’re the one who checks it.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 32 -->
+<section class="content" data-screen-label="32 Scams">
+  <p class="kicker">Part 5 · Staying safe</p>
+  <h2>Scams got smarter, too</h2>
+  <div class="body grid2" style="gap:44px;margin-top:40px" id="scams">
+    <div class="card"><h3>What’s new</h3>
+      <ul class="marks no" style="gap:18px;margin-top:16px">
+        <li><span><strong>Cloned voices:</strong> a call that sounds exactly like your grandchild, in trouble and needing money</span></li>
+        <li><span><strong>Fake videos</strong> of celebrities and officials selling investments</span></li>
+        <li><span><strong>Polished emails and texts,</strong> with no typos to give them away</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>What to do</h3>
+      <ul class="marks yes" style="gap:18px;margin-top:16px">
+        <li><span><strong>Hang up and call back</strong> on a number you know</span></li>
+        <li><span><strong>Choose a family safe word,</strong> as the FBI advises</span></li>
+        <li><span><strong>Slow down.</strong> Urgency, secrecy, gift cards, crypto, or wire transfers mean scam.</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="callout" style="margin-top:34px">In 2025, Americans 60 and older reported losing <b>$7.7 billion</b> to scams, up 59% in one year. <span style="color:var(--slate)">(FBI)</span></p>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>This is the most important slide today, so I’m going to slow down.</p>
+    <p>The same technology that writes your thank-you note can copy a voice from a few seconds of video online. The classic version: a call that sounds exactly like your grandchild, crying, saying they’ve been in an accident or arrested and need money right away, and please don’t tell Mom. There are also fake videos of celebrities and news anchors selling investments, and phishing emails that no longer have the spelling mistakes we used to look for.</p>
+    <p>The FBI’s numbers for 2025: Americans sixty and older reported losing seven point seven billion dollars to scams, up fifty-nine percent in one year. The FBI also says many victims of AI-powered scams never realize AI was involved, so the real number is higher.</p>
+    <p>Three defenses. Hang up and call the person back on a number you already have. Agree on a family safe word, a word only your family knows, and ask for it. And slow down: urgency, secrecy, and unusual payment like gift cards, crypto, or wire transfers are the signature of a scam.</p>
+    <p>Ask the room: has anyone gotten a call or a text like this? Then: tonight, pick your family safe word. It’s on the homework list.</p>
+    <p>To report a scam: ReportFraud.ftc.gov or ic3.gov. Both are on the participant page.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 33 -->
+<section class="content" data-screen-label="33 Privacy">
+  <p class="kicker">Part 5 · Staying safe</p>
+  <h2>Protect your privacy</h2>
+  <div class="body" id="privacy" style="margin-top:40px">
+    <ul class="marks yes" style="gap:16px">
+      <li><span><strong>Keep private numbers private:</strong> passwords, account numbers, Social Security</span></li>
+      <li><span><strong>Your chats may be used to train the AI.</strong> You can turn that off.</span></li>
+      <li><span><strong>Think before you connect</strong> your email or calendar, or let it act for you</span></li>
+    </ul>
+    <table class="compare" style="margin-top:34px">
+      <thead><tr><th></th><th>Turn off training</th><th>Private chat</th></tr></thead>
+      <tbody>
+        <tr><th>ChatGPT</th><td>Settings › Data controls › “Improve the model for everyone”</td><td>Temporary Chat</td></tr>
+        <tr><th>Claude</th><td>Settings › Privacy › “Help improve our AI models”</td><td>Incognito chat</td></tr>
+        <tr><th>Gemini</th><td>Gemini Apps Activity › turn off “Keep Activity”</td><td>Temporary chat</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Three privacy habits. First, keep private numbers private. No assistant needs your Social Security number or your bank password.</p>
+    <p>Second, by default, these companies may use your conversations to improve their AI. You can turn that off, and the table shows where. Each also has a private-chat mode that isn’t saved to your history, good for a sensitive question. These are all on the participant page, so you don’t need to write them down.</p>
+    <p>Third, the new features that connect AI to your email and calendar, or let it act for you, are useful and powerful. Turn them on deliberately, one at a time, and only for an assistant you trust. Mistakes happen even at the big companies: this fall OpenAI disclosed that its own AI agents accidentally posted some users’ uploaded images on public websites.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 34 -->
+<section class="section" data-screen-label="34 Questions">
+  <p class="kicker">Your turn</p>
+  <h2>Questions and answers</h2>
+  <p class="sub">Your questions are important.</p>
+  <aside class="notes">
+    <p>Start with the questions I hear most, then open the floor.</p>
+    <p>“Will this cost me money?” No. Everything we did today was free. ChatGPT’s free version shows ads; paid plans run about five to twenty dollars a month, and you don’t need one.</p>
+    <p>“Will this replace people?” It’s a tool, like a calculator or a dictionary. It should add to your independence, not replace your relationships.</p>
+    <p>“What if I break something?” You can’t. The worst that happens is an answer you don’t like.</p>
+    <p>“What if I forget all of this?” The page at techrabbi.org/ai has everything. And you can ask the AI itself how to use it.</p>
+    <p>“Should my kids or grandkids be using this?” That’s exactly what tomorrow morning’s family program is about. Bring them.</p>
+    <p>If I don’t know an answer, I’ll say so and follow up.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 35 -->
+<section class="content" data-screen-label="35 Takeaways">
+  <p class="kicker">To remember</p>
+  <h2>Key takeaways</h2>
+  <div class="body">
+    <div class="rows">
+      <div class="row"><div class="num">1</div><div><h3>It’s a tool</h3><p>Nothing to fear, and nothing to trust blindly</p></div></div>
+      <div class="row"><div class="num">2</div><div><h3>Talk to it like a person</h3><p>Give it context, and keep the conversation going</p></div></div>
+      <div class="row"><div class="num">3</div><div><h3>Check what matters</h3><p>Ask for sources, and verify anything important</p></div></div>
+      <div class="row"><div class="num">4</div><div><h3>Start small</h3><p>Simple questions first. Ask for help when you need it.</p></div></div>
+    </div>
+  </div>
+  <footer class="foot"><span>Understanding and Using AI</span><b class="n"></b></footer>
+  <aside class="notes">
+    <p>Four things to take home. It’s a tool: nothing to be afraid of, and nothing to trust blindly. Talk to it the way you’d talk to a person. Check anything that matters. And start small.</p>
+  </aside>
+</section>
+
+<!-- ============================================================ 36 -->
+<section class="closing" data-screen-label="36 Thank you">
+  <div style="display:grid;grid-template-columns:1fr auto;gap:100px;align-items:center;height:100%">
+    <div>
+      <p lang="he" style="font:700 84px/1.35 var(--hebrew);color:var(--gold);text-align:left">הַיָּשָׁן יִתְחַדֵּשׁ<br>וְהֶחָדָשׁ יִתְקַדֵּשׁ</p>
+      <p style="margin-top:22px;font:italic 400 44px/1.35 var(--serif);color:var(--cream)">The old will be renewed, and the new will be sanctified.</p>
+      <p style="margin-top:12px;font:500 26px/1 var(--mono);letter-spacing:.08em;color:var(--slate)">RABBI ABRAHAM ISAAC KOOK</p>
+      <p style="margin-top:64px;font:700 64px/1.15 var(--serif);color:var(--cream)">Try one new thing with AI this week.</p>
+      <p style="margin-top:18px;font:400 34px/1.4 var(--sans);color:var(--slate)">Every expert was once a beginner. Thank you!</p>
+    </div>
+    <div style="display:grid;justify-items:center;gap:24px">
+      <div class="qr"><svg aria-label="QR code for techrabbi.org/ai"><use href="#qr"/></svg><span class="page-url">techrabbi.org/ai</span></div>
+      <p style="font:400 28px/1.4 var(--sans);color:var(--cream);text-align:center">Rabbi Dan Medwin, MAJE<br><span style="color:var(--slate)">techrabbi.org</span></p>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Rav Kook wrote that the old will be renewed and the new will be sanctified. That’s been the theme of our weekend. AI is new. What makes a new tool holy is how we use it: with honesty, with care for each other, and with care for ourselves.</p>
+    <p>So here’s your homework: try one new thing with AI this week. Everything from today is on the page, and you’re welcome to reach out with questions. Every expert was once a beginner. You’ve already taken the first step. Thank you.</p>
+  </aside>
+</section>
+
+</main>
+</div>
+
+<div class="counter" id="counter"></div>
+<div class="notes-panel" id="notes-panel"></div>
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const slides = Array.from(stage.children).filter(el => el.tagName === 'SECTION');
+  const total = slides.length;
+  const counter = document.getElementById('counter');
+  const notesPanel = document.getElementById('notes-panel');
+  const KEY = 'ai-intro-slide';
+  let i = 0, presenter = null, hideTimer = null, startedAt = null;
+
+  // number the footers, fill in config
+  slides.forEach((s, k) => { const n = s.querySelector('.foot .n'); if (n) n.textContent = (k + 1) + ' / ' + total; });
+  document.querySelectorAll('.page-url').forEach(el => el.textContent = CONFIG.pageUrl);
+  if (CONFIG.wifiNetwork) {
+    document.getElementById('wifi-line').innerHTML = 'Network: <strong style="color:var(--navy)"></strong>' +
+      (CONFIG.wifiPassword ? ' · Password: <strong style="color:var(--navy)"></strong>' : '');
+    const strongs = document.querySelectorAll('#wifi-line strong');
+    strongs[0].textContent = CONFIG.wifiNetwork;
+    if (strongs[1]) strongs[1].textContent = CONFIG.wifiPassword;
+  }
+
+  function fit(){
+    const w = window.innerWidth, h = window.innerHeight;
+    const s = Math.min(w / 1920, h / 1080);
+    stage.style.transform = 'translate(' + (w - 1920 * s) / 2 + 'px,' + (h - 1080 * s) / 2 + 'px) scale(' + s + ')';
+  }
+  function notesHTML(k){ const a = slides[k].querySelector('.notes'); return a ? a.innerHTML : '<p>(No notes.)</p>'; }
+  function label(k){ return slides[k] ? slides[k].dataset.screenLabel : 'End'; }
+
+  function go(k){
+    i = Math.max(0, Math.min(total - 1, k));
+    slides.forEach((s, n) => s.classList.toggle('active', n === i));
+    try { localStorage.setItem(KEY, String(i)); } catch (e) {}
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+    counter.textContent = (i + 1) + ' / ' + total;
+    counter.classList.add('show'); clearTimeout(hideTimer); hideTimer = setTimeout(() => counter.classList.remove('show'), 1600);
+    notesPanel.innerHTML = '<h4>' + label(i) + '</h4>' + notesHTML(i);
+    updatePresenter();
+  }
+
+  function onKey(e){
+    const k = e.key;
+    if (['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(k)) { e.preventDefault(); go(i + 1); }
+    else if (['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)) { e.preventDefault(); go(i - 1); }
+    else if (k === 'Home') go(0);
+    else if (k === 'End') go(total - 1);
+    else if (k === 'n' || k === 'N') notesPanel.classList.toggle('show');
+    else if (k === 'p' || k === 'P') openPresenter();
+    else if (k === 'f' || k === 'F') { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+  }
+  document.addEventListener('keydown', onKey);
+
+  // tap or click: left third goes back, the rest goes forward
+  document.getElementById('view').addEventListener('click', e => {
+    if (e.target.closest('a,button')) return;
+    (e.clientX < window.innerWidth / 3) ? go(i - 1) : go(i + 1);
+  });
+  window.addEventListener('mousemove', () => { counter.classList.add('show'); clearTimeout(hideTimer); hideTimer = setTimeout(() => counter.classList.remove('show'), 1600); });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', () => { const n = parseInt(location.hash.slice(1), 10); if (n && n - 1 !== i) go(n - 1); });
+
+  // presenter window: notes, next slide, and a timer; its keys drive this deck
+  function openPresenter(){
+    presenter = window.open('', 'ai-intro-presenter', 'width=980,height=720');
+    if (!presenter) return;
+    startedAt = startedAt || Date.now();
+    presenter.document.open();
+    presenter.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Presenter · Understanding and Using AI</title><style>' +
+      'body{margin:0;background:#0b1422;color:#eee8db;font:18px/1.6 "DM Sans",-apple-system,sans-serif;padding:24px 32px}' +
+      'header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:12px;margin-bottom:16px}' +
+      '#now{font:700 28px/1.2 Georgia,serif;color:#d4a853}#next,#clock{font:500 15px/1.2 ui-monospace,Menlo,monospace;color:#9aa3b4}' +
+      '#notes p{margin:0 0 14px;max-width:46em}button{font:inherit;background:#1a2d4a;color:#eee8db;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 16px;margin-right:8px;cursor:pointer}' +
+      '</style></head><body><header><div id="now"></div><div id="clock"></div></header><div id="notes"></div>' +
+      '<p id="next"></p><p><button id="prev">Back</button><button id="fwd">Next</button></p></body></html>');
+    presenter.document.close();
+    presenter.document.addEventListener('keydown', onKey);
+    presenter.document.getElementById('prev').onclick = () => go(i - 1);
+    presenter.document.getElementById('fwd').onclick = () => go(i + 1);
+    clearInterval(openPresenter.t);
+    openPresenter.t = setInterval(updateClock, 1000);
+    updatePresenter();
+  }
+  function updateClock(){
+    if (!presenter || presenter.closed) return;
+    const s = Math.floor((Date.now() - startedAt) / 1000);
+    presenter.document.getElementById('clock').textContent = (i + 1) + ' / ' + total + '  ·  ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' elapsed';
+  }
+  function updatePresenter(){
+    if (!presenter || presenter.closed) return;
+    const d = presenter.document;
+    d.getElementById('now').textContent = label(i);
+    d.getElementById('notes').innerHTML = notesHTML(i);
+    d.getElementById('next').textContent = 'Next: ' + label(i + 1);
+    updateClock();
+  }
+
+  fit();
+  let start = 0;
+  const fromHash = parseInt(location.hash.slice(1), 10);
+  if (fromHash) start = fromHash - 1;
+  else { try { start = parseInt(localStorage.getItem(KEY) || '0', 10) || 0; } catch (e) {} }
+  go(start);
+})();
+</script>
+</body>
+</html>

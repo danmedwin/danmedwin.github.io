@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Understanding and Using AI | Tech Rabbi</title>
+<meta name="description" content="A hands-on introduction to AI with Rabbi Dan Medwin: how to start, questions to try, how to talk to it, using it at work, and how to stay safe.">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Understanding and Using AI">
+<meta property="og:description" content="Everything from Rabbi Dan Medwin’s hands-on introduction to AI: how to start, questions to try, and how to stay safe.">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --navy:#0f1b2d; --navy-deep:#0b1422; --navy-2:#1a2d4a;
+  --gold:#d4a853; --gold-soft:#e8c97a; --gold-ink:#8a6516; --gold-wash:#f6edd6;
+  --cream:#eee8db; --paper:#f5f0e8; --white:#ffffff;
+  --slate:#9aa3b4; --ink:#0f1b2d; --ink-soft:#4b5565;
+  --brick:#9b3a2c; --brick-wash:#f8e9e4;
+  --line:rgba(255,255,255,.10); --line-ink:rgba(15,27,45,.12);
+  --serif:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --r:14px;
+  --shadow:0 6px 22px rgba(15,27,45,.06);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 19px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--navy);text-decoration-color:rgba(138,101,22,.5);text-underline-offset:.18em}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--gold-ink);outline-offset:3px;border-radius:6px}
+h1,h2,h3,p{margin:0}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+/* hero */
+.hero{position:relative;background:var(--navy);color:var(--cream);overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 15% 60%,rgba(212,168,83,.12) 0%,transparent 60%),radial-gradient(ellipse at 85% 15%,rgba(26,45,74,.8) 0%,transparent 55%)}
+.hero::after{content:"";position:absolute;inset:0;opacity:.035;background-image:linear-gradient(rgba(212,168,83,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,83,.6) 1px,transparent 1px);background-size:48px 48px}
+.hero .wrap{position:relative;z-index:1;padding-top:44px;padding-bottom:40px}
+.eyebrow{font:500 13px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.hero h1{margin-top:14px;font:700 clamp(2.3rem,8vw,3.4rem)/1.08 var(--serif);text-wrap:balance}
+.hero h1 em{color:var(--gold);font-style:italic}
+.hero .lede{margin-top:16px;font-size:1.12rem;line-height:1.6;color:var(--cream);max-width:34em}
+.hero .event{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);font:400 15px/1.5 var(--sans);color:var(--slate)}
+
+/* jump links */
+.jump{position:sticky;top:0;z-index:5;background:rgba(245,240,232,.96);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid var(--line-ink)}
+.jump ul{list-style:none;margin:0 auto;padding:10px 12px;max-width:760px;display:flex;flex-wrap:wrap;gap:6px}
+.jump a{display:inline-block;padding:7px 12px;border-radius:999px;background:var(--white);border:1px solid var(--line-ink);font:500 15px/1.2 var(--sans);text-decoration:none;color:var(--navy)}
+
+/* sections */
+section{padding:40px 0 8px;scroll-margin-top:96px}
+.kicker{font:500 13px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink)}
+section h2{margin-top:8px;font:700 clamp(1.7rem,6vw,2.2rem)/1.15 var(--serif);color:var(--navy);text-wrap:balance}
+section > .wrap > p.intro{margin-top:10px;color:var(--ink-soft)}
+.card{margin-top:16px;background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:20px 20px 18px;box-shadow:var(--shadow)}
+.card h3{font:700 1.15rem/1.3 var(--sans);color:var(--navy)}
+.card p{margin-top:6px;color:var(--ink-soft)}
+.card ul,.card ol{margin:10px 0 0;padding-left:1.25em;color:var(--ink)}
+.card li{margin:6px 0}
+.card li::marker{color:var(--gold-ink);font-weight:700}
+
+/* steps */
+.steps{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px;counter-reset:s}
+.steps > li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.steps > li::before{content:counter(s);width:44px;height:44px;border-radius:50%;background:var(--navy);color:var(--gold);display:grid;place-items:center;font:700 1.25rem/1 var(--serif)}
+.steps h3{font:700 1.1rem/1.3 var(--sans);color:var(--navy)}
+.steps p{margin-top:4px;color:var(--ink-soft)}
+
+/* prompts */
+.prompt{margin-top:14px;background:var(--white);border:1px solid var(--line-ink);border-left:6px solid var(--gold);border-radius:4px var(--r) var(--r) 4px;padding:16px 18px;box-shadow:var(--shadow)}
+.prompt .tag{font:500 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink)}
+.prompt .q{margin-top:6px;font:500 1.12rem/1.5 var(--sans);color:var(--navy)}
+.prompt .fill{color:var(--gold-ink)}
+.actions{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:10px 16px;border-radius:10px;border:1px solid var(--line-ink);background:var(--paper);color:var(--navy);font:600 16px/1.2 var(--sans);text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.btn:hover{border-color:var(--gold-ink)}
+.btn.done{background:var(--gold-wash);border-color:var(--gold-ink);color:var(--navy)}
+
+/* follow-up chips */
+.chips{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;min-height:46px;padding:10px 14px;border-radius:999px;border:1px solid var(--line-ink);background:var(--white);font:500 16px/1.3 var(--sans);color:var(--navy);cursor:pointer;text-align:left}
+.chip.done{background:var(--gold-wash);border-color:var(--gold-ink)}
+
+/* do / don't */
+.dd{display:grid;gap:14px;margin-top:16px}
+.dd .card{margin-top:0;padding:0;overflow:hidden}
+.dd h3{padding:10px 18px;font:600 14px/1.3 var(--mono);letter-spacing:.14em;color:var(--white)}
+.dd .do h3{background:var(--navy);color:var(--gold)}
+.dd .dont h3{background:var(--brick)}
+.dd ul{list-style:none;margin:0;padding:14px 18px 16px}
+.dd li{position:relative;padding-left:22px;margin:8px 0}
+.dd li::before{content:"";position:absolute;left:0;top:.6em;width:10px;height:10px;border-radius:50%;background:var(--gold)}
+.dd .dont li::before{background:var(--brick)}
+
+/* alert card */
+.alert{margin-top:16px;background:var(--brick-wash);border:1px solid rgba(155,58,44,.25);border-left:6px solid var(--brick);border-radius:4px var(--r) var(--r) 4px;padding:18px 20px}
+.alert h3{font:700 1.15rem/1.3 var(--sans);color:var(--brick)}
+.alert p{margin-top:6px;color:var(--ink)}
+.alert ul{margin:10px 0 0;padding-left:1.25em}
+.alert li{margin:6px 0}
+.alert li::marker{color:var(--brick)}
+
+/* table */
+.table-wrap{margin-top:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--line-ink);box-shadow:var(--shadow);background:var(--white)}
+table{border-collapse:collapse;width:100%;font-size:16px}
+th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line-ink)}
+thead th{background:var(--navy);color:var(--gold);font-weight:700}
+tbody th{color:var(--navy);background:rgba(212,168,83,.10)}
+@media (max-width:480px){table{font-size:15px} th,td{padding:10px 8px}}
+tr:last-child th,tr:last-child td{border-bottom:0}
+.fine{margin-top:10px;font-size:15px;color:var(--ink-soft)}
+
+/* checklist */
+.checks{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.checks label{display:flex;gap:14px;align-items:flex-start;background:var(--white);border:1px solid var(--line-ink);border-radius:var(--r);padding:14px 16px;cursor:pointer;box-shadow:var(--shadow)}
+.checks input{width:26px;height:26px;margin:1px 0 0;accent-color:var(--navy);flex:none}
+
+/* footer */
+footer{margin-top:48px;background:var(--navy);color:var(--cream)}
+footer .wrap{padding-top:36px;padding-bottom:36px}
+footer .ask{margin-top:10px;font:400 1.35rem/1.4 var(--serif)}
+footer .ask a{color:var(--gold);overflow-wrap:anywhere}
+footer .small{margin-top:24px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:15px;color:var(--slate)}
+footer .small a{color:var(--slate)}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:var(--cream);padding:12px 18px;border-radius:10px;font:600 16px/1.2 var(--sans);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:10;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (min-width:640px){
+  .dd{grid-template-columns:1fr 1fr}
+}
+@media print{
+  @page{size:letter;margin:11mm 12mm}
+  html{scroll-behavior:auto}
+  body{background:#fff;font-size:9.3pt;line-height:1.33}
+  .wrap{max-width:none;padding:0}
+  .jump,.actions,.toast,footer .small,#more .intro,.no-print{display:none!important}
+  .hero{background:#fff;color:var(--navy);border-bottom:2px solid var(--gold)}
+  .hero::before,.hero::after{display:none}
+  .hero .wrap{padding:0 0 8px}
+  .hero h1{margin-top:4px;font-size:21pt}
+  .hero .lede{margin-top:4px;font-size:9.6pt;color:var(--ink-soft);max-width:none}
+  .hero .event{margin-top:6px;padding-top:0;border:0;font-size:8.5pt;color:var(--ink-soft)}
+  .eyebrow{color:var(--gold-ink);font-size:7.5pt}
+  section{padding:9px 0 0}
+  .kicker{font-size:7pt;break-after:avoid}
+  section h2{margin-top:1px;font-size:14pt;break-after:avoid}
+  section > .wrap > p.intro{margin-top:3px}
+  .card,.prompt,.steps > li,.checks label,.alert,.table-wrap{box-shadow:none;break-inside:avoid}
+  .card,.prompt,.alert{margin-top:6px;padding:7px 11px}
+  .card h3,.alert h3{font-size:10pt}
+  .card ul,.card ol,.alert ul{margin-top:3px}
+  .card li,.alert li{margin:2px 0}
+  .steps{margin-top:6px;gap:5px}
+  .steps > li{grid-template-columns:22px 1fr;gap:9px;padding:6px 10px}
+  .steps > li::before{width:22px;height:22px;font-size:10pt}
+  .steps h3{font-size:10pt}
+  .steps p{margin-top:1px}
+  #prompts{columns:2;column-gap:10px}
+  #prompts .prompt{display:inline-block;width:100%;margin:0 0 6px}
+  .prompt .q{margin-top:2px;font-size:9.3pt}
+  .prompt .tag{font-size:7pt}
+  .chips{margin-top:5px;gap:4px}
+  .chip{min-height:0;padding:3px 9px;font-size:9pt}
+  .dd{grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  .dd h3{padding:4px 10px;font-size:8pt}
+  .dd ul{padding:5px 10px 7px}
+  .dd li{margin:3px 0}
+  .table-wrap{margin-top:6px;overflow:visible}
+  table{min-width:0;font-size:8.6pt}
+  th,td{padding:4px 7px}
+  .fine{margin-top:4px;font-size:8pt}
+  .checks{display:block;columns:2;column-gap:10px;margin-top:6px}
+  .checks li{break-inside:avoid;margin-bottom:5px}
+  .checks label{padding:5px 9px;gap:8px}
+  .checks input{width:13px;height:13px}
+  footer{background:#fff;color:var(--navy);margin-top:10px;border-top:2px solid var(--gold)}
+  footer .wrap{padding:6px 0 0}
+  footer .ask{margin-top:2px;font-size:11pt}
+  footer .ask a{color:var(--navy)}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Rabbi Dan Medwin · Tech Rabbi</p>
+    <h1>Understanding and Using <em>AI</em></h1>
+    <p class="lede">Everything from today’s program, ready on your phone. Tap <strong>Ask Google</strong> on any question to see an answer right away, with no account needed, or <strong>Copy</strong> to paste it into any assistant.</p>
+    <p class="event">Scholar-in-Residence Weekend · The Reform Temple of Rockland · Saturday, November 21, 2026</p>
+  </div>
+</header>
+
+<nav class="jump" aria-label="On this page">
+  <ul>
+    <li><a href="#start">Start</a></li>
+    <li><a href="#try">Questions to try</a></li>
+    <li><a href="#talk">Talk to it</a></li>
+    <li><a href="#tips">Tips</a></li>
+    <li><a href="#work">At work</a></li>
+    <li><a href="#safe">Stay safe</a></li>
+    <li><a href="#compare">Which one?</a></li>
+    <li><a href="#week">This week</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<section id="start">
+  <div class="wrap">
+    <p class="kicker">Step one</p>
+    <h2>Three ways to start</h2>
+    <ol class="steps">
+      <li><div><h3>No account needed</h3><p>Open your web browser and go to <a class="print-url" href="https://google.com/ai"><strong>google.com/ai</strong></a>. Type your question, or tap the microphone and say it.</p>
+        <div class="actions"><a class="btn primary" href="https://google.com/ai" target="_blank" rel="noopener">Open google.com/ai</a></div></div></li>
+      <li><div><h3>On the web</h3><p>Go to <a class="print-url" href="https://chatgpt.com">chatgpt.com</a> or <a class="print-url" href="https://gemini.google.com">gemini.google.com</a> to try them without an account, or <a class="print-url" href="https://claude.ai">claude.ai</a> with a free account. Works on a phone or a laptop.</p></div></li>
+      <li><div><h3>Get the app</h3><p>Search the App Store or Google Play for ChatGPT, Claude, or Gemini. <strong>Check that the maker is OpenAI, Anthropic, or Google</strong>, because there are copycats. Choose “Continue with Google” or “Continue with Apple” for one less password.</p></div></li>
+    </ol>
+    <div class="card no-print">
+      <h3>Why make an account?</h3>
+      <p>It’s free. It saves your chats, and it turns on voice and photos.</p>
+    </div>
+    <div class="card">
+      <h3>AI is probably already on your phone</h3>
+      <ul>
+        <li><strong>iPhone:</strong> the new Siri arrived with iOS 27 in September, on iPhone 15 Pro and newer. It’s built with Google’s Gemini models.</li>
+        <li><strong>Android:</strong> Gemini replaced Google Assistant in September. Say “Hey Google” or hold the power button.</li>
+        <li><strong>Also:</strong> Meta AI in WhatsApp, Facebook, and Instagram; Copilot in Windows and Microsoft Office; Alexa+ on Echo speakers.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="try">
+  <div class="wrap">
+    <p class="kicker">Pick one</p>
+    <h2>Questions to try</h2>
+    <p class="intro">Copy a question exactly, or change the words in <span style="color:var(--gold-ink);font-weight:600">[brackets]</span> to make it yours.</p>
+    <div id="prompts"></div>
+  </div>
+</section>
+
+<section id="more">
+  <div class="wrap">
+    <p class="kicker">Keep going</p>
+    <h2>Then ask a follow-up</h2>
+    <p class="intro">This is where it starts to feel like a conversation. Tap one to copy it.</p>
+    <div class="chips" id="followups"></div>
+    <div class="card">
+      <h3>If it isn’t working</h3>
+      <ul>
+        <li><strong>Not what you wanted?</strong> Add detail and ask again.</li>
+        <li><strong>Too long?</strong> “Give me the short version.”</li>
+        <li><strong>Too confusing?</strong> “Explain it like I’m new to this.”</li>
+        <li><strong>Lost?</strong> Start a new chat. You can’t break anything.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="talk">
+  <div class="wrap">
+    <p class="kicker">No typing needed</p>
+    <h2>Talk to it out loud</h2>
+    <p class="intro">Voice is free in ChatGPT, Claude, and Gemini. It’s a real help if typing is hard on your hands or eyes, or when your hands are busy cooking.</p>
+    <ol class="steps">
+      <li><div><h3>Open the app</h3><p>ChatGPT, Claude, or Gemini. Voice works best in the app.</p></div></li>
+      <li><div><h3>Tap the voice button</h3><p>It looks like sound waves, next to the typing box. In Gemini, it’s called Live.</p></div></li>
+      <li><div><h3>Allow the microphone</h3><p>Your phone asks the first time only. Tap Allow.</p></div></li>
+      <li><div><h3>Just talk</h3><p>No special words. Interrupt any time. Tap the X or End when you’re done.</p></div></li>
+    </ol>
+    <div class="card">
+      <h3>Tips</h3>
+      <ul>
+        <li>A quiet room works best.</li>
+        <li>It talks out loud, so use earbuds for privacy.</li>
+        <li>In Gemini Live, turn on the camera and ask about what you’re looking at: a plant, a gadget, a menu.</li>
+      </ul>
+    </div>
+    <div class="prompt no-print"><p class="tag">Try saying</p><p class="q">I’m making chicken soup. Walk me through it one step at a time, and wait for me to say “next.”</p></div>
+  </div>
+</section>
+
+<section id="tips">
+  <div class="wrap">
+    <p class="kicker">Ask better, get better</p>
+    <h2>Tips for good questions</h2>
+    <div class="dd">
+      <div class="card do"><h3>DO</h3><ul>
+        <li>Give context: who it’s for and why</li>
+        <li>Say what you want back: a list, three sentences, a friendly tone</li>
+        <li>Ask follow-up questions</li>
+        <li>End with “Ask me any questions you need before you start.”</li>
+        <li>Ask “Where did you get that?”</li>
+      </ul></div>
+      <div class="card dont"><h3>DON’T</h3><ul>
+        <li>Share passwords, account numbers, or your Social Security number</li>
+        <li>Paste confidential work into a personal account</li>
+        <li>Trust important facts without checking</li>
+        <li>Give up if the first answer isn’t right</li>
+      </ul></div>
+    </div>
+    <div class="card">
+      <h3>Where AI still stumbles</h3>
+      <ul>
+        <li><strong>It can sound sure and still be wrong.</strong> It sometimes invents facts, quotes, and sources.</li>
+        <li><strong>It tends to agree with you.</strong> Ask what’s wrong with your idea, and it will tell you.</li>
+        <li><strong>It only knows your situation if you tell it,</strong> so be thoughtful about what you share.</li>
+        <li><strong>It isn’t your doctor, lawyer, or financial advisor.</strong> It can help you prepare good questions for them.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="work">
+  <div class="wrap">
+    <p class="kicker">On the job</p>
+    <h2>Using AI at work</h2>
+    <div class="card">
+      <h3>Good uses</h3>
+      <ul>
+        <li>First drafts of emails, reports, and proposals</li>
+        <li>Summaries of long documents</li>
+        <li>Meeting notes turned into action items</li>
+        <li>Spreadsheet formulas, explained</li>
+        <li>Rehearsing a hard conversation before you have it</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Ground rules</h3>
+      <ul>
+        <li>Check your workplace’s AI policy first.</li>
+        <li>Use the tools your employer provides, like Microsoft Copilot or Gemini in Google Workspace.</li>
+        <li>Keep client and confidential information out of personal accounts.</li>
+        <li>You’re responsible for what you send. Check facts and numbers.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="safe">
+  <div class="wrap">
+    <p class="kicker">Staying safe</p>
+    <h2>Scams got smarter, too</h2>
+    <p class="intro">The same technology that writes a thank-you note can copy a voice from a few seconds of video. In 2025, Americans 60 and older reported losing $7.7 billion to scams, up 59% in one year (FBI).</p>
+    <div class="alert">
+      <h3>If a loved one calls in trouble and needs money</h3>
+      <ul>
+        <li><strong>Hang up and call them back</strong> on a number you already have.</li>
+        <li><strong>Ask for your family safe word.</strong> The FBI recommends every family choose one.</li>
+        <li><strong>Check with another family member,</strong> even if the caller says to keep it secret.</li>
+        <li><strong>Slow down.</strong> Urgency, secrecy, and payment by gift card, crypto, or wire transfer mean scam.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Watch for</h3>
+      <ul>
+        <li>A call that sounds exactly like someone you love</li>
+        <li>Videos of celebrities or officials selling investments</li>
+        <li>Polished emails and texts with no typos to give them away</li>
+      </ul>
+      <p style="margin-top:12px">Report scams at <a class="print-url" href="https://reportfraud.ftc.gov">ReportFraud.ftc.gov</a> and <a class="print-url" href="https://www.ic3.gov">ic3.gov</a>.</p>
+    </div>
+    <h2 style="margin-top:36px">Protect your privacy</h2>
+    <div class="card">
+      <ul>
+        <li><strong>Keep private numbers private:</strong> passwords, account numbers, and your Social Security number.</li>
+        <li><strong>Your chats may be used to train the AI.</strong> You can turn that off (below).</li>
+        <li><strong>Use a private chat</strong> for sensitive questions. It isn’t saved to your history.</li>
+        <li><strong>Think before you connect</strong> your email or calendar, or let AI act for you.</li>
+        <li><strong>Covering a photo?</strong> Hide account numbers before you take the picture.</li>
+      </ul>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Turn off training</th><th>Private chat</th></tr></thead>
+        <tbody>
+          <tr><th>ChatGPT</th><td>Settings › Data controls › turn off “Improve the model for everyone”</td><td>Temporary Chat</td></tr>
+          <tr><th>Claude</th><td>Settings › Privacy › turn off “Help improve our AI models”</td><td>Incognito chat (the ghost icon)</td></tr>
+          <tr><th>Gemini</th><td>Menu › Gemini Apps Activity › turn off “Keep Activity”</td><td>Temporary chat</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <p class="kicker">Which one?</p>
+    <h2>The one you’ll actually open</h2>
+    <p class="intro">Everything you learned today works on all of them, and you can try them all for free.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr></thead>
+        <tbody>
+          <tr><th>Made by</th><td>OpenAI</td><td>Anthropic</td><td>Google</td></tr>
+          <tr><th>Free version</th><td>Yes, with ads</td><td>Yes, no ads</td><td>Yes, no ads so far</td></tr>
+          <tr><th>Paid plans</th><td>$8, $20, or more a month</td><td>$20 or more a month</td><td>$5, $20, or more a month</td></tr>
+          <tr><th>Account needed?</th><td>No, but photos need one</td><td>Yes</td><td>No on the website</td></tr>
+          <tr><th>Voice</th><td>Free</td><td>Free</td><td>Free, with live camera</td></tr>
+          <tr><th>Best known for</th><td>Most popular, most features</td><td>Clear writing, no ads</td><td>Android and Google apps</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">Prices as of October 2026, in US dollars. They change often.</p>
+    <div class="card">
+      <ul>
+        <li><strong>Gemini,</strong> if you have an Android phone or already live in Gmail</li>
+        <li><strong>ChatGPT,</strong> if you want the most popular, with the most features</li>
+        <li><strong>Claude,</strong> if you want careful explanations and no ads</li>
+      </ul>
+      <p style="margin-top:10px">You’re never locked in. Try them all.</p>
+    </div>
+  </div>
+</section>
+
+<section id="week">
+  <div class="wrap">
+    <p class="kicker">Your homework</p>
+    <h2>Try one new thing this week</h2>
+    <ul class="checks" id="checks">
+      <li><label><input type="checkbox" data-k="voice"> Ask a question out loud, using voice mode</label></li>
+      <li><label><input type="checkbox" data-k="photo"> Take a photo of something confusing and ask what it means</label></li>
+      <li><label><input type="checkbox" data-k="write"> Get help writing a message to someone</label></li>
+      <li><label><input type="checkbox" data-k="learn"> Learn about something you’ve always been curious about</label></li>
+      <li><label><input type="checkbox" data-k="two"> Ask the same question in two different assistants and compare</label></li>
+      <li><label><input type="checkbox" data-k="safeword"> Choose a family safe word</label></li>
+    </ul>
+    <p class="fine">Every expert was once a beginner.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="eyebrow">Rabbi Dan Medwin</p>
+    <p class="ask">Questions, or something you’d like to learn together? I’d love to hear from you at <a class="mail" href="#"><span class="addr">my email</span></a>.</p>
+    <div class="small"><span>&copy; 2026 Tech Rabbi · Rabbi Dan Medwin</span><a href="/">techrabbi.org</a></div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Questions to try. "fill" marks the part people should change. */
+const PROMPTS = [
+  { tag: 'Cooking', q: 'What’s a simple dinner I can make with chicken, rice, and whatever vegetables I have?' },
+  { tag: 'Writing', q: 'I need to write a thank-you note to my neighbor, who brought me dinner when I was sick. Can you help me write something warm but not too formal?' },
+  { tag: 'Health', q: 'What are some health benefits of walking 30 minutes a day? Please include your sources.' },
+  { tag: 'Family', q: 'Help me write a birthday message for my granddaughter, who just started college.' },
+  { tag: 'Learning', q: 'Explain what “the cloud” means, in simple terms.' },
+  { tag: 'Work', q: 'I have a job interview for [job]. Ask me five practice questions, one at a time, and give me feedback on each answer.', fill: true },
+  { tag: 'Work', q: 'Here are my notes from today’s meeting: [paste your notes]. Turn them into a short email to the team, with each action item and who owns it.', fill: true },
+  { tag: 'Jewish life', q: 'Jacob dreamed of a ladder to heaven (Genesis 28). Give me three questions my family could discuss about it at dinner.' },
+  { tag: 'Reading', q: 'Recommend three books like [a book you loved], and tell me why.', fill: true },
+  { tag: 'Technology', q: 'Walk me through how to [make the text bigger on my iPhone], one step at a time.', fill: true }
+];
+const FOLLOWUPS = [
+  'Make it shorter.',
+  'Explain that more simply.',
+  'Give me three more options.',
+  'Ask me questions first, then try again.',
+  'Where did you get that?',
+  'What might be wrong with this answer?'
+];
+/* One-tap links that open an assistant with the question filled in. Set in the research pass. */
+const ASK_LINKS = [
+  // Opens Google AI Mode with the question already asked. No account needed.
+  // udm=50 is the AI Mode tab; Google doesn't document it, so Copy stays as the fallback.
+  { label: 'Ask Google', url: q => 'https://www.google.com/search?udm=50&q=' + encodeURIComponent(q) }
+];
+
+const toast = document.getElementById('toast');
+let toastTimer;
+function say(msg){ toast.textContent = msg; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 1800); }
+async function copy(text, btn){
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch (e2) {}
+    ta.remove();
+  }
+  if (ok) { say('Copied. Now paste it into your assistant.'); if (btn) { btn.classList.add('done'); } }
+  else say('Press and hold the question to copy it.');
+}
+function render(){
+  const box = document.getElementById('prompts');
+  PROMPTS.forEach(p => {
+    const el = document.createElement('div'); el.className = 'prompt';
+    const tag = document.createElement('p'); tag.className = 'tag'; tag.textContent = p.tag;
+    const q = document.createElement('p'); q.className = 'q';
+    // show [brackets] in gold so people see what to change
+    p.q.split(/(\[[^\]]+\])/).forEach(part => {
+      if (/^\[.*\]$/.test(part)) { const s = document.createElement('span'); s.className = 'fill'; s.textContent = part; q.appendChild(s); }
+      else q.appendChild(document.createTextNode(part));
+    });
+    const actions = document.createElement('div'); actions.className = 'actions';
+    const b = document.createElement('button'); b.className = 'btn primary'; b.type = 'button'; b.textContent = 'Copy';
+    b.addEventListener('click', () => copy(p.q, b));
+    actions.appendChild(b);
+    if (!p.fill) ASK_LINKS.forEach(l => {
+      const a = document.createElement('a'); a.className = 'btn'; a.href = l.url(p.q); a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = l.label; actions.appendChild(a);
+    });
+    el.append(tag, q, actions); box.appendChild(el);
+  });
+  const chips = document.getElementById('followups');
+  FOLLOWUPS.forEach(f => {
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'chip'; c.textContent = '“' + f + '”';
+    c.addEventListener('click', () => copy(f, c)); chips.appendChild(c);
+  });
+}
+render();
+
+/* This week's checklist remembers your ticks on this device only. */
+(function(){
+  const KEY = 'ai-intro-week';
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {}
+  document.querySelectorAll('#checks input').forEach(cb => {
+    cb.checked = !!saved[cb.dataset.k];
+    cb.addEventListener('change', () => { saved[cb.dataset.k] = cb.checked; try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} });
+  });
+})();
+
+// The address is assembled here rather than written into the page, so scrapers
+// reading the HTML don't pick it up. Same address and approach as the home page.
+(function () {
+  var user = [114, 97, 98, 98, 105, 46, 100, 97, 110];
+  var host = [109, 101, 100, 119, 46, 105, 110];
+  var text = function (codes) { return codes.map(function (c) { return String.fromCharCode(c); }).join(''); };
+  var addr = text(user) + String.fromCharCode(64) + text(host);
+  document.querySelectorAll('a.mail').forEach(function (link) {
+    link.href = 'mai' + 'lt' + 'o:' + addr + '?subject=Intro%20to%20AI';
+    link.querySelector('.addr').textContent = addr;
+  });
+})();
+</script>
+</body>
+</html>

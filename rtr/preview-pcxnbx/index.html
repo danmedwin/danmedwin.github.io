@@ -198,8 +198,10 @@ h1 em { font-style: italic; color: var(--gold); }
 
 .section-inner { max-width: 1100px; margin: 0 auto; padding: var(--space-2xl) var(--space-xl); }
 
-/* Tools follow learning on the same paper, so a rule marks where one ends. */
+/* Later sections follow learning on the same paper, so a rule marks where one ends. */
+.ai .section-inner,
 .tools .section-inner { padding-top: 0; }
+.ai .section-inner::before,
 .tools .section-inner::before {
   content: '';
   display: block;
@@ -224,6 +226,14 @@ h2 {
   margin: 0 0 var(--space-xl);
   text-wrap: pretty;
 }
+
+.intro a {
+  color: var(--navy);
+  text-decoration: underline;
+  text-decoration-color: rgba(138, 101, 22, 0.5);
+  text-underline-offset: 0.18em;
+}
+.intro a:hover { text-decoration-color: var(--gold-ink); }
 
 .cards {
   display: grid;
@@ -411,6 +421,7 @@ h2 {
   .hero-inner { padding: var(--space-xl) var(--space-md) var(--space-2xl); }
   .section-inner { padding: var(--space-xl) var(--space-md); }
   .card-body { padding: var(--space-md) var(--space-md) var(--space-lg); }
+  .ai .section-inner::before,
   .tools .section-inner::before { margin-bottom: var(--space-xl); }
   .contact { grid-template-columns: 1fr; gap: var(--space-lg); }
   .portrait { width: 144px; }
@@ -496,6 +507,24 @@ h2 {
         </div>
       </article>
     </div>
+  </div>
+</section>
+
+<section class="paper ai" aria-labelledby="ai">
+  <div class="section-inner">
+    <p class="eyebrow"><span lang="he" dir="rtl">הֶחָדָשׁ</span> Intro to AI</p>
+    <h2 id="ai">Your first conversation with AI</h2>
+    <p class="intro">Saturday afternoon is for anyone who has never used AI, and anyone who has just begun. Nobody should have to copy questions off a screen, so I built a companion page, <a href="https://techrabbi.org/ai">techrabbi.org/ai</a>, with every question from the program and a button that asks it for you. Bring a phone or a laptop.</p>
+
+    <article class="card wide">
+      <img class="shot" src="/rtr/img/intro-to-ai.webp" width="1200" height="675" alt="The title slide of Understanding and Using AI: the title in cream and gold on navy, beside Rav Kook’s line in Hebrew.">
+      <div class="card-body">
+        <p class="kicker">Saturday, 12:30 p.m. · The slides</p>
+        <h3><a href="https://techrabbi.org/rtr-ai/">Understanding and Using AI</a></h3>
+        <p class="desc">What AI is, how it works, and where it still stumbles, with five live demonstrations, from a thank-you note to a spoken conversation about chicken soup for Shabbat. The last part covers what matters most: how AI-powered scams work, and how to protect yourself and your family.</p>
+        <span class="go" aria-hidden="true">Open the slides <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
   </div>
 </section>
 
