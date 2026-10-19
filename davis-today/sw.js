@@ -1,4 +1,4 @@
-const CACHE = "davis-today-v44.16-mv6zktnf";
+const CACHE = "davis-today-v45-mvfh6p72";
 const ASSETS = ["./", "./index.html", "./app.enc", "./manifest.webmanifest",
   "/davis-today/icon-180.png", "/davis-today/icon-192.png", "/davis-today/icon-512.png", "/davis-today/icon.svg"];
 
