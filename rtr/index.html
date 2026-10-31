@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Behind a passphrase and kept out of search until the weekend ends. The gate lifts itself
+     on November 23; after that, this line and the gate can both go. -->
+<meta name="robots" content="noindex, nofollow">
 <title>RTR Scholar-in-Residence Weekend | Tech Rabbi</title>
 <meta name="description" content="Renew the Old and Sanctify the New: The Dance of Judaism &amp; Technology. Texts, slides, and tools for the Scholar-in-Residence Weekend at the Reform Temple of Rockland, November 20–22, 2026.">
 <link rel="icon" href="/apps/logo.png" type="image/png">
@@ -16,6 +19,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Frank+Ruhl+Libre:wght@500&display=swap" rel="stylesheet">
+
+<script>
+// Runs before the page draws, so a visitor who is already in never sees the gate:
+// everyone once the weekend is over, and anyone who has entered the passphrase here.
+(function () {
+  var open = Date.now() >= Date.parse('2026-11-23T00:00:00-05:00');
+  try { open = open || localStorage.getItem('rtr-gate') === '1'; } catch (e) {}
+  if (open) document.documentElement.classList.add('unlocked');
+})();
+</script>
 
 <style>
 :root {
@@ -401,6 +414,79 @@ h2 {
 .fine a { color: inherit; text-decoration: none; transition: color 0.2s ease; }
 .fine a:hover { color: var(--gold); }
 
+/* --------------------------------------------------------------- gate ---- */
+
+/* Until the weekend ends, the gate is the whole page. */
+html:not(.unlocked) .site-header,
+html:not(.unlocked) main,
+html:not(.unlocked) .site-footer { display: none; }
+html.unlocked .gate { display: none; }
+
+.gate {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-md);
+  background: radial-gradient(ellipse at 30% 40%, rgba(212, 168, 83, 0.08) 0%, transparent 60%), var(--navy);
+}
+.gate-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  text-align: center;
+  animation: rise 0.8s ease-out both;
+}
+.gate-card img { align-self: center; height: 44px; width: auto; margin-bottom: var(--space-sm); }
+.gate-card .eyebrow { display: block; margin: 0; font-size: 0.72rem; line-height: 1.7; }
+.gate-title {
+  margin: var(--space-xs) 0 0;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 6vw, 2.3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.gate-title em { font-style: italic; color: var(--gold); }
+.gate-when { margin: 0 0 var(--space-lg); color: var(--slate); }
+.gate label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.gate input {
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 1.1rem;           /* 16px or more, so phones don't zoom in on focus */
+  text-align: center;
+  color: var(--cream);
+  background: var(--navy-deep);
+  border: 1px solid rgba(212, 168, 83, 0.35);
+  border-radius: var(--radius-md);
+}
+.gate input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.2); }
+.gate button {
+  padding: 12px;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+  background: var(--gold);
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.gate button:hover { background: var(--gold-soft); }
+.gate-err { min-height: 1.6em; margin: 0; color: var(--gold-soft); font-size: 0.95rem; }
+.gate-note { margin: var(--space-sm) 0 0; color: var(--slate); font-size: 0.9rem; }
+
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .paper :focus-visible { outline-color: var(--gold-ink); }
 
@@ -434,6 +520,20 @@ h2 {
 </style>
 </head>
 <body>
+
+<div class="gate">
+  <form class="gate-card" id="gate-form">
+    <img src="/apps/logo.png" alt="Tech Rabbi">
+    <p class="eyebrow">The Reform Temple of Rockland&nbsp;· Scholar-in-Residence Weekend</p>
+    <p class="gate-title">Renew the <em>Old</em> and Sanctify the <em>New</em></p>
+    <p class="gate-when">November 20–22, 2026</p>
+    <label for="gate-pass">Passphrase</label>
+    <input id="gate-pass" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <button type="submit">Enter</button>
+    <p class="gate-err" id="gate-err" role="alert"></p>
+    <p class="gate-note">This page opens to everyone on Monday, November 23.</p>
+  </form>
+</div>
 
 <header class="site-header">
   <a href="/" class="logo">
@@ -577,6 +677,31 @@ h2 {
     link.href = 'mai' + 'lt' + 'o:' + addr + '?subject=RTR';
     link.querySelector('.addr').textContent = addr;
   });
+})();
+
+// The passphrase is checked by its SHA-256, so the word itself isn't in the page.
+// It keeps casual visitors out, not a determined one: the page is all here in the HTML.
+(function () {
+  if (document.documentElement.classList.contains('unlocked')) return;
+  var PASS = '60e98a265ddd9844c4afaa9d97e3fa231887206ea88412e42b063bebbdb262d9';
+  var input = document.getElementById('gate-pass');
+  var err = document.getElementById('gate-err');
+  document.getElementById('gate-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var word = input.value.trim().toLowerCase();
+    crypto.subtle.digest('SHA-256', new TextEncoder().encode(word)).then(function (buf) {
+      var hex = Array.from(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      if (hex !== PASS) {
+        err.textContent = 'That’s not the passphrase. Please try again.';
+        input.select();
+        return;
+      }
+      try { localStorage.setItem('rtr-gate', '1'); } catch (e) {}
+      document.documentElement.classList.add('unlocked');
+      window.scrollTo(0, 0);
+    });
+  });
+  input.focus();
 })();
 </script>
 </body>
