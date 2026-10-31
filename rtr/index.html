@@ -1,9 +1,583 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=/vt-sign-up/">
-<link rel="canonical" href="/vt-sign-up/">
-<title>Moved</title>
-</head><body>
-This sign-up page has moved to <a href="/vt-sign-up/">techrabbi.org/vt-sign-up</a>.
-</body></html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RTR Scholar-in-Residence Weekend | Tech Rabbi</title>
+<meta name="description" content="Renew the Old and Sanctify the New: The Dance of Judaism &amp; Technology. Texts, slides, and tools for the Scholar-in-Residence Weekend at the Reform Temple of Rockland, November 20–22, 2026.">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Renew the Old and Sanctify the New">
+<meta property="og:description" content="The Dance of Judaism &amp; Technology. Scholar-in-Residence Weekend at the Reform Temple of Rockland, November 20–22, 2026.">
+<meta property="og:image" content="https://techrabbi.org/rtr/img/dan-medwin.jpg">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Frank+Ruhl+Libre:wght@500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy:      #0f1b2d;
+  --navy-deep: #0b1422;
+  --gold:      #d4a853;
+  --gold-soft: #e8c97a;
+  --gold-ink:  #8a6516;   /* gold dark enough for small text on paper, 4.7:1 */
+  --cream:     #eee8db;
+  --paper:     #f5f0e8;
+  --slate:     #9aa3b4;
+  --ink-soft:  #4b5565;
+
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+  --space-2xl: 64px;
+
+  --radius-md: 12px;
+
+  --line: rgba(255, 255, 255, 0.08);
+  --line-ink: rgba(15, 27, 45, 0.12);
+
+  --serif:  'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:   'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:   'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --hebrew: 'Frank Ruhl Libre', 'Times New Roman', serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--navy);
+  color: var(--cream);
+  font-family: var(--sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+[lang="he"] { font-family: var(--hebrew); font-weight: 500; }
+
+.eyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-md);
+}
+.eyebrow [lang="he"] { font-size: 1.1rem; letter-spacing: 0; text-transform: none; }
+
+/* ------------------------------------------------------------- header ---- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  padding: var(--space-md) var(--space-xl);
+  border-bottom: 1px solid var(--line);
+}
+.site-header .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.site-header .logo img { height: 36px; width: auto; }
+.logo-text { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+.logo-text span { color: var(--cream); font-weight: 400; }
+
+/* --------------------------------------------------------------- hero ---- */
+
+/* The same glow and faint grid as the home page hero. */
+.hero { position: relative; overflow: hidden; }
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(212, 168, 83, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(26, 45, 74, 0.6) 0%, transparent 50%);
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image:
+    linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 168, 83, 0.5) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-xl);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2xl);
+}
+.hero-text { animation: rise 0.8s ease-out both; }
+.hero .eyebrow { display: block; line-height: 1.7; }
+
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.2rem, 4.6vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.12;
+  margin: 0 0 var(--space-sm);
+  text-wrap: balance;
+}
+h1 em { font-style: italic; color: var(--gold); }
+
+.subtitle {
+  margin: 0 0 var(--space-lg);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+  line-height: 1.3;
+  color: var(--cream);
+}
+
+.when {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0 0 var(--space-xs);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.when svg { width: 20px; height: 20px; flex: none; margin-top: 0.2em; color: var(--gold); }
+.nowrap { white-space: nowrap; }
+.credits { margin: 0 0 var(--space-lg); color: var(--slate); font-size: 0.95rem; }
+
+.lede {
+  max-width: 36em;
+  margin: 0;
+  color: var(--slate);
+  font-size: clamp(1.05rem, 1.6vw, 1.15rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+/* The line the weekend's title comes from, set the way the Jacob's Dream page sets sulam. */
+.source {
+  margin: 0;
+  max-width: 21rem;
+  text-align: right;
+  animation: rise 0.8s ease-out 0.15s both;
+}
+.source blockquote {
+  margin: 0 0 var(--space-md);
+  font-size: clamp(2rem, 3.4vw, 2.75rem);
+  line-height: 1.35;
+  color: var(--gold);
+}
+.source figcaption { color: var(--slate); font-size: 0.92rem; line-height: 1.55; }
+.source figcaption i { color: var(--cream); }
+.source .who {
+  display: block;
+  margin-top: var(--space-sm);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+
+/* ------------------------------------------------------------ learning --- */
+
+.paper { background: var(--paper); color: var(--navy); }
+.paper .eyebrow { color: var(--gold-ink); }
+
+.section-inner { max-width: 1100px; margin: 0 auto; padding: var(--space-2xl) var(--space-xl); }
+
+/* Later sections follow learning on the same paper, so a rule marks where one ends. */
+.ai .section-inner,
+.tools .section-inner { padding-top: 0; }
+.ai .section-inner::before,
+.tools .section-inner::before {
+  content: '';
+  display: block;
+  margin-bottom: var(--space-2xl);
+  border-top: 1px solid var(--line-ink);
+}
+
+h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3.4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 var(--space-md);
+  text-wrap: balance;
+}
+
+.intro {
+  max-width: 40em;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin: 0 0 var(--space-xl);
+  text-wrap: pretty;
+}
+
+.intro a {
+  color: var(--navy);
+  text-decoration: underline;
+  text-decoration-color: rgba(138, 101, 22, 0.5);
+  text-underline-offset: 0.18em;
+}
+.intro a:hover { text-decoration-color: var(--gold-ink); }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+/* --------------------------------------------------------------- card ---- */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--line-ink);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(15, 27, 45, 0.08);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 168, 83, 0.55);
+  box-shadow: 0 16px 44px rgba(15, 27, 45, 0.14);
+}
+.card:focus-within {
+  border-color: var(--gold-ink);
+  box-shadow: 0 0 0 2px rgba(138, 101, 22, 0.35);
+}
+
+.card .shot {
+  display: block;
+  width: 100%;
+  height: auto;           /* let aspect-ratio win over the width/height attributes */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: top center;
+  background: var(--navy-deep);
+  border-bottom: 1px solid var(--line-ink);
+}
+
+.card-body { padding: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-sm); flex: 1; }
+
+.kicker {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+.card h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.75rem;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+.card h3 a { color: var(--navy); text-decoration: none; transition: color 0.2s ease; }
+.card h3 a::after { content: ""; position: absolute; inset: 0; }
+.card:hover h3 a { color: var(--gold-ink); }
+.card h3 [lang="he"] { font-size: 1.15rem; color: var(--ink-soft); }
+
+.card .desc { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.65; text-wrap: pretty; }
+
+.go {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.go svg { width: 14px; height: 14px; transition: transform 0.2s ease; }
+.card:hover .go svg { transform: translateX(4px); }
+
+/* A featured tool: the picture beside the words while there is room. The grid row takes
+   the taller of the two, and the picture fills it. */
+.card.wide { display: grid; grid-template-columns: minmax(0, 56fr) minmax(0, 44fr); }
+.card.wide .shot {
+  height: 100%;
+  aspect-ratio: auto;
+  object-position: top left;
+  border-bottom: 0;
+  border-right: 1px solid var(--line-ink);
+}
+
+/* ------------------------------------------------------------- footer ---- */
+
+.site-footer .section-inner { padding-bottom: var(--space-xl); }
+
+.contact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2xl);
+}
+.contact .eyebrow { margin-bottom: var(--space-sm); }
+
+/* The home page's tilted, gold-edged frame, a size down. */
+.portrait {
+  margin: 0 0 0 var(--space-xs);
+  width: clamp(160px, 20vw, 240px);
+  aspect-ratio: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 3px solid rgba(212, 168, 83, 0.25);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  transform: rotate(2deg);
+}
+.portrait img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.ask {
+  max-width: 26em;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.ask a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-decoration-color: rgba(212, 168, 83, 0.45);
+  text-underline-offset: 0.18em;
+  overflow-wrap: anywhere;
+}
+.ask a:hover { text-decoration-color: var(--gold); }
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--space-lg);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--slate);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.more svg { width: 14px; height: 14px; transition: transform 0.2s ease; }
+.more:hover { color: var(--gold); }
+.more:hover svg { transform: translateX(4px); }
+
+.fine {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--slate);
+}
+.fine a { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+.fine a:hover { color: var(--gold); }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.paper :focus-visible { outline-color: var(--gold-ink); }
+
+/* Side by side only when each column has room: the hero's text and its Hebrew line,
+   and three cards each with a paragraph. Otherwise they stack. */
+@media (max-width: 1000px) {
+  .hero-inner { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .source { max-width: none; padding-top: var(--space-lg); border-top: 1px solid var(--line); }
+  .cards { grid-template-columns: minmax(0, 600px); }
+  .card.wide { display: flex; max-width: 600px; }
+  .card.wide .shot { height: auto; aspect-ratio: 16 / 9; border-right: 0; border-bottom: 1px solid var(--line-ink); }
+}
+
+@media (max-width: 760px) {
+  .site-header { padding: var(--space-md); }
+  .hero-inner { padding: var(--space-xl) var(--space-md) var(--space-2xl); }
+  .section-inner { padding: var(--space-xl) var(--space-md); }
+  .card-body { padding: var(--space-md) var(--space-md) var(--space-lg); }
+  .ai .section-inner::before,
+  .tools .section-inner::before { margin-bottom: var(--space-xl); }
+  .contact { grid-template-columns: 1fr; gap: var(--space-lg); }
+  .portrait { width: 144px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="logo">
+    <img src="/apps/logo.png" alt="">
+    <span class="logo-text">Tech<span>Rabbi</span></span>
+  </a>
+</header>
+
+<main>
+
+<section class="hero" aria-labelledby="weekend">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <p class="eyebrow">The Reform Temple of Rockland&nbsp;· Scholar-in-Residence Weekend</p>
+      <h1 id="weekend">Renew the <em>Old</em> and Sanctify the <em>New</em></h1>
+      <p class="subtitle">The Dance of Judaism &amp; Technology</p>
+      <p class="when">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
+        <span><span class="nowrap">Friday, November 20</span> – <span class="nowrap">Sunday, November 22, 2026</span></span>
+      </p>
+      <p class="credits">With scholar Rabbi Dan Medwin&nbsp;· Sponsored by the RTR Adult Ed Committee</p>
+      <p class="lede">Explore how Jewish wisdom and modern technology intersect to deepen our tradition and shape our future. All are welcome: bring your curiosity, your questions, and your love of learning. This page gathers the texts, slides, and tools for the weekend, so they’re easy to find before we meet and after.</p>
+    </div>
+    <figure class="source">
+      <blockquote lang="he" dir="rtl">הַיָּשָׁן יִתְחַדֵּשׁ<br>וְהֶחָדָשׁ יִתְקַדֵּשׁ</blockquote>
+      <figcaption>
+        <i>Hayashan yitchadeish, v’hechadash yitkadeish.</i>
+        The old will be renewed, and the new will be sanctified.
+        <span class="who">Rabbi Abraham Isaac Kook</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="paper" aria-labelledby="learning">
+  <div class="section-inner">
+    <p class="eyebrow"><span lang="he" dir="rtl">לִמּוּד</span> Learning</p>
+    <h2 id="learning">Jacob’s dream, from words to pictures</h2>
+    <p class="intro">Saturday’s Torah study, at 10:30 a.m. over brunch, is on Jacob’s dream (Genesis 28:10–18). Every translation of the dream makes choices a painter has to make too: one stone or many, a ladder or a stairway, God above the ladder or beside Jacob. I used an AI image model to make those choices visible, in a slide and the full study behind it. The third page is a gallery of the dream in eighteen art styles.</p>
+
+    <div class="cards">
+      <article class="card">
+        <img class="shot" src="/rtr/img/jacobs-ladder.webp" width="1200" height="675" alt="The Jacob’s Ladder slide, laid out like a page of Talmud: the Torah text in the center, AI images on the left, and translations on the right.">
+        <div class="card-body">
+          <p class="kicker">The slide</p>
+          <h3><a href="https://techrabbi.org/jacobs-ladder/">Jacob’s Ladder</a> <span lang="he" dir="rtl">סולם יעקב</span></h3>
+          <p class="desc">A daf (a page of Talmud) puts one text in the middle and its commentaries around it. I built this slide the same way: the verses in the center, surrounded by six key phrases, how eleven translations render each one, and the AI images each wording produced.</p>
+          <span class="go" aria-hidden="true">Open the slide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/rtr/img/eleven-ladders.webp" width="1200" height="675" alt="The Eleven Ladders page: its title and six findings, beginning with “Words for physical things steer the picture.”">
+        <div class="card-body">
+          <p class="kicker">The full study</p>
+          <h3><a href="https://techrabbi.org/jacobs-ladder/eleven-ladders/">Eleven Ladders</a></h3>
+          <p class="desc">I sent Jacob’s dream to an AI image model in the Hebrew and eleven translations, tried again with new instructions and with midrash (rabbinic interpretation) as the prompt, and set the results beside seven centuries of real art. Words for physical things steered the picture. Words for God did not, until one added instruction changed it. A chevrutah (paired study) lab lets pairs write their own prompts and compare what comes back.</p>
+          <span class="go" aria-hidden="true">Read the study <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/rtr/img/jacobs-dream.webp" width="1200" height="675" alt="The Jacob’s Dream page: its title, the verses, the Hebrew word sulam in gold, and the first row of the gallery.">
+        <div class="card-body">
+          <p class="kicker">The gallery</p>
+          <h3><a href="https://techrabbi.org/jacobs-ladder/dream/">Jacob’s Dream</a></h3>
+          <p class="desc">I made this gallery of Genesis 28:11–12 in eighteen art styles, from a Sephardic illuminated manuscript to claymation, each with an eight-second looping animation. Following Jewish practice, none of the images show God. Each stairway rises into sky and light, and the angels (malachim, a word that also means messengers) appear as flames, birds, and light.</p>
+          <span class="go" aria-hidden="true">See the gallery <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="paper ai" aria-labelledby="ai">
+  <div class="section-inner">
+    <p class="eyebrow"><span lang="he" dir="rtl">הֶחָדָשׁ</span> AI for Beginners</p>
+    <h2 id="ai">Your first conversation with AI</h2>
+    <p class="intro">Saturday afternoon is for anyone who has never used AI, and anyone who has just begun. Nobody should have to copy questions off a screen, so I built a companion page, <a href="https://techrabbi.org/ai">techrabbi.org/ai</a>, with every question from the program and a button that asks it for you. Bring a phone or a laptop.</p>
+
+    <article class="card wide">
+      <img class="shot" src="/rtr/img/intro-to-ai.webp" width="1200" height="675" alt="The title slide of Understanding and Using AI: the title in cream and gold on navy, beside Rav Kook’s line in Hebrew.">
+      <div class="card-body">
+        <p class="kicker">Saturday, 12:30 p.m. · The slides</p>
+        <h3><a href="https://techrabbi.org/rtr-ai/">Understanding and Using AI</a></h3>
+        <p class="desc">What AI is, how it works, and where it still stumbles, with five live demonstrations, from a thank-you note to a spoken conversation about chicken soup for Shabbat. The last part covers what matters most: how AI-powered scams work, and how to protect yourself and your family.</p>
+        <span class="go" aria-hidden="true">Open the slides <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="paper tools" aria-labelledby="tools">
+  <div class="section-inner">
+    <p class="eyebrow"><span lang="he" dir="rtl">כֵּלִים</span> Educational tools</p>
+    <h2 id="tools">Climb up to learn, come back down to teach</h2>
+    <p class="intro">Rambam reads the angels on Jacob’s ladder as prophets who climb up to learn and come back down to teach (<i>Guide for the Perplexed</i> 1:15). I built Voices of the Ladder to follow that pattern: everyone climbs in their own group, then comes back down to teach their family.</p>
+
+    <article class="card wide">
+      <img class="shot" src="/rtr/img/voices.webp" width="1200" height="675" alt="The Voices of the Ladder page: its title in English and Hebrew, and four versions, for grades K–2, 3–4, 5–7, and parents, each with a row of character portraits.">
+      <div class="card-body">
+        <p class="kicker">Sunday, 9:00 a.m. · Grades K–7 and parents</p>
+        <h3><a href="https://techrabbi.org/jacobs-ladder/voices/">Voices of the Ladder</a> <span lang="he" dir="rtl">קוֹלוֹת הַסֻּלָּם</span></h3>
+        <p class="desc">A group chooses one of ten characters, from Jacob and the stone that was his pillow to Rashi and Rambam. Each tells their side of the night at Bethel, answers the group’s questions, and asks some of their own. Any line drawn from a text opens a card with the Hebrew and the Revised JPS. Every visit ends with a rung: one line to carry back to your family.</p>
+        <span class="go" aria-hidden="true">Meet the voices <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="section-inner">
+    <div class="contact">
+      <figure class="portrait">
+        <img src="/rtr/img/dan-medwin.jpg" width="639" height="640" alt="Rabbi Dan Medwin" loading="lazy">
+      </figure>
+      <div>
+        <p class="eyebrow">Rabbi Dan Medwin</p>
+        <p class="ask">Questions, or something you’d like to learn together? I’d love to hear from you at <a class="mail" href="#"><span class="addr">my email</span></a>.</p>
+        <a class="more" href="/#ABOUT">More about me <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+      </div>
+    </div>
+    <div class="fine">
+      <span>&copy; 2026 Tech Rabbi · Rabbi Dan Medwin</span>
+      <a href="/">techrabbi.org</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// The address is assembled here rather than written into the page, so scrapers
+// reading the HTML don't pick it up. Same address and approach as the home page.
+(function () {
+  var user = [114, 97, 98, 98, 105, 46, 100, 97, 110];
+  var host = [109, 101, 100, 119, 46, 105, 110];
+  var text = function (codes) { return codes.map(function (c) { return String.fromCharCode(c); }).join(''); };
+  var addr = text(user) + String.fromCharCode(64) + text(host);
+  document.querySelectorAll('a.mail').forEach(function (link) {
+    link.href = 'mai' + 'lt' + 'o:' + addr + '?subject=RTR';
+    link.querySelector('.addr').textContent = addr;
+  });
+})();
+</script>
+</body>
+</html>
