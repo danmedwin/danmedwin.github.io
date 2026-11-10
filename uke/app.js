@@ -112,21 +112,23 @@
   const COUNTS = ['1','&','2','&','3','&','4','&'];
   const PRESETS = [['Slow', 50], ['Steady', 65], ['Fast', 80]];
 
-  const SLUG = document.body.dataset.prog in PROGS ? document.body.dataset.prog : 'c-g-am-f';
-  const P = PROGS[SLUG];
-  const SEQ = P.chords;
-  const N = SEQ.length;
-  const UNIQUE = [...new Set(SEQ)];
+  const PATTERN_NAMES = [['downs', 'All downs'], ['du', 'Down up'], ['island', 'Island'], ['calypso', 'Calypso'], ['off', 'Hide']];
 
-  // Pairs for one-minute changes: each neighbouring change in the loop, no repeats
-  const PAIRS = [];
-  for (let i = 0; i < N; i++) {
-    const a = SEQ[i], b = SEQ[(i + 1) % N];
-    if (a !== b && !PAIRS.some(p => p.includes(a) && p.includes(b))) PAIRS.push([a, b]);
+  // ================= Progression (can change in place) =================
+  let SLUG, P, SEQ, N, UNIQUE, PAIRS;
+  function loadProg(slug) {
+    SLUG = slug in PROGS ? slug : 'c-g-am-f';
+    P = PROGS[SLUG]; SEQ = P.chords; N = SEQ.length; UNIQUE = [...new Set(SEQ)];
+    PAIRS = [];
+    for (let i = 0; i < N; i++) {
+      const a = SEQ[i], b = SEQ[(i + 1) % N];
+      if (a !== b && !PAIRS.some(p => p.includes(a) && p.includes(b))) PAIRS.push([a, b]);
+    }
   }
+  loadProg(document.body.dataset.prog);
   const scoreKey = (a, b) => [a, b].sort().join('-');
 
-  // ================= Storage =================
+  // ================= Storage & state =================
   const store = {
     get(k, d) { try { const v = localStorage.getItem('uke:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem('uke:' + k, JSON.stringify(v)); } catch (e) {} }
@@ -138,19 +140,31 @@
     sound: store.get('sound', 'both'),
     shuffle: store.get('shuffle', false),
     lefty: store.get('lefty', false),
-    pair: Math.min(store.get('pair:' + SLUG, 0), PAIRS.length - 1),
+    countIn: store.get('countIn', true),
+    theme: store.get('theme', 'auto'),
     scores: store.get('scores', {}),
+    pair: 0,
     phase: 'idle',          // idle | step | ready | loop
-    stepIndex: 0,           // position in SEQ during the tap-through
-    view: { cur: SEQ[0], next: SEQ[1 % N] },
-    changes: 0
+    counting: false,        // true during the count-in bar
+    stepIndex: 0,
+    view: null,
+    changes: 0,
+    cv: false
   };
+  function resetForProg() {
+    S.pair = Math.min(store.get('pair:' + SLUG, 0), PAIRS.length - 1);
+    S.phase = 'idle'; S.stepIndex = 0; S.changes = 0;
+    S.view = { cur: SEQ[0], next: SEQ[1 % N] };
+  }
+  resetForProg();
+  if (S.theme !== 'auto') document.documentElement.dataset.theme = S.theme;
 
   // ================= Helpers =================
   const $ = id => document.getElementById(id);
+  const all = sel => document.querySelectorAll(sel);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const dots = arr => arr.map(c => `<span>${c}</span>`).join('<span class="dot">·</span>');
-  const arrows = arr => arr.join(' → ');
+  const canShuffle = () => N > 2;
 
   function diagram(name) {
     const c = CHORDS[name];
@@ -176,42 +190,47 @@
     return s + '</svg>';
   }
 
-  // ================= Page =================
+  const presetButtons = cls => PRESETS.map(([n, v]) => `<button class="${cls} js-preset" data-act="preset" data-bpm="${v}"><span>${n}</span><b>${v}</b></button>`).join('');
+
+  // ================= Main page =================
   function buildPage() {
-    const app = $('app');
     const related = ORDER.filter(s => s !== SLUG).map(s => {
       const r = PROGS[s];
       return `<a class="card rel" href="${urlFor(s)}"><div class="chords">${r.chords.join('<i>→</i>')}</div><h3>${r.chords.join(' ')} on ukulele</h3><div class="lvl">${r.level}</div></a>`;
     }).join('');
 
-    app.innerHTML = `
+    $('app').innerHTML = `
 <div class="wrap">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Tech Rabbi</a><span>/</span><a href="/uke/">Uke practice</a><span>/</span>${SEQ.join(' ')}</nav>
-  <header>
-    <p class="eyebrow">Ukulele chord change practice</p>
-    <h1>${dots(SEQ)}</h1>
-    <p class="lede">Practice the ${SEQ.join(' ')} progression on ukulele without panic. Tap through one clean pass at your own pace, then connect the loop with a metronome.</p>
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Ukulele chord change practice</p>
+      <h1>${dots(SEQ)}</h1>
+      <p class="lede">Practice the ${SEQ.join(' ')} progression on ukulele without panic. Tap through one clean pass at your own pace, then connect the loop with a metronome.</p>
+    </div>
+    <button class="cv-open" data-act="openCv">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      Class view
+    </button>
   </header>
 
   <main>
     <section class="card tool" aria-label="Practice">
       <div class="coach">
         <div class="status" aria-live="polite">
-          <span class="pill" id="pill">Ready</span>
-          <h2 id="statusHead"></h2>
-          <p id="statusText"></p>
+          <span class="pill js-pill">Ready</span>
+          <h2 class="js-head"></h2>
+          <p class="js-text"></p>
         </div>
         <div class="box">
-          <div class="tempo-head"><span class="label">Metronome</span><span class="tempo-now"><span id="bpmNow"></span> bpm</span></div>
-          <div class="presets" role="group" aria-label="Preset tempo">
-            ${PRESETS.map(([n, v]) => `<button class="preset" data-bpm="${v}"><span>${n}</span><b>${v}</b></button>`).join('')}
-          </div>
+          <div class="tempo-head"><span class="label">Metronome</span><span class="tempo-now"><span class="js-bpm"></span> bpm</span></div>
+          <div class="presets" role="group" aria-label="Preset tempo">${presetButtons('preset')}</div>
           <details class="custom" id="custom">
             <summary>Custom tempo</summary>
             <div class="custom-row">
-              <button class="step" id="slower" aria-label="Slower">−</button>
-              <output id="bpmOut"></output>
-              <button class="step" id="faster" aria-label="Faster">+</button>
+              <button class="step" data-act="slower" aria-label="Slower">−</button>
+              <output class="js-bpm"></output>
+              <button class="step" data-act="faster" aria-label="Faster">+</button>
               <input type="range" id="bpmRange" min="40" max="180" step="1" aria-label="Tempo in beats per minute">
             </div>
           </details>
@@ -225,51 +244,46 @@
       <div class="stage">
         <div class="now-head">
           <span class="label">Current chord</span>
-          <span class="now-name" id="nowName"></span>
+          <span class="now-name js-now-name"></span>
         </div>
-        <div class="now-diagram" id="nowDiagram"></div>
+        <div class="now-diagram js-now-diagram"></div>
         <div class="next-bar">
           <span class="label">Next</span>
-          <span id="nextDiagram"></span>
-          <span class="next-name" id="nextName"></span>
+          <span class="js-next-diagram"></span>
+          <span class="next-name js-next-name"></span>
         </div>
-        <div class="pulse" id="pulse" hidden>
-          <div class="beats" id="beats" aria-hidden="true"></div>
-          <div class="strum" id="strum" aria-label="Strum pattern"></div>
+        <div class="pulse js-pulse" hidden>
+          <div class="beats js-beats" aria-hidden="true"></div>
+          <div class="strum js-strum" aria-label="Strum pattern"></div>
         </div>
-        <p class="calm" id="calm">No clock is running. Move on when your fingers are ready.</p>
+        <p class="calm" id="calm"></p>
         <div>
           <div class="progress-row"><span class="label" id="progLabel">Progress</span><b id="progValue"></b></div>
           <div class="bar"><i id="progBar"></i></div>
         </div>
-        <button class="primary" id="primary"></button>
+        <button class="primary js-primary" data-act="primary"></button>
         <div class="secondary">
-          <button class="ghost" id="playChord">Play chord</button>
-          <button class="ghost quiet" id="endPractice" disabled>End practice</button>
+          <button class="ghost" data-act="play">Play chord</button>
+          <button class="ghost quiet js-end" data-act="end" disabled>End practice</button>
         </div>
+        <div class="countin js-countin" hidden aria-live="assertive"></div>
       </div>
     </section>
 
     <section class="card settings" aria-label="Loop settings">
       <div class="selected">
-        <div><span class="label">Selected chords</span><br><b>${arrows(SEQ)}</b></div>
+        <div><span class="label">Selected chords</span><br><b>${SEQ.join(' → ')}</b></div>
         <a href="#more">Change progression ↓</a>
       </div>
       <div class="field">
         <span class="label">Beats per chord</span>
-        <div class="seg" id="beatsSeg" role="group" aria-label="Beats per chord">
-          ${[1,2,4,8].map(v => `<button data-v="${v}">${v}</button>`).join('')}
+        <div class="seg" role="group" aria-label="Beats per chord">
+          ${[1,2,4,8].map(v => `<button class="js-beats-btn" data-act="beats" data-v="${v}">${v}</button>`).join('')}
         </div>
       </div>
       <label class="field">
         <span class="label">Strum pattern</span>
-        <select id="pattern">
-          <option value="downs">All downs</option>
-          <option value="du">Down up</option>
-          <option value="island">Island strum</option>
-          <option value="calypso">Calypso</option>
-          <option value="off">Hide pattern</option>
-        </select>
+        <select id="pattern">${PATTERN_NAMES.map(([v, n]) => `<option value="${v}">${v === 'off' ? 'Hide pattern' : n === 'Island' ? 'Island strum' : n}</option>`).join('')}</select>
       </label>
       <label class="field">
         <span class="label">Sound</span>
@@ -283,8 +297,9 @@
       <div class="field">
         <span class="label">Options</span>
         <div class="toggles">
-          ${N > 2 ? '<button class="toggle" id="shuffle" aria-pressed="false"><span class="knob"></span>Shuffle loop</button>' : ''}
-          <button class="toggle" id="lefty" aria-pressed="false"><span class="knob"></span>Lefty diagrams</button>
+          <button class="toggle js-countin-toggle" data-act="countIn" aria-pressed="false"><span class="knob"></span>Count-in</button>
+          ${canShuffle() ? '<button class="toggle js-shuffle" data-act="shuffle" aria-pressed="false"><span class="knob"></span>Shuffle loop</button>' : ''}
+          <button class="toggle js-lefty" data-act="lefty" aria-pressed="false"><span class="knob"></span>Lefty diagrams</button>
         </div>
       </div>
     </section>
@@ -314,8 +329,8 @@
         <div class="omc-side">
           <div class="omc-pair" id="omcPair"></div>
           <div class="omc-buttons">
-            <button class="tap" id="omcTap" disabled>Changed</button>
-            <button class="ghost" id="omcStart">Start</button>
+            <button class="tap" id="omcTap" data-act="omcTap" disabled>Changed</button>
+            <button class="ghost" id="omcStart" data-act="omcStart">Start</button>
           </div>
           <p class="result" id="omcResult"></p>
           <div>
@@ -362,6 +377,7 @@
 
     <section class="section faq" aria-labelledby="faqTitle">
       <h2 id="faqTitle">FAQ</h2>
+      <details><summary>Can I use this on a smartboard or projector?</summary><p>Yes. Press Class view at the top of the page. It fills the screen with a large chord diagram, the next chord, the beat and big touch buttons, and you can switch progressions without leaving it. Every loop starts with a one-bar count-in so the class comes in together.</p></details>
       <details><summary>Does this page need my microphone?</summary><p>No. Nothing listens to you. You decide when a change is clean and press the button yourself.</p></details>
       <details><summary>Where does my progress go?</summary><p>Your tempo, settings and one-minute scores are saved in this browser on this device. Nothing is sent anywhere, and clearing your browser data clears them.</p></details>
       <details><summary>What tuning do the diagrams use?</summary><p>Standard GCEA tuning for soprano, concert and tenor ukuleles. The shapes are the same whether your G string is high or low. A baritone uke is tuned DGBE like the top four guitar strings, so these shapes will sound different on it.</p></details>
@@ -374,100 +390,193 @@
 </div>`;
   }
 
+  // ================= Class view =================
+  function buildClassView() {
+    const cv = document.createElement('div');
+    cv.className = 'cv';
+    cv.id = 'cv';
+    cv.hidden = true;
+    cv.setAttribute('role', 'dialog');
+    cv.setAttribute('aria-modal', 'true');
+    cv.setAttribute('aria-label', 'Class view');
+    cv.innerHTML = `
+  <div class="cv-top">
+    <div class="cv-progs" id="cvProgs" role="group" aria-label="Progression"></div>
+    <div class="cv-tools">
+      <button class="cv-icon" data-act="theme" id="cvTheme"></button>
+      <button class="cv-icon" data-act="closeCv" aria-label="Exit class view">✕ <span>Exit</span></button>
+    </div>
+  </div>
+  <div class="cv-main">
+    <div class="cv-now card">
+      <div class="cv-status" aria-live="polite"><span class="pill js-pill"></span><span class="cv-head js-head"></span></div>
+      <div class="cv-name js-now-name"></div>
+      <div class="cv-diagram js-now-diagram"></div>
+      <div class="countin js-countin" hidden aria-live="assertive"></div>
+    </div>
+    <div class="cv-side">
+      <div class="cv-next card">
+        <span class="label">Next</span>
+        <div class="cv-next-name js-next-name"></div>
+        <div class="cv-next-diagram js-next-diagram"></div>
+      </div>
+      <div class="cv-pulse card">
+        <div class="js-pulse" hidden>
+          <div class="beats js-beats" aria-hidden="true"></div>
+          <div class="strum js-strum" aria-label="Strum pattern"></div>
+        </div>
+        <p class="cv-calm js-text"></p>
+      </div>
+    </div>
+  </div>
+  <div class="cv-bar">
+    <div class="cv-actions">
+      <button class="primary cv-primary js-primary" data-act="primary"></button>
+      <button class="ghost cv-btn" data-act="play">Play chord</button>
+      <button class="ghost cv-btn js-end" data-act="end">Start over</button>
+    </div>
+    <div class="cv-settings">
+      <div class="cv-group"><span class="label">Tempo · <span class="js-bpm"></span> bpm</span>
+        <div class="seg cv-seg">${PRESETS.map(([n, v]) => `<button class="js-preset" data-act="preset" data-bpm="${v}">${n} ${v}</button>`).join('')}</div>
+      </div>
+      <div class="cv-group"><span class="label">Strum</span>
+        <div class="seg cv-seg">${PATTERN_NAMES.map(([v, n]) => `<button class="js-pattern-btn" data-act="pattern" data-p="${v}">${n}</button>`).join('')}</div>
+      </div>
+      <div class="cv-group js-shuffle-wrap"><span class="label">Order</span>
+        <button class="toggle cv-toggle js-shuffle" data-act="shuffle" aria-pressed="false"><span class="knob"></span>Shuffle</button>
+      </div>
+    </div>
+  </div>`;
+    document.body.appendChild(cv);
+  }
+  function renderCvProgs() {
+    $('cvProgs').innerHTML = ORDER.map(s =>
+      `<button class="cv-prog" data-act="prog" data-slug="${s}" aria-pressed="${s === SLUG}">${PROGS[s].chords.join(' ')}</button>`).join('');
+    all('.js-shuffle-wrap').forEach(el => el.hidden = !canShuffle());
+  }
+  function effectiveTheme() {
+    return document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+  function renderThemeBtn() {
+    const dark = effectiveTheme() === 'dark';
+    $('cvTheme').innerHTML = dark ? '☀ <span>Light</span>' : '☾ <span>Dark</span>';
+    $('cvTheme').setAttribute('aria-label', dark ? 'Switch to light colors' : 'Switch to dark colors');
+  }
+  let wakeLock = null, wantFs = false;
+  async function lockScreen() {
+    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+  }
+  function openCv() {
+    S.cv = true;
+    $('cv').hidden = false;
+    document.body.classList.add('cv-on');
+    renderCvProgs(); renderThemeBtn(); renderChord();
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) { try { wantFs = true; const p = req.call(el); if (p && p.catch) p.catch(() => { wantFs = false; }); } catch (e) { wantFs = false; } }
+    lockScreen();
+    $('cv').querySelector('.js-primary').focus();
+  }
+  function closeCv() {
+    S.cv = false;
+    $('cv').hidden = true;
+    document.body.classList.remove('cv-on');
+    wantFs = false;
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsEl) { const ex = document.exitFullscreen || document.webkitExitFullscreen; try { ex && ex.call(document); } catch (e) {} }
+    try { wakeLock && wakeLock.release(); } catch (e) {}
+    wakeLock = null;
+    renderChord();
+    const btn = document.querySelector('.cv-open'); if (btn) btn.focus();
+  }
+  function onFsChange() {
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!fsEl && S.cv && wantFs) closeCv();
+  }
+
   // ================= Render =================
   function renderChord() {
     const { cur, next } = S.view;
-    $('nowName').textContent = cur; $('nowName').style.color = `var(--c-${cur})`;
-    $('nextName').textContent = next; $('nextName').style.color = `var(--c-${next})`;
-    $('nowDiagram').innerHTML = diagram(cur);
-    $('nextDiagram').innerHTML = diagram(next);
-    document.querySelectorAll('.chip').forEach(el => el.classList.toggle('current', el.dataset.chord === cur));
+    all('.js-now-name').forEach(el => { el.textContent = cur; el.style.color = `var(--c-${cur})`; });
+    all('.js-next-name').forEach(el => { el.textContent = next; el.style.color = `var(--c-${next})`; });
+    const dc = diagram(cur), dn = diagram(next);
+    all('.js-now-diagram').forEach(el => el.innerHTML = dc);
+    all('.js-next-diagram').forEach(el => el.innerHTML = dn);
+    all('.chip').forEach(el => el.classList.toggle('current', el.dataset.chord === cur));
+  }
+  function statusCopy() {
+    const p = S.phase;
+    const beatsTxt = `${S.beats} ${S.beats === 1 ? 'beat' : 'beats'} per chord`;
+    if (p === 'idle') return { pill: 'Ready', head: `Ready: ${SEQ[0]} to ${SEQ[1]}`, text: 'First tap through each chord at your own pace. Then connect the whole progression with the metronome.', btn: 'Start practice' };
+    if (p === 'step') return { pill: 'Step 1 of 2', head: `${S.view.cur} to ${S.view.next}`, text: 'Press Next chord only after your fingers land and the strum sounds clean.', btn: 'Next chord' };
+    if (p === 'ready') return { pill: 'Step 2 of 2', head: 'Now connect the loop', text: `You landed every change. Start the loop at ${S.bpm} bpm and switch on beat one.`, btn: 'Start the loop' };
+    if (S.counting) return { pill: 'Get ready', head: `Count-in at ${S.bpm} bpm`, text: `Fingers on ${SEQ[0]}. Start strumming after four.`, btn: 'Stop loop' };
+    return { pill: 'Looping', head: `${S.bpm} bpm, ${beatsTxt}`, text: 'Watch the next chord and start moving on the last beat. If it gets messy, stop and pick a slower tempo.', btn: 'Stop loop' };
   }
   function renderStatus() {
-    const p = S.phase;
-    const pill = $('pill');
-    pill.classList.toggle('loop', p === 'loop');
-    const btn = $('primary');
-    btn.classList.toggle('go', p === 'ready');
-    if (p === 'idle') {
-      pill.textContent = 'Ready';
-      $('statusHead').textContent = `Ready: ${SEQ[0]} to ${SEQ[1]}`;
-      $('statusText').textContent = 'First tap through each chord at your own pace. Then connect the whole progression with the metronome.';
-      btn.textContent = 'Start practice';
-    } else if (p === 'step') {
-      pill.textContent = 'Step 1 of 2';
-      $('statusHead').textContent = `${S.view.cur} to ${S.view.next}`;
-      $('statusText').textContent = 'Press Next chord only after your fingers land and the strum sounds clean.';
-      btn.textContent = 'Next chord';
-    } else if (p === 'ready') {
-      pill.textContent = 'Step 2 of 2';
-      $('statusHead').textContent = 'Now connect the loop';
-      $('statusText').textContent = `You landed every change. Start the loop at ${S.bpm} bpm and switch on beat one.`;
-      btn.textContent = 'Start the loop';
-    } else {
-      pill.textContent = 'Looping';
-      $('statusHead').textContent = `${S.bpm} bpm, ${S.beats} ${S.beats === 1 ? 'beat' : 'beats'} per chord`;
-      $('statusText').textContent = 'Watch the next chord and start moving on the last beat. If it gets messy, stop and pick a slower tempo.';
-      btn.textContent = 'Stop loop';
-    }
-    $('endPractice').disabled = p === 'idle';
-    $('pulse').hidden = p !== 'loop';
-    $('calm').hidden = p === 'loop';
-    $('calm').textContent = p === 'ready' ? 'Your fingers know the way. Time to add the beat.' : 'No clock is running. Move on when your fingers are ready.';
+    const c = statusCopy(), p = S.phase;
+    all('.js-pill').forEach(el => { el.textContent = c.pill; el.classList.toggle('loop', p === 'loop'); });
+    all('.js-head').forEach(el => el.textContent = c.head);
+    all('.js-text').forEach(el => el.textContent = c.text);
+    all('.js-primary').forEach(el => { el.textContent = c.btn; el.classList.toggle('go', p === 'ready'); });
+    all('.js-end').forEach(el => el.disabled = p === 'idle');
+    all('.js-pulse').forEach(el => el.hidden = p !== 'loop');
+    all('.cv-calm').forEach(el => el.hidden = p === 'loop');
+    const calm = $('calm');
+    calm.hidden = p === 'loop';
+    calm.textContent = p === 'ready' ? 'Your fingers know the way. Time to add the beat.' : 'No clock is running. Move on when your fingers are ready.';
     renderProgress();
   }
   function renderProgress(frac) {
     let label = 'Progress', value, pct;
     if (S.phase === 'loop') {
-      label = 'Changes made';
-      value = String(S.changes);
-      pct = (frac || 0) * 100;
+      label = 'Changes made'; value = String(S.changes); pct = (frac || 0) * 100;
     } else {
       const total = N - 1;
       const done = S.phase === 'ready' ? total : S.phase === 'step' ? S.stepIndex : 0;
-      value = `${done} / ${total}`;
-      pct = done / total * 100;
+      value = `${done} / ${total}`; pct = done / total * 100;
     }
     $('progLabel').textContent = label;
     $('progValue').textContent = value;
     $('progBar').style.width = pct + '%';
   }
   function renderTempo() {
-    $('bpmNow').textContent = S.bpm;
-    $('bpmOut').textContent = S.bpm;
+    all('.js-bpm').forEach(el => el.textContent = S.bpm);
     $('bpmRange').value = S.bpm;
     let preset = false;
-    document.querySelectorAll('.preset').forEach(b => {
+    all('.js-preset').forEach(b => {
       const on = +b.dataset.bpm === S.bpm; preset = preset || on;
       b.setAttribute('aria-pressed', String(on));
     });
     if (!preset) $('custom').open = true;
-    if (S.phase === 'loop' || S.phase === 'ready') renderStatusText();
-  }
-  function renderStatusText() {
-    if (S.phase === 'loop') $('statusHead').textContent = `${S.bpm} bpm, ${S.beats} ${S.beats === 1 ? 'beat' : 'beats'} per chord`;
-    if (S.phase === 'ready') $('statusText').textContent = `You landed every change. Start the loop at ${S.bpm} bpm and switch on beat one.`;
+    if (S.phase === 'loop' || S.phase === 'ready') renderStatus();
   }
   function renderSettings() {
-    document.querySelectorAll('#beatsSeg button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === S.beats)));
+    all('.js-beats-btn').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === S.beats)));
+    all('.js-pattern-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === S.pattern)));
     $('pattern').value = S.pattern;
     $('sound').value = S.sound;
-    if ($('shuffle')) $('shuffle').setAttribute('aria-pressed', String(S.shuffle));
-    $('lefty').setAttribute('aria-pressed', String(S.lefty));
+    all('.js-shuffle').forEach(b => b.setAttribute('aria-pressed', String(S.shuffle)));
+    all('.js-lefty').forEach(b => b.setAttribute('aria-pressed', String(S.lefty)));
+    all('.js-countin-toggle').forEach(b => b.setAttribute('aria-pressed', String(S.countIn)));
   }
   function renderBeats() {
-    $('beats').innerHTML = Array.from({ length: S.beats }, (_, i) => `<span class="beat${i === 0 ? ' first' : ''}"></span>`).join('');
+    const html = Array.from({ length: S.beats }, (_, i) => `<span class="beat${i === 0 ? ' first' : ''}"></span>`).join('');
+    all('.js-beats').forEach(el => el.innerHTML = html);
   }
   function renderStrum() {
     const p = PATTERNS[S.pattern];
-    $('strum').hidden = S.pattern === 'off';
-    $('strum').innerHTML = p.map((d, i) =>
+    const html = p.map((d, i) =>
       `<div class="slot"><span class="arrow${d ? '' : ' rest'}">${d === 'D' ? '↓' : d === 'U' ? '↑' : '·'}</span><span class="count">${COUNTS[i]}</span></div>`).join('');
+    all('.js-strum').forEach(el => { el.innerHTML = html; el.hidden = S.pattern === 'off'; });
   }
   function renderStrip() {
     $('strip').innerHTML = UNIQUE.map(n =>
       `<div class="card chip" data-chord="${n}" style="--chord:var(--c-${n})"><h3>${n}</h3>${diagram(n)}<p>${CHORDS[n].tip}</p></div>`).join('');
-    document.querySelectorAll('.chip').forEach(el => el.classList.toggle('current', el.dataset.chord === S.view.cur));
+    all('.chip').forEach(el => el.classList.toggle('current', el.dataset.chord === S.view.cur));
+  }
+  function showCount(n) {
+    all('.js-countin').forEach(el => { el.hidden = !n; el.textContent = n || ''; });
   }
 
   // ================= Audio =================
@@ -544,9 +653,9 @@
   }
 
   // ================= Loop mode (eighth-note scheduler) =================
-  const sched = { cur: SEQ[0], next: SEQ[1 % N], seqPos: 0, changes: 0 };
+  const sched = { cur: '', next: '', seqPos: 0, changes: 0 };
   function pickNext(from) {
-    if (S.shuffle && N > 2) {
+    if (S.shuffle && canShuffle()) {
       const opts = UNIQUE.filter(c => c !== from);
       return opts[Math.floor(Math.random() * opts.length)];
     }
@@ -576,13 +685,15 @@
     if (S.phase !== 'loop') return;
     while (queue.length && queue[0].t <= ctx.currentTime) {
       const ev = queue.shift();
+      if (ev.countIn) { showCount(ev.countIn); continue; }
+      if (S.counting) { S.counting = false; showCount(0); renderStatus(); }
       if (ev.cur !== S.view.cur || ev.next !== S.view.next || ev.changes !== S.changes) {
         S.view = { cur: ev.cur, next: ev.next };
         S.changes = ev.changes;
         renderChord();
       }
-      if (ev.beat >= 0) document.querySelectorAll('.beat').forEach((b, i) => b.classList.toggle('on', i === ev.beat));
-      document.querySelectorAll('.slot').forEach((s, i) => s.classList.toggle('on', i === ev.slot && !!PATTERNS[S.pattern][i]));
+      if (ev.beat >= 0) all('.beat').forEach(b => b.classList.toggle('on', b.parentNode.children[ev.beat] === b));
+      all('.js-strum').forEach(st => [...st.children].forEach((s, i) => s.classList.toggle('on', i === ev.slot && !!PATTERNS[S.pattern][i])));
       renderProgress(ev.frac);
     }
     raf = requestAnimationFrame(draw);
@@ -592,12 +703,22 @@
     if (omc.running) omcCancel();
     S.phase = 'loop'; S.changes = 0;
     sched.seqPos = 0; sched.cur = SEQ[0]; sched.changes = 0;
-    sched.next = (S.shuffle && N > 2) ? pickNext(SEQ[0]) : SEQ[1 % N];
-    if (!(S.shuffle && N > 2)) sched.seqPos = 1 % N;
+    if (S.shuffle && canShuffle()) sched.next = pickNext(SEQ[0]);
+    else { sched.seqPos = 1 % N; sched.next = SEQ[sched.seqPos]; }
     S.view = { cur: sched.cur, next: sched.next };
-    renderChord(); renderBeats(); renderStrum(); renderStatus();
     eighth = 0; inChord = 0; queue.length = 0;
-    nextTime = ctx.currentTime + 0.08;
+    let t0 = ctx.currentTime + 0.1;
+    S.counting = S.countIn;
+    if (S.countIn) {
+      const beat = 60 / S.bpm;
+      for (let i = 0; i < 4; i++) {
+        if (S.sound !== 'mute') playClick(t0 + i * beat, i === 0);
+        queue.push({ t: t0 + i * beat, countIn: i + 1 });
+      }
+      t0 += 4 * beat;
+    }
+    nextTime = t0;
+    renderChord(); renderBeats(); renderStrum(); renderStatus();
     schedule();
     timer = setInterval(schedule, 25);
     raf = requestAnimationFrame(draw);
@@ -605,12 +726,12 @@
   function stopLoop(backToReady = true) {
     clearInterval(timer); cancelAnimationFrame(raf);
     queue.length = 0;
-    document.querySelectorAll('.beat.on,.slot.on').forEach(el => el.classList.remove('on'));
+    S.counting = false; showCount(0);
+    all('.beat.on,.slot.on').forEach(el => el.classList.remove('on'));
     S.phase = backToReady ? 'ready' : 'idle';
     S.view = { cur: SEQ[0], next: SEQ[1 % N] };
     renderChord(); renderStatus();
   }
-
   function primary() {
     if (S.phase === 'idle') startStep();
     else if (S.phase === 'step') nextStep();
@@ -624,7 +745,7 @@
   function renderPairs() {
     $('pairs').innerHTML = PAIRS.map((p, i) => {
       const best = (S.scores[scoreKey(...p)] || {}).best;
-      return `<button class="pair" data-i="${i}" aria-pressed="${i === S.pair}">${p[0]} ↔ ${p[1]}${best ? `<span class="best">best ${best}</span>` : ''}</button>`;
+      return `<button class="pair" data-act="pair" data-i="${i}" aria-pressed="${i === S.pair}">${p[0]} ↔ ${p[1]}${best ? `<span class="best">best ${best}</span>` : ''}</button>`;
     }).join('');
   }
   function renderOmcPair() {
@@ -683,60 +804,92 @@
   }
   function omcTap() { if (omc.running) $('omcCount').textContent = ++omc.count; }
 
-  // ================= Wiring =================
+  // ================= Actions =================
   function setBpm(v) {
     S.bpm = Math.max(40, Math.min(180, Math.round(v)));
     store.set('bpm', S.bpm);
     renderTempo();
   }
-  function wire() {
-    $('primary').onclick = primary;
-    $('playChord').onclick = () => { audio(); playStrum(S.view.cur, 'D', ctx.currentTime + 0.02); };
-    $('endPractice').onclick = endPractice;
-    document.querySelectorAll('.preset').forEach(b => b.onclick = () => setBpm(+b.dataset.bpm));
-    $('slower').onclick = () => setBpm(S.bpm - 1);
-    $('faster').onclick = () => setBpm(S.bpm + 1);
-    $('bpmRange').oninput = e => setBpm(+e.target.value);
-    $('beatsSeg').onclick = e => {
-      const b = e.target.closest('button'); if (!b) return;
-      S.beats = +b.dataset.v; store.set('beats', S.beats);
-      renderSettings(); renderBeats();
-      if (S.phase === 'loop') { stopLoop(true); startLoop(); }
-    };
-    $('pattern').onchange = e => { S.pattern = e.target.value; store.set('pattern', S.pattern); renderStrum(); };
-    $('sound').onchange = e => { S.sound = e.target.value; store.set('sound', S.sound); };
-    if ($('shuffle')) $('shuffle').onclick = () => {
-      S.shuffle = !S.shuffle; store.set('shuffle', S.shuffle); renderSettings();
-      if (S.phase === 'loop') { stopLoop(true); startLoop(); }
-    };
-    $('lefty').onclick = () => {
-      S.lefty = !S.lefty; store.set('lefty', S.lefty);
-      renderSettings(); renderStrip(); renderChord(); renderOmcPair();
-    };
-    $('pairs').onclick = e => {
-      const b = e.target.closest('.pair'); if (!b || omc.running) return;
+  function restartLoopIfRunning() { if (S.phase === 'loop') { stopLoop(true); startLoop(); } }
+  function switchProg(slug) {
+    if (slug === SLUG) return;
+    if (S.phase === 'loop') stopLoop(false);
+    if (omc.running) omcReset();
+    loadProg(slug);
+    resetForProg();
+    document.body.dataset.prog = SLUG;
+    document.title = `${SEQ.join(' ')} Ukulele Chord Practice | Tech Rabbi`;
+    try { history.replaceState(null, '', urlFor(SLUG)); } catch (e) {}
+    renderAll();
+    renderCvProgs();
+  }
+  const ACTIONS = {
+    primary, play: () => { audio(); playStrum(S.view.cur, 'D', ctx.currentTime + 0.02); },
+    end: endPractice,
+    preset: b => setBpm(+b.dataset.bpm),
+    slower: () => setBpm(S.bpm - 1),
+    faster: () => setBpm(S.bpm + 1),
+    beats: b => { S.beats = +b.dataset.v; store.set('beats', S.beats); renderSettings(); renderBeats(); restartLoopIfRunning(); },
+    pattern: b => { S.pattern = b.dataset.p; store.set('pattern', S.pattern); renderSettings(); renderStrum(); },
+    shuffle: () => { S.shuffle = !S.shuffle; store.set('shuffle', S.shuffle); renderSettings(); restartLoopIfRunning(); },
+    countIn: () => { S.countIn = !S.countIn; store.set('countIn', S.countIn); renderSettings(); },
+    lefty: () => { S.lefty = !S.lefty; store.set('lefty', S.lefty); renderSettings(); renderStrip(); renderChord(); renderOmcPair(); },
+    pair: b => {
+      if (omc.running) return;
       S.pair = +b.dataset.i; store.set('pair:' + SLUG, S.pair);
       $('omcResult').textContent = ''; $('omcCount').textContent = '0';
       renderOmc();
-    };
-    $('omcStart').onclick = () => omc.running ? omcCancel() : omcStart();
-    $('omcTap').addEventListener('pointerdown', e => { e.preventDefault(); omcTap(); });
-    $('omcTap').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); omcTap(); } });
-
+    },
+    omcStart: () => omc.running ? omcCancel() : omcStart(),
+    openCv, closeCv,
+    theme: () => {
+      const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next; S.theme = next; store.set('theme', next);
+      renderThemeBtn();
+    },
+    prog: b => switchProg(b.dataset.slug)
+  };
+  function wire() {
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-act]');
+      if (!b || b.dataset.act === 'omcTap' || !ACTIONS[b.dataset.act]) return;
+      ACTIONS[b.dataset.act](b);
+    });
+    document.addEventListener('pointerdown', e => {
+      const b = e.target.closest('[data-act="omcTap"]');
+      if (b && !b.disabled) { e.preventDefault(); omcTap(); }
+    });
+    document.addEventListener('input', e => { if (e.target.id === 'bpmRange') setBpm(+e.target.value); });
+    document.addEventListener('change', e => {
+      if (e.target.id === 'pattern') { S.pattern = e.target.value; store.set('pattern', S.pattern); renderSettings(); renderStrum(); }
+      if (e.target.id === 'sound') { S.sound = e.target.value; store.set('sound', S.sound); }
+    });
     document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && S.cv) { closeCv(); return; }
+      if (e.target.matches('[data-act="omcTap"]') && e.key === 'Enter') { e.preventDefault(); omcTap(); return; }
       if (e.target.matches('select,input,summary,a')) return;
       if (e.code === 'Space') {
         e.preventDefault();
         if (e.repeat) return;
-        omc.running ? omcTap() : primary();
+        omc.running && !S.cv ? omcTap() : primary();
       } else if (e.key === 'ArrowUp') { e.preventDefault(); setBpm(S.bpm + 1); }
       else if (e.key === 'ArrowDown') { e.preventDefault(); setBpm(S.bpm - 1); }
     });
     // Stop a focused button from also firing its click when Space is released
     document.addEventListener('keyup', e => { if (e.code === 'Space' && e.target.matches('button')) e.preventDefault(); });
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+    document.addEventListener('visibilitychange', () => { if (S.cv && document.visibilityState === 'visible') lockScreen(); });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => S.cv && renderThemeBtn());
   }
 
-  buildPage();
+  function renderAll() {
+    buildPage();
+    renderSettings(); renderTempo(); renderStrip(); renderChord(); renderBeats(); renderStrum(); renderStatus(); renderOmc();
+  }
+
+  buildClassView();
   wire();
-  renderSettings(); renderTempo(); renderStrip(); renderChord(); renderBeats(); renderStrum(); renderStatus(); renderOmc();
+  renderAll();
+  renderCvProgs();
 })();
