@@ -689,9 +689,16 @@ function showMap() { const on = !mapOff && (mapForce || mapAuto(STEPS[idx])); ma
 function toggleMap() { if (mapEl.classList.contains('on')) { mapForce = false; mapOff = true; } else { mapForce = true; mapOff = false; } showMap(); }
 document.getElementById('mapX').addEventListener('click', e => { e.stopPropagation(); toggleMap(); });
 function label(t, i, txt, isFrom) {
-  const s = ROUTE[i], right = s.x > SUMMIT_X, low = !right && s.x < 130; t.textContent = txt;
-  t.setAttribute('text-anchor', right || low ? 'start' : 'end'); t.setAttribute('x', low ? Math.max(2, s.x - 14) : s.x + (right ? 10 : -9));
-  t.setAttribute('y', s.y + (low ? (isFrom ? 19 : -11) : (isFrom ? -5 : -6)));
+  const s = ROUTE[i], right = s.x > SUMMIT_X, low = !right && s.x < 130, start = right || low;
+  let x = low ? Math.max(2, s.x - 14) : s.x + (right ? 10 : -9), y = s.y + (low ? (isFrom ? 19 : -11) : (isFrom ? -5 : -6));
+  t.setAttribute('text-anchor', start ? 'start' : 'end'); t.setAttribute('x', x); t.setAttribute('y', y);
+  // wrap at spaces so a long name stays inside the map; lines stack away from the dot
+  const fs = isFrom ? 15 : 17, cw = fs * (isFrom ? .47 : .51), room = start ? 394 - x : x - 6, lines = [];
+  txt.split(' ').forEach(w => { const n = lines.length - 1; if (n >= 0 && (lines[n] + ' ' + w).length * cw <= room) lines[n] += ' ' + w; else if (w) lines.push(w); });
+  while (t.firstChild) t.removeChild(t.firstChild);
+  const down = low && isFrom, wide = Math.max(0, ...lines.map(l => l.length)) * cw;
+  if (start && x + wide > 396) x = 396 - wide; else if (!start && x - wide < 4) x = 4 + wide;   // a single long word: slide it back inside
+  lines.forEach((ln, k) => { const ts = document.createElementNS(SVGNS, 'tspan'); ts.textContent = ln; ts.setAttribute('x', x); ts.setAttribute('y', y + (down ? k : k - (lines.length - 1)) * fs * 1.08); t.appendChild(ts); });
 }
 function setMap(fi, ti, t, arrived) {
   const a = ROUTE[fi], b = ROUTE[ti], x = lerp(a.x, b.x, t), y = lerp(a.y, b.y, t);
@@ -811,7 +818,7 @@ function nudge(ch) {                                    // ch: { y, p } look, { 
   const p = curPose(); let a = Object.assign({ y: 0, p: 0, z: 1, dx: 0, dz: 0, dh: 0 }, viewAdj[p.key]);
   if (ch.reset) a = null;
   else {
-    a.y = r3(a.y + (ch.y || 0)); a.p = r3(clamp(a.p + (ch.p || 0), -1.4 - p.base.pitch, 1.4 - p.base.pitch)); a.z = r3(clamp(a.z * (ch.z || 1), .6, 3));
+    a.y = r3(a.y + (ch.y || 0)); a.y = r3(a.y - 2 * Math.PI * Math.round(a.y / (2 * Math.PI))); a.p = r3(clamp(a.p + (ch.p || 0), -1.4 - p.base.pitch, 1.4 - p.base.pitch)); a.z = r3(clamp(a.z * (ch.z || 1), .6, 3));
     if (ch.f || ch.r) {                                  // forward is where we are looking; stay within reach of the trail
       const yaw = p.base.yaw + a.y, fx = -Math.sin(yaw), fz = -Math.cos(yaw); let dx = a.dx + fx * (ch.f || 0) - fz * (ch.r || 0), dz = a.dz + fz * (ch.f || 0) + fx * (ch.r || 0);
       const d = Math.hypot(dx, dz); if (d > REACH) { dx *= REACH / d; dz *= REACH / d; } a.dx = r3(dx); a.dz = r3(dz);
