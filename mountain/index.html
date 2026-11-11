@@ -669,7 +669,7 @@ const el = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for
 let ROUTE = [], SUMMIT_X = 258, doneLine, dots, lblFrom, lblTo, halo, marker;
 function buildMap() {
   while (svg.firstChild) svg.removeChild(svg.firstChild);
-  el('polygon', { points: '0,190 0,178 26,174 60,168 92,160 128,140 158,121 186,97 212,75 236,54 258,22 268,26 284,52 304,86 326,124 350,166 400,180 400,190', fill: 'rgba(255,255,255,.13)', stroke: 'rgba(255,255,255,.4)', 'stroke-width': 1.2 });
+  el('polygon', { points: '0,190 0,178 26,174 60,168 92,160 128,140 158,121 186,97 212,75 236,54 258,32 268,46 288,82 318,126 350,172 400,182 400,190', fill: 'rgba(255,255,255,.13)', stroke: 'rgba(255,255,255,.4)', 'stroke-width': 1.2 });
   el('polyline', { points: ROUTE.map(s => s.x + ',' + s.y).join(' '), fill: 'none', stroke: 'rgba(255,255,255,.5)', 'stroke-width': 2, 'stroke-dasharray': '4 4' });
   doneLine = el('polyline', { points: '', fill: 'none', stroke: '#74D2E7', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   dots = ROUTE.map(s => el('circle', { cx: s.x, cy: s.y, r: 3.6, fill: '#05305E', stroke: '#fff', 'stroke-width': 1.6 }));
