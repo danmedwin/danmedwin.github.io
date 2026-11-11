@@ -38,14 +38,6 @@ window.DEFAULTS = {
       "dz": 0,
       "dh": 0
     },
-    "gate/barchu": {
-      "y": -0.432,
-      "p": -0.13,
-      "z": 1,
-      "dx": 0,
-      "dz": 0,
-      "dh": 0
-    },
     "ridge/yotzeir": {
       "y": -0.43,
       "p": -0.19,

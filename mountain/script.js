@@ -64,7 +64,7 @@ window.SCRIPT = {
       "Look at the spray rising on both sides. Our ancestors stood in a place like this, with the sea in front of them and Egypt behind them.",
       "They walked through with walls of water on their right and on their left. On the far side they sang Mi Chamochah: \"Who is like You?\"",
       "Rabbi Nachman taught that the whole world is a very narrow bridge, and the most important thing is not to be afraid.",
-      "We sing first. Then we cross."
+      "We sing as we cross."
     ],
     summit: [
       "This is the top. Everything we have done this morning was the way up to here.",
@@ -86,7 +86,7 @@ window.SCRIPT = {
       "If you are remembering someone, please rise. The rest of us will answer \"Amen.\""
     ],
     trailhead: [
-      "Do you recognize this place? It is where we started.",
+      "Do you recognize this place? We are almost back where we started.",
       "This morning it was dark, and we could only see a few steps ahead. Now we can see all of it.",
       "The woods are the same. The light is different, and so are we.",
       "That is what tefillah is for. We come back to the same day we were going to have anyway, and we see it better."

@@ -270,14 +270,14 @@ const STOPS = {
   tents:     { u: U_TENTS - 17 / L,              tod: [.22, .34],  sa: .4,  name: 'Morning Blessings',  place: 'the tents' },
   garden:    { u: U_GARDEN - 15 / L,             tod: [.5, .6],    sa: .5,  name: 'Words of Torah',     place: 'the clearing', note: 'stone garden under construction' },
   climb:     { u: uNear(262, -104, 0, .5),       tod: [.66, .72],  sa: .45, name: 'Halleluyah',         place: 'the lower climb' },
-  gate:      { u: U_GATE - 30 / L,               tod: [.8, .84],   sa: .3,  name: 'Bar’chu',            place: 'the gate' },
+  gate:      { u: U_GATE - 11 / L,               tod: [.8, .84],   sa: .3,  name: 'Bar’chu',            place: 'the gate' },
   ridge:     { u: uNear(166, 46, 0, .7),         tod: [1.0, 2.25], sa: .5,  name: 'Yotzeir Or',         place: 'the sunrise ridge' },
   overlook:  { u: uNear(112, 102, 0, .7),         tod: [3.0, 3.1],  sa: .55, name: 'Sh’ma',              place: 'the overlook' },
-  bridge:    { u: U_BR - (BR_HALF + 13) / L,     tod: [3.2, 3.25], sa: .45, name: 'Mi Chamochah',       place: 'the bridge' },
+  bridge:    { u: U_BR - (BR_HALF + 13) / L,     tod: [3.2, 3.25], sa: .45, cross: { to: U_BR + (BR_HALF + 7) / L, secs: 80 }, name: 'Mi Chamochah',       place: 'the bridge' },
   summit:    { u: U_SUMMIT,                      tod: [3.5, 3.6],  sa: .68, name: 'Amidah',             place: 'the summit' },
   shoulder:  { u: uNear(95, -110, .6, 1),        tod: [3.8, 3.85], sa: .55, name: 'D’var Torah',        place: 'the way down', speed: 11 },
   stones:    { u: U_STONES - 13 / L,             tod: [3.9, 3.95], sa: .55, name: 'Mourner’s Kaddish',  place: 'the stones of memory', speed: 11 },
-  trailhead: { u: 1 - 1 / L,                     tod: [4, 4],      sa: .6,  name: 'Closing',            place: 'the trailhead', speed: 13 }
+  trailhead: { u: 1 - 24 / L,                    tod: [4, 4],      sa: .6,  name: 'Closing',            place: 'the trailhead', speed: 13 }
 };
 
 /* =====================================================================
@@ -360,7 +360,8 @@ function sideOf(u, lateral, along) {                // a point beside the trail
   const p = curve.getPointAt(clamp(u + (along || 0) / L, 0, 1)), t = curve.getTangentAt(clamp(u, 0, 1));
   const x = p.x + t.z * lateral, z = p.z - t.x * lateral; return new THREE.Vector3(x, height(x, z), z);
 }
-function cairn(at, s) {
+const CAIRNS = [];
+function cairn(at, s) { CAIRNS.push({ x: at.x, z: at.z, s });
   const rnd = rng(Math.round(at.x * 7 + at.z)), g = new THREE.Group(); let y = 0;
   [1.25, 1.0, .82, .62, .45, .3].forEach((r, i) => {
     const m = new THREE.Mesh(new THREE.DodecahedronGeometry(r * s, 0), flat(new THREE.Color().setHSL(.08, .07, .42 + rnd() * .14)));
@@ -482,6 +483,7 @@ function animateWind(t) {
 }
 
 /* ---------- trees and rocks ---------- */
+const LOOKOUT = (function () { const e = curve.getPointAt(STOPS.trailhead.u), d = Math.hypot(e.x, e.z); return { x: e.x - e.x / d * 15, z: e.z - e.z / d * 15, r: 22 }; })();   // an opening toward the mountain where the walk ends
 (function buildForest() {
   const clear = [[TENTS_AT.x, TENTS_AT.z, 22], [CAIRN_AT.x, CAIRN_AT.z, 7], [GARDEN.x, GARDEN.z, GARDEN_BUILT ? 27 : 12], [STONES_AT.x, STONES_AT.z, 26], [166, 46, 34], [112, 102, 36], [74, 120, 30], [95, -110, 44], [262, -104, 12]];
   const rnd = rng(7), MAX = 9500, cone = new THREE.ConeGeometry(1, 1, 6); cone.translate(0, .5, 0);
@@ -496,6 +498,7 @@ function animateWind(t) {
     if (rnd() > p) continue;
     if (trailDist(x, z) < 7.5) continue;
     if (clear.some(t => Math.hypot(x - t[0], z - t[1]) < t[2])) continue;
+    if (Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z) < LOOKOUT.r) { rnd(); rnd(); rnd(); rnd(); rnd(); continue; }   // the last view's opening (same random draws, so no other tree moves)
     const s = 6 + rnd() * 7;
     P.set(x, height(x, z) - .4, z); Q.setFromAxisAngle(Y, rnd() * 6.28); S.set(s * .3, s, s * .3); M.compose(P, Q, S); mesh.setMatrixAt(n, M);
     C.setHSL(.33 + rnd() * .06, .32 + rnd() * .15, .16 + rnd() * .09); mesh.setColorAt(n, C); n++;
@@ -609,14 +612,14 @@ function pathAim(u, lift) {
   A.tents = aimAt(to(at(STOPS.tents.u), TENTS_AT.clone().add(V(0, 1.5, 0))), 0.3, -0.56);          // tents low in the frame
   A.garden = GARDEN_BUILT ? aimAt(to(at(STOPS.garden.u), V(GARDEN.x, GARDEN.y + 2.6, GARDEN.z)), 0.1, -0.5) : pathAim(STOPS.garden.u, 6);
   A.climb = pathAim(STOPS.climb.u, 9);                                                             // up the trail toward the gate
-  const g = at(U_GATE); A.gate = aimAt(to(at(STOPS.gate.u), V(g.x, g.y + .8, g.z)), 0.62, 0.34);   // gate up and right, clear of the text
+  const g = at(U_GATE); A.gate = aimAt(to(at(STOPS.gate.u), V(g.x, g.y + .9, g.z)), 0, -0.12);     // right up at the gate, face on
   A.ridge = aimAt(sunFlat, 0.42, -0.5);                                                            // sunrise low on the right
   A.overlook = aimAt(V(0.12, 0, 1).normalize(), 0, -0.34);                                         // south over the valley
   A.bridge = aimAt(to(at(STOPS.bridge.u), V(BR.x, BR.y - 2, BR.z)), 0, -0.18);                      // along the bridge
   A.summit = aimAt(V(-1, 0, -0.25).normalize(), 0, -0.42);                                          // big sky, ranges below
   A.shoulder = aimAt(V(1, 0, -0.35).normalize(), 0.1, 0.2);                                       // back over the valley we left
   A.stones = aimAt(to(at(STOPS.stones.u), STONES_AT.clone().add(V(0, 1.2, 0))), 0.25, -0.5);       // the small cairns, valley beyond
-  A.trailhead = aimAt(to(at(STOPS.trailhead.u), V(0, curve.getPointAt(U_SUMMIT).y, 0)), 0.5, 0.2); // the mountain, in daylight
+  A.trailhead = aimAt(to(at(STOPS.trailhead.u), V(0, curve.getPointAt(U_SUMMIT).y, 0)), 0.5, 0.3); // a little above where we began: the mountain we climbed, the camp and the cairn below
   for (const k in STOPS) STOPS[k].aim = A[k];
   // At the summit each part of the Amidah looks a different way.
   const S = at(U_SUMMIT), west = V(-1, 0, -0.25).normalize();
@@ -753,12 +756,12 @@ function buildSteps() {
     const n = list.length;
     const poseOf = (j, p) => { const v = st.views && p && st.views[p.id], u = st.u + (st.walk && n > 1 ? st.walk * j / (n - 1) / L : 0) + ((v && v.du) || 0) / L; return fixPose({ u, key: p ? r.stop + '/' + p.id : r.stop, base: v ? v.aim : st.walk ? pathAim(u, 5) : st.aim, label: p ? p.name : st.place }); };
     const first = poseOf(0, list[0] && list[0].p);
-    STEPS.push(ri === 0 ? { k: 'hold', stop: r.stop, mi: 0, pose: first } : { k: 'travel', from: ROUTE[ri - 1].stop, to: r.stop, mi: ri, A: lastPose, B: first });
+    STEPS.push(ri === 0 ? { k: 'hold', stop: r.stop, mi: 0, pose: first } : { k: 'travel', from: ROUTE[ri - 1].stop, to: r.stop, mi: ri, A: lastPose, A0: lastPose, B: first });
     lastPose = first;
     list.forEach((it, j) => {
       const pose = poseOf(j, it.p);
       if (it.first && j > 0 && ((st.views && st.views[it.p.id]) || linesOf((SCRIPT.turns || {})[it.p.id]).length)) STEPS.push({ k: 'turn', stop: r.stop, mi: ri, pose, prayer: it.p });   // turn to the new view; the guide speaks
-      STEPS.push({ k: 'slide', stop: r.stop, mi: ri, id: it.id, pose, tod: lerp(st.tod[0], st.tod[1], (j + 1) / n) });
+      STEPS.push({ k: 'slide', stop: r.stop, mi: ri, id: it.id, pose, tod: lerp(st.tod[0], st.tod[1], (j + 1) / n), drift: st.cross && j === n - 1 ? st.cross : null });   // drift: keep walking slowly while this text is up
       lastPose = pose;
     });
   });
@@ -844,7 +847,7 @@ function nudge(ch) {                                    // ch: { y, p } look, { 
 }
 function setAdjust(on) {
   adjusting = on; autoNext = false; document.body.classList.toggle('adjusting', on); document.getElementById('tbView').classList.toggle('act', on);
-  if (on) { endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
+  if (on) { endGlide(); if (STEPS[idx].drift) { STEPS[idx].dp = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
 }
 (function () {
   let d = null;
@@ -989,7 +992,7 @@ function enter(i, dir) {
   titleEl.classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
   if (s.k === 'slide' || s.k === 'turn') {
     // text fades out, the camera moves to this prayer's view, then the new text fades in
-    const pose = s.pose; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
+    const pose = s.pose; s.dp = 0; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
     const moved = pose.pos.distanceTo(cur.pos) > .5 || Math.abs(lerpAngle(cur.yaw, pose.aim.yaw, 1) - cur.yaw) > .02 || Math.abs(pose.aim.pitch - cur.pitch) > .02 || Math.abs(pose.zoom - cur.zoom) > .01;
     const go = dir > 0 && moved, after = s.k === 'slide' ? () => showText(s.id, s.stop) : null;   // a turn, like an arrival, waits for a click so the guide can speak
     showText(s.k === 'slide' && !go ? s.id : null, s.stop);
@@ -999,6 +1002,8 @@ function enter(i, dir) {
     showText(null); todTarget = tod = STOPS[s.stop].tod[0]; toPose(s.pose); setMap(s.mi, s.mi, 0, true);
   } else {
     showText(null);
+    const was = STEPS[idx - 1];                            // after a slow walk (the bridge), carry on from wherever we have got to
+    s.A = dir > 0 && was && was.drift && was.dp > 0 ? { u: was.du, aim: { yaw: cur.yaw, pitch: cur.pitch }, zoom: cur.zoom, d: was.pose.d } : (s.A0 || s.A);
     travelDur = clamp(Math.abs(s.B.u - s.A.u) * L / (STOPS[s.to].speed || SPEED), 9, 34);
     todTarget = STOPS[s.to].tod[0];
     if (dir > 0) { travelP = 0; travelling = true; todFrom = tod; } else { travelP = 1; travelling = false; todFrom = tod = todTarget; }
@@ -1054,6 +1059,12 @@ function frame(now) {
       setPose(tmpP, lerpAngle(glide.y0, glide.to.aim.yaw, e), lerp(glide.p0, glide.to.aim.pitch, e), lerp(glide.z0, glide.to.zoom, e));
       if (glide.t >= 1) { const g = glide; glide = null; if (g.then) g.then(); }
     }
+    else if (s.drift && !adjusting) {                             // the bridge: we walk slowly across while the words are up
+      s.dp = Math.min(1, (s.dp || 0) + dt / s.drift.secs); const e = lerp(s.dp, ease(s.dp), .5), u = s.du = lerp(s.pose.u, s.drift.to, e);
+      const a = viewAdj[s.pose.key] || {}, pa = pathAim(u, -2), w = sstep(0, .12, s.dp);
+      tmpP.copy(curve.getPointAt(u)).add(s.pose.d);
+      setPose(tmpP, lerpAngle(s.pose.aim.yaw, pa.yaw + (a.y || 0), w), lerp(s.pose.aim.pitch, pa.pitch + (a.p || 0), w), s.pose.zoom);
+    }
     tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
   }
   applyTOD(tod); animateWind(clock);
@@ -1067,7 +1078,7 @@ function frame(now) {
 }
 const startAt = parseInt((location.hash || '').slice(1), 10);
 enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length; i++) enter(i, -1);
-window.__mt = { enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { curve, CAIRNS, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
