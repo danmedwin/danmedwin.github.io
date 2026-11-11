@@ -61,6 +61,7 @@
            pointer-events: none; color: #fff; font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; line-height: 1.22; cursor: move; user-select: none; }
   #guide.on { opacity: 1; pointer-events: auto; transition: opacity .7s ease; }   /* fades in, and simply goes when its moment is over */
   #guide h4 { margin: 0 0 .2em; font-size: .73em; font-weight: 700; color: #FFC843; letter-spacing: .04em; text-transform: uppercase; }
+  #guide h4 .who { display: block; margin-top: .15em; font-size: .78em; font-weight: 400; color: #fff; opacity: .85; letter-spacing: 0; text-transform: none; }
   #guide ul { margin: 0; padding-left: 1em; } #guide li { margin: .23em 0; }
   #guide .tools { position: absolute; right: calc(var(--pt)*10); top: calc(var(--pt)*6); display: none; gap: 4px; font-size: calc(var(--pt)*15); }
   #guide:hover .tools { display: flex; } #guide:hover { border-color: rgba(255,200,67,.8); }
@@ -96,6 +97,9 @@
   #panel h2 { margin: 0; font-size: calc(var(--pt)*30); } #panel .sub { opacity: .8; margin: .2em 0 .8em; }
   #panel .cols { flex: 1; overflow: auto; columns: 3; column-gap: 2.2em; }
   #panel .stop { break-inside: avoid; margin: 0 0 .9em; } #panel .stop > label { font-weight: 700; color: #74D2E7; }
+  #panel .prow { display: flex; align-items: center; gap: .5em; break-inside: avoid; } #panel .prow label { flex: none; }
+  #panel input.who { flex: 1; min-width: 3em; max-width: 9em; margin-left: auto; font: inherit; font-size: .82em; color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); border-radius: .35em; padding: .05em .4em; }
+  #panel input.who::placeholder { color: rgba(255,255,255,.4); font-style: italic; } #panel input.who:focus { outline: none; border-color: #FFC843; background: rgba(255,255,255,.18); }
   #panel label { display: block; padding: .12em 0; cursor: pointer; } #panel .pr { padding-left: 1.5em; } #panel .later { padding-left: 1.5em; opacity: .55; font-style: italic; }
   #panel input { width: 1.05em; height: 1.05em; vertical-align: -.12em; margin-right: .45em; accent-color: #FFC843; }
   #panel .bar { display: flex; flex-wrap: wrap; gap: .7em; align-items: center; margin-top: .9em; padding-top: .8em; border-top: 1px solid rgba(255,255,255,.25); }
@@ -119,7 +123,7 @@
     html, body { height: auto; overflow: visible; background: #fff; display: block; } #stage { display: none !important; }
     #print { display: block; color: #000; font: 13pt/1.4 Calibri, Carlito, Arial, sans-serif; padding: 0 .2in; }
     #print h1 { font-size: 20pt; margin: 0 0 .1in; } #print h2 { font-size: 14pt; margin: .22in 0 .04in; break-after: avoid; } #print h3 { font-size: 12pt; margin: .12in 0 0; font-style: italic; font-weight: 400; }
-    #print ul { margin: .04in 0; } #print li { margin: .05in 0; } #print section { break-inside: avoid; } #print .who { float: right; font-weight: 400; border-bottom: 1px solid #000; min-width: 2in; }
+    #print ul { margin: .04in 0; } #print li { margin: .05in 0; } #print section { break-inside: avoid; } #print .who { float: right; font-weight: 400; border-bottom: 1px solid #000; min-width: 2in; } #print .who.named { border: 0; min-width: 0; font-size: 10.5pt; font-style: italic; max-width: 3.6in; text-align: right; }
   }
   .still .slide, .still #scrim, .still #map, .still #title, .still #guide { transition: none; }
   #fps { position: absolute; right: 8px; top: 6px; color: #fff; font: 12px monospace; opacity: .8; display: none; }
@@ -722,9 +726,10 @@ const sel = Object.assign({}, DEF.sel, saved.sel);
 const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y: 6.3, w: 12.2, fs: 25 } };
 const guideBox = {};                                                 // one box per script moment: "start", "stop:tents", "turn:gvurot"...
 [DEF.guide, saved.guide].forEach(g => { for (const k in (g || {})) guideBox[k] = Object.assign({}, guideBox[k], g[k]); });
+const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
-const settings = () => ({ name: designName, sel, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, names, script: showScript, guide: guideBox, views: viewAdj });
 const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(Object.assign(settings(), { barOff }))); } catch (e) {} };
 const isOn = p => (p.id in sel) ? !!sel[p.id] : !p.off;
 const made = {}, slideId = id => id.charAt(0) === '@' ? (made[id] || (made[id] = WEEKLY_SLIDES[id]())) : id;
@@ -769,6 +774,13 @@ document.querySelectorAll('.slide').forEach(s => {       // which scrim each sli
 const SCRIPT = window.SCRIPT || {}, guideEl = document.getElementById('guide');
 const anyOn = id => ORDER.some(o => o.prayers.some(p => p.id === id && isOn(p)));
 const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if || anyOn(l.if)).map(l => typeof l === 'string' ? l : l.t);
+// The names typed in the Prayer List, for the prayers a script moment leads into. One shared name is shown alone; otherwise each prayer with its name.
+function whoFor(s) {
+  const ps = s.k === 'turn' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !STEPS.some(t => t.k === 'turn' && t.prayer.id === p.id));
+  const got = ps.map(p => ({ p: p.name, n: (names[p.id] || '').trim() })).filter(x => x.n);
+  if (!got.length) return '';
+  return got.every(x => x.n === got[0].n) ? got[0].n : got.map(x => x.p + ': ' + x.n).join(' · ');
+}
 function guideFor(s) {
   if (s.k === 'hold') return { head: 'Welcome', lines: linesOf(SCRIPT.start) };
   if (s.k === 'travel') return { head: 'On the way to ' + STOPS[s.to].place, lines: linesOf((SCRIPT.stops || {})[s.to]) };
@@ -777,7 +789,7 @@ function guideFor(s) {
 }
 function showGuide(s) {
   const g = showScript ? guideFor(s) : null, on = !!(g && g.lines.length);
-  if (on) { guideEl.querySelector('h4').textContent = g.head; guideEl.querySelector('ul').innerHTML = g.lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
+  if (on) { const who = whoFor(s); guideEl.querySelector('h4').innerHTML = esc(g.head) + (who ? '<span class="who">' + esc(who) + '</span>' : ''); guideEl.querySelector('ul').innerHTML = g.lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
   if (on) { guideMode = s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : 'turn:' + s.prayer.id; placeGuide(); }
   guideEl.classList.toggle('on', on);
 }
@@ -861,21 +873,21 @@ function adjustKey(e) {                                 // returns true if the k
   e.preventDefault(); return true;
 }
 function scriptSections() {                                // the whole script for the prayers that are ticked
-  const out = [{ head: 'Start: before the first click', lines: linesOf(SCRIPT.start) }]; let walk = 0;
+  const out = [{ head: 'Start: before the first click', who: whoFor(STEPS[0]), lines: linesOf(SCRIPT.start) }]; let walk = 0;
   STEPS.forEach(s => {
-    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), lines: linesOf((SCRIPT.stops || {})[s.to]) }); }
-    else if (s.k === 'turn') out.push({ head: 'At ' + STOPS[s.stop].place + ': before ' + s.prayer.name, lines: linesOf((SCRIPT.turns || {})[s.prayer.id]) });
+    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), who: whoFor(s), lines: linesOf((SCRIPT.stops || {})[s.to]) }); }
+    else if (s.k === 'turn') out.push({ head: 'At ' + STOPS[s.stop].place + ': before ' + s.prayer.name, who: whoFor(s), lines: linesOf((SCRIPT.turns || {})[s.prayer.id]) });
   });
   out.push({ head: 'End: closing', lines: linesOf(SCRIPT.end) });
   return out.filter(x => x.lines.length);
 }
 function printScript() {
   document.getElementById('print').innerHTML = '<h1>' + esc(WEEKLY.title) + ': guides’ script</h1><p>A guide speaks while we walk. The prayer text comes up on the next click after the guide is done.</p>' +
-    scriptSections().map(x => '<section><h2>' + esc(x.head) + '<span class="who">&nbsp;</span></h2>' + (x.sub ? '<h3>' + esc(x.sub) + '</h3>' : '') + '<ul>' + x.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></section>').join('');
+    scriptSections().map(x => '<section><h2>' + esc(x.head) + (x.who ? '<span class="who named">' + esc(x.who) + '</span>' : '<span class="who">&nbsp;</span>') + '</h2>' + (x.sub ? '<h3>' + esc(x.sub) + '</h3>' : '') + '<ul>' + x.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></section>').join('');
   window.print();
 }
 function downloadScript() {
-  const txt = WEEKLY.title + ': guides’ script\r\n\r\n' + scriptSections().map(x => x.head.toUpperCase() + (x.sub ? '\r\n(' + x.sub + ')' : '') + '\r\n' + x.lines.map(l => '  - ' + l).join('\r\n')).join('\r\n\r\n') + '\r\n';
+  const txt = WEEKLY.title + ': guides’ script\r\n\r\n' + scriptSections().map(x => x.head.toUpperCase() + (x.sub ? '\r\n(' + x.sub + ')' : '') + (x.who ? '\r\nGuide: ' + x.who : '') + '\r\n' + x.lines.map(l => '  - ' + l).join('\r\n')).join('\r\n\r\n') + '\r\n';
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/plain' })); a.download = 'Mountain Tefillah script.txt'; document.body.appendChild(a); a.click(); a.remove();
 }
 
@@ -895,7 +907,7 @@ function drawPanel() {
   panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1) + ' clicks. Choices are remembered on this computer.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div><div class="cols">' +
     ORDER.map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
       return '<div class="stop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + (st.note ? ' <span class="under">(' + st.note + ')</span>' : '') + '</label>' +
-        o.prayers.map(p => '<label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label>').join('') +
+        o.prayers.map(p => '<div class="prow"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label><input type="text" class="who" data-n="' + p.id + '" maxlength="40" placeholder="name" title="Who leads ' + esc(p.name).replace(/"/g, '&quot;') + '" value="' + esc(names[p.id] || '').replace(/"/g, '&quot;') + '"></div>').join('') +
         (o.stop === 'tents' ? '<div class="later">Nisim B’chol Yom side loop: coming later</div>' : '') + '</div>'; }).join('') +
     '</div><div class="bar"><label class="switch"><input type="checkbox" id="optScript"' + (showScript ? ' checked' : '') + '><i></i><span class="ic">' + IC.script + '</span>Guide’s script on screen (S)</label>' +
     '<button class="ib" id="btnPrint" title="Print the guides’ script for the ticked prayers">' + IC.print + '</button>' +
@@ -907,6 +919,10 @@ function drawPanel() {
 }
 function applyChoice() { save(); buildSteps(); enter(0, -1); drawPanel(); }
 panel.addEventListener('click', e => e.stopPropagation());
+panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
+  const t = e.target; if (!t.dataset.n) return;
+  if (t.value.trim()) names[t.dataset.n] = t.value; else delete names[t.dataset.n]; save(); showGuide(STEPS[idx]);
+});
 panel.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.p) { sel[t.dataset.p] = t.checked; applyChoice(); }
@@ -914,7 +930,7 @@ panel.addEventListener('change', e => {
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
-  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
   showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice();
 }
