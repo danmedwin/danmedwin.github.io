@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mountain Tefillah (Traditional)</title>
+<style>
+  /* Fonts travel with the page (vendor/fonts), so nothing is fetched from the web. */
+  @font-face { font-family: "Carlito"; font-weight: 400; font-style: normal; src: url("vendor/fonts/Carlito-400.woff2") format("woff2"); }
+  @font-face { font-family: "Carlito"; font-weight: 700; font-style: normal; src: url("vendor/fonts/Carlito-700.woff2") format("woff2"); }
+  @font-face { font-family: "Carlito"; font-weight: 400; font-style: italic; src: url("vendor/fonts/Carlito-400-italic.woff2") format("woff2"); }
+  @font-face { font-family: "David Libre"; font-weight: 400; src: local("David Libre"), local("DavidLibre-Regular"), url("vendor/fonts/DavidLibre-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "David Libre"; font-weight: 500; src: local("David Libre Medium"), local("DavidLibre-Medium"), url("vendor/fonts/DavidLibre-Medium.ttf") format("truetype"); }
+  @font-face { font-family: "David Libre"; font-weight: 700; src: local("David Libre Bold"), local("DavidLibre-Bold"), url("vendor/fonts/DavidLibre-Bold.ttf") format("truetype"); }
+  :root { --in: 48px; --pt: calc(var(--in) / 72); --sa: .5; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; cursor: default; }
+  #stage { position: relative; overflow: hidden; background: #070b24; }
+  #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* ---------- prayer text (Davis VT standard sizes on a 20in x 11.25in slide) ---------- */
+  .slide, #scrim { position: absolute; inset: 0; opacity: 0; transition: opacity .7s ease; pointer-events: none; }
+  .slide.on, #scrim.on { opacity: 1; }
+  #scrim { background: linear-gradient(180deg, rgba(5,30,78,var(--sa)) 0%, rgba(5,30,78,calc(var(--sa)*.72)) 36%, rgba(5,30,78,0) 64%, rgba(4,16,40,0) 80%, rgba(4,16,40,calc(var(--sa)*.8)) 100%); }
+  #scrim.tall { background: linear-gradient(180deg, rgba(5,30,78,var(--sa)) 0%, rgba(5,30,78,calc(var(--sa)*.85)) 70%, rgba(5,30,78,calc(var(--sa)*.5)) 100%); }
+  .slide { color: #fff; font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif;
+           text-shadow: 0 0 calc(var(--pt)*14) rgba(2,14,40,.65), 0 calc(var(--pt)*1.5) calc(var(--pt)*3) rgba(2,14,40,.7); }
+  .box { position: absolute; white-space: nowrap; }
+  .he { font-family: "David Libre", "David", "Times New Roman", serif; direction: rtl; }
+  .hw { font-family: "David Libre", "David", "Times New Roman", serif; }
+  .dots { left: 0; right: 0; top: calc(var(--in)*.2); text-align: center; font-size: calc(var(--pt)*22); letter-spacing: .35em; }
+  .h-en { left: calc(var(--in)*.45); top: calc(var(--in)*.12); font-size: calc(var(--pt)*32); }
+  .h-he { right: calc(var(--in)*.45); top: calc(var(--in)*.02); font-size: calc(var(--pt)*42); }
+
+  /* ---------- title card ---------- */
+  #title { position: absolute; left: 0; right: 0; top: 26%; text-align: center; color: #fff;
+           font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif;
+           text-shadow: 0 0 calc(var(--pt)*14) rgba(2,14,40,.7); opacity: 0; transition: opacity .7s ease; pointer-events: none; }
+  #title.on { opacity: 1; }
+  #title .t1 { font-size: calc(var(--pt)*64); font-weight: 700; }
+  #title .t2 { font-size: calc(var(--pt)*32); margin-top: calc(var(--pt)*12); opacity: .92; }
+
+  /* ---------- mini-map ---------- */
+  #map { position: absolute; left: calc(var(--in)*.45); bottom: calc(var(--in)*.85); width: calc(var(--in)*6.4);
+         background: rgba(5,48,94,.78); border: calc(var(--pt)*1.5) solid rgba(255,255,255,.28);
+         border-radius: calc(var(--pt)*14); padding: calc(var(--pt)*10) calc(var(--pt)*12) calc(var(--pt)*8);
+         box-sizing: border-box; opacity: 0; transition: opacity .7s ease; pointer-events: none;
+         font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; color: #fff; }
+  #map.on { opacity: 1; pointer-events: auto; }
+  #map .hit { cursor: pointer; pointer-events: all; } #map .hit:hover { fill: rgba(255,200,67,.35); }
+  #map svg { display: block; width: 100%; height: auto; overflow: visible; }
+  #map .cap { font-size: calc(var(--pt)*24); line-height: 1.15; margin-top: calc(var(--pt)*4); white-space: nowrap; }
+  #map .cap b { color: #FFC843; font-weight: 700; }
+  .hl { color: #FFC843; }
+  #title .t3 { font-size: calc(var(--pt)*20); margin-top: calc(var(--pt)*14); opacity: .7; }
+
+  /* ---------- guide script on screen ---------- */
+  #guide { position: absolute; background: rgba(5,48,94,.84); border: calc(var(--pt)*1.5) solid rgba(255,255,255,.28); border-radius: calc(var(--pt)*14);
+           padding: calc(var(--pt)*14) calc(var(--pt)*22) calc(var(--pt)*12); box-sizing: border-box; opacity: 0;
+           pointer-events: none; color: #fff; font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; line-height: 1.22; cursor: move; user-select: none; }
+  #guide.on { opacity: 1; pointer-events: auto; transition: opacity .7s ease; }   /* fades in, and simply goes when its moment is over */
+  #guide h4 { margin: 0 0 .2em; font-size: .73em; font-weight: 700; color: #FFC843; letter-spacing: .04em; text-transform: uppercase; }
+  #guide ul { margin: 0; padding-left: 1em; } #guide li { margin: .23em 0; }
+  #guide .tools { position: absolute; right: calc(var(--pt)*10); top: calc(var(--pt)*6); display: none; gap: 4px; font-size: calc(var(--pt)*15); }
+  #guide:hover .tools { display: flex; } #guide:hover { border-color: rgba(255,200,67,.8); }
+  #guide .tools span { cursor: pointer; background: rgba(255,255,255,.18); border-radius: 4px; padding: 0 .5em; line-height: 1.5; }
+  #guide .grip { position: absolute; right: 0; bottom: 0; width: calc(var(--pt)*26); height: calc(var(--pt)*26); cursor: ew-resize; display: none;
+                 background: linear-gradient(135deg, transparent 50%, rgba(255,200,67,.85) 50%); border-bottom-right-radius: calc(var(--pt)*12); }
+  #guide:hover .grip { display: block; }
+
+  /* ---------- toolbar (lower left), map close, view adjusting ---------- */
+  #bar, #barTab { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.12); display: flex; gap: calc(var(--pt)*5); z-index: 4;
+                  background: rgba(5,48,94,.72); border: 1px solid rgba(255,255,255,.3); border-radius: calc(var(--pt)*10); padding: calc(var(--pt)*4); opacity: .5; transition: opacity .25s; }
+  #bar:hover, #barTab:hover { opacity: 1; }
+  #bar button, #barTab { cursor: pointer; color: #fff; }
+  #bar button { background: transparent; border: 0; border-radius: calc(var(--pt)*7); width: calc(var(--pt)*34); height: calc(var(--pt)*34); padding: calc(var(--pt)*6); color: #fff; cursor: pointer; }
+  #bar button:hover, #bar button.act { background: rgba(255,255,255,.22); } #bar button.act { color: #FFC843; }
+  #bar svg { width: 100%; height: 100%; display: block; }
+  #barTab { display: none; left: 0; border-left: 0; border-radius: 0 calc(var(--pt)*8) calc(var(--pt)*8) 0; padding: calc(var(--pt)*8) calc(var(--pt)*3); font: 700 calc(var(--pt)*16) Calibri, Carlito, sans-serif; }
+  .barOff #bar { display: none; } .barOff #barTab { display: block; }
+  #map .x, #panel .x { position: absolute; cursor: pointer; color: #fff; opacity: .7; font: 700 calc(var(--pt)*20) Calibri, Carlito, sans-serif; line-height: 1; }
+  #map .x { right: calc(var(--pt)*7); top: calc(var(--pt)*4); } #panel .x { right: calc(var(--pt)*20); top: calc(var(--pt)*16); font-size: calc(var(--pt)*30); }
+  #map .x:hover, #panel .x:hover { opacity: 1; color: #FFC843; }
+  #adj { position: absolute; left: 50%; bottom: calc(var(--in)*.2); transform: translateX(-50%); display: none; align-items: center; gap: .8em; z-index: 4;
+         background: #041c3a; border: 1px solid #FFC843; border-radius: 999px; padding: .35em 1em; color: #fff; font: calc(var(--pt)*18) Calibri, Carlito, sans-serif; white-space: nowrap; }
+  .adjusting #adj { display: flex; } .adjusting #stage { cursor: grab; }
+  #adj .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #adjName { min-width: 9em; text-align: center; color: #FFC843; }
+  #adj button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
+
+  /* ---------- control panel (for the person at the computer) ---------- */
+  #panel { position: absolute; inset: 4% 5%; display: none; flex-direction: column; background: #041c3a; color: #fff; border: 1px solid rgba(255,255,255,.3);
+           border-radius: calc(var(--pt)*16); padding: calc(var(--pt)*22) calc(var(--pt)*28); box-sizing: border-box; cursor: default;
+           font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; font-size: calc(var(--pt)*19); z-index: 5; }
+  #panel.on { display: flex; }
+  #panel h2 { margin: 0; font-size: calc(var(--pt)*30); } #panel .sub { opacity: .8; margin: .2em 0 .8em; }
+  #panel .cols { flex: 1; overflow: auto; columns: 3; column-gap: 2.2em; }
+  #panel .stop { break-inside: avoid; margin: 0 0 .9em; } #panel .stop > label { font-weight: 700; color: #74D2E7; }
+  #panel label { display: block; padding: .12em 0; cursor: pointer; } #panel .pr { padding-left: 1.5em; } #panel .later { padding-left: 1.5em; opacity: .55; font-style: italic; }
+  #panel input { width: 1.05em; height: 1.05em; vertical-align: -.12em; margin-right: .45em; accent-color: #FFC843; }
+  #panel .bar { display: flex; flex-wrap: wrap; gap: .7em; align-items: center; margin-top: .9em; padding-top: .8em; border-top: 1px solid rgba(255,255,255,.25); }
+  #panel button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .4em .9em; cursor: pointer; }
+  #panel button.main { background: #FFC843; }
+  #panel .ib { width: 2.5em; height: 2.5em; padding: .5em; background: rgba(255,255,255,.14); color: #fff; } #panel .ib:hover { background: rgba(255,255,255,.3); color: #FFC843; }
+  #panel .ib svg, #panel .ic svg { width: 100%; height: 100%; display: block; pointer-events: none; } #panel .ic { width: 1.3em; height: 1.3em; color: #FFC843; }
+  #dlg .card { position: absolute; right: calc(var(--pt)*28); bottom: calc(var(--pt)*86); width: 24em; background: #0a3a6e; border: 1px solid #FFC843; border-radius: .7em; padding: 1em 1.2em; box-shadow: 0 .4em 1.6em rgba(0,0,0,.5); }
+  #dlg h3 { margin: 0 0 .6em; font-size: 1.2em; } #dlg p { margin: .7em 0; font-size: .85em; opacity: .85; line-height: 1.3; }
+  #dlg input[type=text] { width: 100%; box-sizing: border-box; height: auto; font: inherit; padding: .4em .6em; border-radius: .4em; border: 0; margin: 0; }
+  #dlg input[type=text]:disabled { background: #9aa7b6; color: #3c4a5a; }
+  #dlg .chk { font-size: .85em; text-align: right; opacity: .9; margin-top: .35em; } #dlg .chk input { width: .95em; height: .95em; }
+  #dlg .row { display: flex; justify-content: flex-end; gap: .6em; } #panel .under { opacity: .6; font-weight: 400; font-style: italic; color: #fff; }
+  #panel .switch { display: inline-flex; align-items: center; gap: .7em; margin-right: auto; font-size: 1.15em; font-weight: 600; }
+  #panel .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  #panel .switch i { width: 3.2em; height: 1.7em; border-radius: 1em; background: rgba(255,255,255,.28); position: relative; transition: background .2s; flex: none; }
+  #panel .switch i::after { content: ""; position: absolute; left: .18em; top: .18em; width: 1.34em; height: 1.34em; border-radius: 50%; background: #fff; transition: left .2s; }
+  #panel .switch input:checked + i { background: #FFC843; } #panel .switch input:checked + i::after { left: 1.68em; }
+  #print { display: none; }
+  @media print {
+    html, body { height: auto; overflow: visible; background: #fff; display: block; } #stage { display: none !important; }
+    #print { display: block; color: #000; font: 13pt/1.4 Calibri, Carlito, Arial, sans-serif; padding: 0 .2in; }
+    #print h1 { font-size: 20pt; margin: 0 0 .1in; } #print h2 { font-size: 14pt; margin: .22in 0 .04in; break-after: avoid; } #print h3 { font-size: 12pt; margin: .12in 0 0; font-style: italic; font-weight: 400; }
+    #print ul { margin: .04in 0; } #print li { margin: .05in 0; } #print section { break-inside: avoid; } #print .who { float: right; font-weight: 400; border-bottom: 1px solid #000; min-width: 2in; }
+  }
+  .still .slide, .still #scrim, .still #map, .still #title, .still #guide { transition: none; }
+  #fps { position: absolute; right: 8px; top: 6px; color: #fff; font: 12px monospace; opacity: .8; display: none; }
+  #err { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: #fff;
+         font: 20px Calibri, sans-serif; text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="scrim"></div>
+  <div id="title"><div class="t1"></div><div class="t2"></div><div class="t3">Click or → to begin · C: prayer list · S: guide script on screen · M: map (click a stop to jump) · V: adjust a view · F: full screen</div></div>
+  <div id="slides"></div>
+  <div id="map"><svg viewBox="0 0 400 190" id="mapsvg"></svg><div class="cap" id="mapcap"></div><div class="x" id="mapX" title="Hide the map (M)">×</div></div>
+  <div id="guide"><h4></h4><ul></ul><div class="tools"><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
+  <div id="bar">
+    <button id="tbList" title="Prayer List (C)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="5" r="1.7"/><rect x="8" y="3.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="12" r="1.7"/><rect x="8" y="10.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="19" r="1.7"/><rect x="8" y="17.8" width="13" height="2.4" rx="1.2"/></svg></button>
+    <button id="tbScript" title="Guide’s script on screen (S)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/><rect x="6" y="7" width="12" height="1.9" rx=".9" fill="#05305E"/><rect x="6" y="11" width="8" height="1.9" rx=".9" fill="#05305E"/></svg></button>
+    <button id="tbMap" title="Map (M)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 20 L9 6 L13 13 L16 9 L23 20 Z"/><path d="M9 6 L7.2 9.2 L9 10.4 L10.6 9.2 Z" fill="#05305E" opacity=".55"/></svg></button>
+    <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg></button>
+    <button id="tbHide" title="Tuck the toolbar away"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
+  </div>
+  <div id="barTab" title="Show the toolbar">›</div>
+  <div id="adj"><button id="adjPrev" class="nav" title="Previous prayer's view ( [ )">‹</button><b id="adjName"></b><button id="adjNext" class="nav" title="Next prayer's view ( ] )">›</button><span>look: drag or arrows · move: W A S D · up, down: R F · zoom: wheel or + − · next view: [ ]</span><button id="adjPlay" title="Play the move into this view ( T )">▶ Play move</button><button id="adjReset">Reset this view</button><button id="adjDone">Done</button></div>
+  <div id="panel"></div>
+  <div id="fps"></div>
+  <div id="err"></div>
+</div>
+<div id="print"></div>
+
+<script src="slides.js"></script>
+<script src="script.js"></script>
+<script src="defaults.js"></script>
+<script src="weekly.js"></script>
+<script src="vendor/three.min.js"></script>
+<script>
+(function () {
+'use strict';
+const stage = document.getElementById('stage');
+if (/[?&]still/.test(location.search)) stage.classList.add('still');   // no fades, for checking layouts
+function fail(msg) { const e = document.getElementById('err'); e.style.display = 'flex'; e.textContent = msg; }
+if (!window.THREE) return fail('Could not load vendor/three.min.js. Keep the vendor folder next to index.html.');
+if (!window.SLIDES_HTML) return fail('slides.js is missing. Run build.py on the Mac to create it.');
+
+/* =====================================================================
+   Helpers
+   ===================================================================== */
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const ease = t => t * t * t * (t * (6 * t - 15) + 10);
+const lerpAngle = (a, b, t) => { let d = (b - a) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return a + d * t; };
+const DEG = Math.PI / 180;
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash(ix, iz) { const n = Math.sin(ix * 127.1 + iz * 311.7) * 43758.5453; return n - Math.floor(n); }
+function vnoise(x, z) {
+  const ix = Math.floor(x), iz = Math.floor(z), fx = x - ix, fz = z - iz;
+  const u = fx * fx * (3 - 2 * fx), v = fz * fz * (3 - 2 * fz);
+  const a = hash(ix, iz), b = hash(ix + 1, iz), c = hash(ix, iz + 1), d = hash(ix + 1, iz + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, z, o) { let s = 0, a = .5, f = 1; for (let i = 0; i < (o || 4); i++) { s += a * vnoise(x * f, z * f); f *= 2.03; a *= .5; } return s; }
+function ridged(x, z) { let s = 0, a = .5, f = 1; for (let i = 0; i < 4; i++) { const n = 1 - Math.abs(2 * vnoise(x * f, z * f) - 1); s += a * n * n; f *= 2.1; a *= .5; } return s; }
+
+/* =====================================================================
+   The mountain. +x is east (sunrise), +z is south. Summit at the origin.
+   ===================================================================== */
+const WATER = 9;
+function heightRaw(x, z) {
+  const r = Math.hypot(x, z);
+  let h = 240 * Math.exp(-Math.pow(r / 260, 1.7));
+  h *= 0.88 + 0.24 * fbm(x / 120 + 3.1, z / 120 + 7.7, 3);
+  h += 14 * (fbm(x / 40, z / 40, 4) - 0.47);
+  h += 26 * (fbm(x / 210 + 5, z / 210 + 1, 3) - 0.3) * sstep(300, 520, r);
+  h += sstep(560, 1200, r) * (30 + 260 * ridged(x / 520 + 11.3, z / 520 + 4.2));
+  if (h < WATER + 1.2) h = WATER + 1.2 - (WATER + 1.2 - h) * 5;      // steep shores and deep beds, so water and ground never sit close enough to shimmer
+  return h;
+}
+
+// One loop: up from the woods to the summit, then down the north-east side back to the trailhead.
+const TRAIL = [
+  [362,-292],[352,-272],[340,-252],[332,-236],[318,-212],[308,-196],[298,-180],[288,-158],[278,-138],[268,-118],
+  [262,-104],[251,-78],[240,-54],[228,-30],[214,-2],[192,26],[166,46],[146,72],[112,102],[74,120],
+  [44,124],[22,114],[6,96],[-4,72],[-6,48],[-3,26],[0,10],[0,0],
+  [8,-16],[28,-42],[58,-76],[95,-110],[140,-150],[190,-186],[240,-214],[282,-226],[306,-222],[322,-208]];
+const EYE = 2.6;
+let curve, L;
+(function buildCurve() {
+  const flat = new THREE.CatmullRomCurve3(TRAIL.map(p => new THREE.Vector3(p[0], 0, p[1])), false, 'centripetal');
+  const N = Math.round(flat.getLength() / 4.5), pts = flat.getSpacedPoints(N), ys = pts.map(p => heightRaw(p.x, p.z));
+  for (let pass = 0; pass < 3; pass++) for (let i = 1; i < N; i++) ys[i] = (ys[i - 1] + 2 * ys[i] + ys[i + 1]) / 4;
+  pts.forEach((p, i) => { p.y = lerp(ys[i], Math.max(ys[i], heightRaw(p.x, p.z)), .6) + EYE; });
+  curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+  L = curve.getLength();
+})();
+function uNear(x, z, u0, u1) { let best = 0, bd = 1e9; u0 = u0 || 0; u1 = u1 == null ? 1 : u1; for (let i = 0; i <= 800; i++) { const u = lerp(u0, u1, i / 800), p = curve.getPointAt(u), d = (p.x - x) ** 2 + (p.z - z) ** 2; if (d < bd) { bd = d; best = u; } } return best; }
+
+// Trail samples in buckets, for fast "how far is this point from the trail".
+const NS_ = Math.round(L / 1.3), samples = curve.getSpacedPoints(NS_), buckets = new Map(), BK = 20;
+samples.forEach((p, i) => { const k = Math.floor(p.x / BK) * 4096 + Math.floor(p.z / BK); if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(i); });
+// A chasm crosses the trail below the summit; a rope bridge spans it.
+const U_BR = uNear(48, 123.5, .3, .8), BR = curve.getPointAt(U_BR), BR_HALF = 18;
+const BT = (function () { const t = curve.getTangentAt(U_BR), n = Math.hypot(t.x, t.z); return { x: t.x / n, z: t.z / n }; })();
+const BR_DOWN = heightRaw(BR.x + BT.z * 50, BR.z - BT.x * 50) < heightRaw(BR.x - BT.z * 50, BR.z + BT.x * 50) ? 1 : -1;
+function chasm(x, z) {
+  const dx = x - BR.x, dz = z - BR.z, a = Math.abs(dx * BT.x + dz * BT.z); if (a > BR_HALF + 3) return 0;
+  const l = (dx * BT.z - dz * BT.x) * BR_DOWN;                 // + is downhill: the gully runs down the fall line
+  return 46 * (1 - sstep(5, BR_HALF + 2, a)) * (l > 0 ? 1 - sstep(50, 105, l) : 1 - sstep(40, 90, -l));
+}
+// Level ground beside the trail for the stone garden.
+function beside(u, lateral, along) { const p = curve.getPointAt(clamp(u + (along || 0) / L, 0, 1)), t = curve.getTangentAt(clamp(u, 0, 1)); return { x: p.x + t.z * lateral, z: p.z - t.x * lateral, y: p.y - EYE }; }
+const U_GARDEN = uNear(278, -138, 0, .4), U_STONES = uNear(190, -186, .7, 1);
+const GARDEN_BUILT = false;                          // the stone garden is being redesigned; until then this is a plain clearing
+const GARDEN = beside(U_GARDEN, 21, 4), PADS = GARDEN_BUILT ? [{ x: GARDEN.x, z: GARDEN.z, y: GARDEN.y - .5, a: 13, b: 25 }] : [];
+let nearD = 1e9, nearI = -1;
+function nearest(x, z) {
+  nearD = 1e9; nearI = -1; const cx = Math.floor(x / BK), cz = Math.floor(z / BK);
+  for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) {
+    const list = buckets.get((cx + a) * 4096 + (cz + b)); if (!list) continue;
+    for (let j = 0; j < list.length; j++) { const p = samples[list[j]], d = (p.x - x) * (p.x - x) + (p.z - z) * (p.z - z); if (d < nearD) { nearD = d; nearI = list[j]; } }
+  }
+  nearD = Math.sqrt(nearD); return nearI >= 0;
+}
+// The trail is a level bench cut into the hillside.
+let SUMMIT_Y = 1e9;
+function height(x, z) {
+  let raw = heightRaw(x, z); const r0 = Math.hypot(x, z);
+  if (r0 < 60) raw = lerp(Math.min(raw, SUMMIT_Y + .5 - .12 * r0), raw, sstep(40, 60, r0));
+  for (let i = 0; i < PADS.length; i++) { const p = PADS[i], d = Math.hypot(x - p.x, z - p.z); if (d < p.b) raw = lerp(p.y, raw, sstep(p.a, p.b, d)); }
+  const c = chasm(x, z);
+  if (!nearest(x, z) || nearD > 38) return raw - c;
+  return (nearD >= 9 ? raw : lerp(samples[nearI].y - EYE, raw, sstep(2.8, 9, nearD))) - c;
+}
+SUMMIT_Y = curve.getPointAt(uNear(0, 0, .4, .85)).y - EYE;
+function trailDist(x, z) { return nearest(x, z) ? nearD : 99; }
+
+/* =====================================================================
+   Stops
+   ===================================================================== */
+const U_CAIRN = uNear(318, -212, 0, .3), U_TENTS = uNear(298, -180, 0, .3), U_GATE = uNear(228, -30, 0, .6), U_SUMMIT = uNear(0, 0, .4, .85);
+// tod: light on arrival and by the last slide (0 pre-dawn, 1 first light, 2 sunrise, 3 morning, 4 full day)
+const STOPS = {
+  woods:     { u: 3 / L,                         tod: [0, .06],    walk: 30, sa: .28, name: 'Opening Readings',  place: 'the dark woods' },
+  cairn:     { u: U_CAIRN - 11 / L,              tod: [.1, .14],   sa: .3,  name: 'Rock Counting',      place: 'the cairn' },
+  tents:     { u: U_TENTS - 17 / L,              tod: [.22, .34],  sa: .4,  name: 'Morning Blessings',  place: 'the tents' },
+  garden:    { u: U_GARDEN - 15 / L,             tod: [.5, .6],    sa: .5,  name: 'Words of Torah',     place: 'the clearing', note: 'stone garden under construction' },
+  climb:     { u: uNear(262, -104, 0, .5),       tod: [.66, .72],  sa: .45, name: 'Halleluyah',         place: 'the lower climb' },
+  gate:      { u: U_GATE - 30 / L,               tod: [.8, .84],   sa: .3,  name: 'Bar’chu',            place: 'the gate' },
+  ridge:     { u: uNear(166, 46, 0, .7),         tod: [1.0, 2.25], sa: .5,  name: 'Yotzeir Or',         place: 'the sunrise ridge' },
+  overlook:  { u: uNear(112, 102, 0, .7),         tod: [3.0, 3.1],  sa: .55, name: 'Sh’ma',              place: 'the overlook' },
+  bridge:    { u: U_BR - (BR_HALF + 13) / L,     tod: [3.2, 3.25], sa: .45, name: 'Mi Chamochah',       place: 'the bridge' },
+  summit:    { u: U_SUMMIT,                      tod: [3.5, 3.6],  sa: .68, name: 'Amidah',             place: 'the summit' },
+  shoulder:  { u: uNear(95, -110, .6, 1),        tod: [3.8, 3.85], sa: .55, name: 'D’var Torah',        place: 'the way down', speed: 11 },
+  stones:    { u: U_STONES - 13 / L,             tod: [3.9, 3.95], sa: .55, name: 'Mourner’s Kaddish',  place: 'the stones of memory', speed: 11 },
+  trailhead: { u: 1 - 1 / L,                     tod: [4, 4],      sa: .6,  name: 'Closing',            place: 'the trailhead', speed: 13 }
+};
+
+/* =====================================================================
+   Renderer, scene, camera
+   ===================================================================== */
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+stage.insertBefore(renderer.domElement, stage.firstChild);
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x141c40, 0.00062);
+const VFOV = 46, ASPECT = 16 / 9;
+const camera = new THREE.PerspectiveCamera(VFOV, ASPECT, 0.9, 14000);
+camera.rotation.order = 'YXZ';
+const TAN_V = Math.tan(VFOV / 2 * DEG), TAN_H = TAN_V * ASPECT;
+const sunLight = new THREE.DirectionalLight(0xffffff, 1); scene.add(sunLight, sunLight.target);
+const hemi = new THREE.HemisphereLight(0x8899cc, 0x1a1a22, .6); scene.add(hemi);
+const flat = (color, extra) => new THREE.MeshPhongMaterial(Object.assign({ color, flatShading: true, shininess: 0, specular: 0x000000 }, extra || {}));
+
+/* ---------- terrain: a fine grid over the mountain, a coarse polar mesh for everything beyond ---------- */
+(function buildTerrain() {
+  const X0 = -150, X1 = 430, Z0 = -345, Z1 = 235, CELL = 2.4;
+  const c = new THREE.Color(), c2 = new THREE.Color();
+  const G1 = new THREE.Color(0x2c4a2e), G2 = new THREE.Color(0x61783f), MEADOW = new THREE.Color(0x7f9150),
+        R1 = new THREE.Color(0x6c655b), R2 = new THREE.Color(0x938c82), SNOW = new THREE.Color(0xeef2f7),
+        CANYON = new THREE.Color(0x4f3d33), FAR = new THREE.Color(0x66707f), PATH = new THREE.Color(0xb59a6c), SHORE = new THREE.Color(0x8c8a6a);
+  function finish(g, nearTrail) {
+    g.computeVertexNormals();
+    const pos = g.attributes.position, nor = g.attributes.normal, col = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), slope = 1 - nor.getY(i), r = Math.hypot(x, z);
+      c.copy(G1).lerp(G2, fbm(x / 60, z / 60, 3));
+      c.lerp(MEADOW, sstep(70, 30, y) * 0.8);
+      c2.copy(R1).lerp(R2, fbm(x / 25 + 9, z / 25, 3));
+      c.lerp(c2, Math.max(sstep(140, 176, y), sstep(.22, .46, slope)));
+      c.lerp(SNOW, sstep(204, 226, y) * (1 - sstep(.4, .65, slope)));
+      const far = sstep(480, 900, r);
+      if (far > 0) { c.lerp(FAR, far * .75); c.lerp(SNOW, far * sstep(200, 265, y) * .9); }
+      c.lerp(SHORE, sstep(WATER + 5, WATER, y));
+      if (nearTrail) { const d = trailDist(x, z); if (d < 4 && chasm(x, z) < 1) c.lerp(y > 200 ? SNOW : PATH, sstep(3.4, 1.6, d) * .9); const ch = chasm(x, z); if (ch > 2) c.lerp(CANYON, sstep(2, 26, ch) * .75); }
+      col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    scene.add(new THREE.Mesh(g, new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 0, specular: 0x000000 })));
+  }
+  // fine grid, with a skirt hanging from its edge to hide the seam
+  (function () {
+    const nx = Math.round((X1 - X0) / CELL), nz = Math.round((Z1 - Z0) / CELL), W = nx + 3, H = nz + 3;
+    const P = new Float32Array(W * H * 3), idx = [];
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+      const x = X0 + clamp(i - 1, 0, nx) * (X1 - X0) / nx, z = Z0 + clamp(j - 1, 0, nz) * (Z1 - Z0) / nz, o = (j * W + i) * 3;
+      P[o] = x; P[o + 2] = z; P[o + 1] = height(x, z) - ((i === 0 || j === 0 || i === W - 1 || j === H - 1) ? 18 : 0);
+    }
+    for (let j = 0; j < H - 1; j++) for (let i = 0; i < W - 1; i++) { const a = j * W + i, b = a + 1, d = a + W, e = d + 1; idx.push(a, d, b, b, d, e); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setIndex(idx); finish(g, true);
+  })();
+  // coarse polar mesh beyond it
+  (function () {
+    const CX = 140, CZ = -55, NA = 220, K = 1 + 2 * Math.PI / NA, radii = [];
+    for (let r = 150; r < 2500; r *= K) radii.push(r);
+    const NR = radii.length, P = new Float32Array(NR * NA * 3), inside = new Uint8Array(NR * NA), idx = [];
+    for (let i = 0; i < NR; i++) for (let j = 0; j < NA; j++) {
+      const t = (j + (i % 2) * .5) / NA * Math.PI * 2, x = CX + Math.cos(t) * radii[i], z = CZ + Math.sin(t) * radii[i], o = (i * NA + j) * 3;
+      const ins = x > X0 + 8 && x < X1 - 8 && z > Z0 + 8 && z < Z1 - 8; inside[i * NA + j] = ins ? 1 : 0;
+      P[o] = x; P[o + 1] = heightRaw(x, z) - (ins ? 9 : 0); P[o + 2] = z;
+    }
+    const tri = (a, b, d) => { if (!(inside[a] && inside[b] && inside[d])) idx.push(a, b, d); };
+    for (let i = 0; i < NR - 1; i++) for (let j = 0; j < NA; j++) {
+      const a = i * NA + j, b = i * NA + (j + 1) % NA, d = (i + 1) * NA + j, e = (i + 1) * NA + (j + 1) % NA;
+      if (i % 2) { tri(a, b, e); tri(a, e, d); } else { tri(a, b, d); tri(b, e, d); }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setIndex(idx); finish(g, false);
+  })();
+  const wg = new THREE.PlaneGeometry(9000, 9000); wg.rotateX(-Math.PI / 2);
+  const water = new THREE.Mesh(wg, new THREE.MeshPhongMaterial({ color: 0x2f5f86, shininess: 90, specular: 0x9fb4c8 }));
+  water.position.y = WATER; scene.add(water);
+})();
+
+/* ---------- things along the trail ---------- */
+const glows = [];                                   // lanterns and tents: bright before dawn, off by day
+function sideOf(u, lateral, along) {                // a point beside the trail
+  const p = curve.getPointAt(clamp(u + (along || 0) / L, 0, 1)), t = curve.getTangentAt(clamp(u, 0, 1));
+  const x = p.x + t.z * lateral, z = p.z - t.x * lateral; return new THREE.Vector3(x, height(x, z), z);
+}
+function cairn(at, s) {
+  const rnd = rng(Math.round(at.x * 7 + at.z)), g = new THREE.Group(); let y = 0;
+  [1.25, 1.0, .82, .62, .45, .3].forEach((r, i) => {
+    const m = new THREE.Mesh(new THREE.DodecahedronGeometry(r * s, 0), flat(new THREE.Color().setHSL(.08, .07, .42 + rnd() * .14)));
+    m.scale.y = .55; y += r * s * (i ? .5 : .35); m.position.set((rnd() - .5) * .25 * s, y, (rnd() - .5) * .25 * s); y += r * s * .42;
+    m.rotation.y = rnd() * 6; g.add(m);
+  });
+  g.position.copy(at); scene.add(g); return g;
+}
+const CAIRN_AT = sideOf(U_CAIRN, -4.6), TENTS_AT = sideOf(U_TENTS, 13);
+cairn(CAIRN_AT, 1.15);
+cairn(sideOf(U_SUMMIT, 6.5, 5), .8);
+(function buildTents() {
+  [[11, -3, .3], [17, 5, -.5], [14, 12, 1.1]].forEach((t, i) => {
+    const at = sideOf(U_TENTS, t[0], t[1]), mat = flat(0xcdbb96, { emissive: 0xff9a45, emissiveIntensity: .8 });
+    const m = new THREE.Mesh(new THREE.ConeGeometry(3.3, 3.7, 4), mat);
+    m.position.set(at.x, at.y + 1.75, at.z); m.rotation.y = Math.PI / 4 + t[2]; m.scale.z = 1.35; scene.add(m);
+    const pl = new THREE.PointLight(0xffa050, 1, 30, 2); pl.position.set(at.x, at.y + 2.4, at.z); scene.add(pl);
+    glows.push({ mat, light: pl, k: i === 0 ? 1 : .8 });
+  });
+})();
+(function buildGate() {
+  const p = curve.getPointAt(U_GATE), t = curve.getTangentAt(U_GATE);
+  const grp = new THREE.Group(); grp.position.set(p.x, height(p.x, p.z), p.z); grp.rotation.y = Math.atan2(t.x, t.z);
+  const wood = flat(0x5a3f2a), stone = flat(0x7c776f);
+  const box = (w, h, d, x, y, z, mat) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); b.position.set(x, y, z); grp.add(b); return b; };
+  box(.6, 6.4, .6, -2.9, 2.7, 0, wood); box(.6, 6.4, .6, 2.9, 2.7, 0, wood); box(6.4, .6, .6, 0, 5.6, 0, wood);
+  box(.09, .7, .09, -1.1, 4.95, 0, wood); box(.09, .7, .09, 1.1, 4.95, 0, wood); box(3.0, .8, .14, 0, 4.25, 0, wood);
+  [-2.9, 2.9].forEach(x => {
+    const mat = new THREE.MeshBasicMaterial({ color: 0xffc070, fog: false }); box(.42, .6, .42, x * 1.18, 3.5, 0, mat);
+    const pl = new THREE.PointLight(0xffb060, 1.3, 46, 2); pl.position.set(x * 1.18, 3.4, -1.0); grp.add(pl);
+    glows.push({ basic: mat, light: pl, k: 1.3 });
+  });
+  const rnd = rng(21), Y = new THREE.Vector3(0, 1, 0);
+  [-1, 1].forEach(side => { for (let i = 0; i < 9; i++) {
+    const s = 1 + rnd() * .9, b = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), stone), lx = side * (4.2 + i * 1.9), lz = (rnd() - .5) * .8;
+    const wp = new THREE.Vector3(lx, 0, lz).applyAxisAngle(Y, grp.rotation.y);
+    b.position.set(lx, height(p.x + wp.x, p.z + wp.z) - grp.position.y + s * .35, lz); b.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3); b.scale.y = .7; grp.add(b);
+  } });
+  scene.add(grp);
+})();
+if (GARDEN_BUILT) (function buildGarden() {                           // a ring of ten standing stones around a taller one, in a flowering clearing
+  const gy = height(GARDEN.x, GARDEN.z), rnd = rng(77), gold = new THREE.MeshPhongMaterial({ color: 0xd9a93a, emissive: 0xffb040, emissiveIntensity: .8, flatShading: true, shininess: 30 });
+  glows.push({ mat: gold, light: (function () { const pl = new THREE.PointLight(0xffb060, 1, 70, 1.6); pl.position.set(GARDEN.x, gy + 9, GARDEN.z); scene.add(pl); return pl; })(), k: 2.6 });
+  function stone(x, z, h, r, seed) {
+    const g = new THREE.CylinderGeometry(r * .42, r, h, 6, 4), pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const X = pos.getX(i), Y = pos.getY(i), Z = pos.getZ(i), k = Math.round(X * 20) * 7.31 + Math.round(Y * 20) * 3.17 + seed, m = Math.round(Z * 20) * 5.71 + seed;
+      pos.setXYZ(i, X + (hash(k, m) - .5) * r * .42, Y + (hash(m, k) - .5) * h * .07, Z + (hash(k + 9, m + 4) - .5) * r * .42);
+    }
+    g.computeVertexNormals();
+    const grp = new THREE.Group(), body = new THREE.Mesh(g, flat(new THREE.Color().setHSL(.09 + rnd() * .03, .16, .58 + rnd() * .12)));
+    body.position.y = h / 2 - .35; grp.add(body);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(r * .66, r * .7, .13, 6), gold); band.position.y = h * .62; grp.add(band);
+    grp.position.set(x, height(x, z), z); grp.rotation.set((rnd() - .5) * .16, rnd() * 6.28, (rnd() - .5) * .16); scene.add(grp);
+  }
+  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + .3; stone(GARDEN.x + Math.cos(a) * 8.6, GARDEN.z + Math.sin(a) * 8.6, 4.4 + rnd() * 2.4, .95 + rnd() * .3, i * 13.7); }
+  stone(GARDEN.x, GARDEN.z, 9.6, 1.5, 99);
+  (function () { const c = curve.getPointAt(U_GARDEN - 15 / L), pl = new THREE.PointLight(0xffc890, 1, 60, 1.5); pl.position.set(lerp(c.x, GARDEN.x, .45), gy + 7, lerp(c.z, GARDEN.z, .45)); scene.add(pl); glows.push({ light: pl, k: 2.2 }); })();   // so the near faces are lit before dawn
+  const fl = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.17, 0), new THREE.MeshBasicMaterial({ color: 0xffffff }), 260), M = new THREE.Matrix4(), C = new THREE.Color();
+  const cols = [0xffffff, 0xffd86b, 0x9fd8ee, 0xf2a7c0];
+  for (let i = 0; i < 260; i++) { const a = rnd() * 6.28, r = 1.8 + Math.sqrt(rnd()) * 12.5, x = GARDEN.x + Math.cos(a) * r, z = GARDEN.z + Math.sin(a) * r; M.makeTranslation(x, height(x, z) + .16, z); fl.setMatrixAt(i, M); fl.setColorAt(i, C.setHex(cols[i % 4]).multiplyScalar(.55 + rnd() * .3)); }
+  fl.instanceColor.needsUpdate = true; scene.add(fl);
+})();
+const STONES_AT = sideOf(U_STONES, -7, 4);           // small cairns on the way down: stones left by those who came before us
+[[-7, 4, 1.0], [-10, 9, .7], [-5.5, 11, .55], [-11, 0, .6], [-8, 16, .8], [6, 9, .5], [-13, 12, .45], [7, 15, .65]].forEach(c => cairn(sideOf(U_STONES, c[0], c[1]), c[2]));
+
+/* ---------- the bridge: planks, ropes, ribbons in the wind, and spray rising on both sides ---------- */
+const wind = { ribbons: [], mist: [] };
+(function buildBridge() {
+  const wood = flat(0x6b4a30), rope = flat(0x3a2e24), A0 = -BR_HALF - 3, A1 = BR_HALF + 3, N = Math.round((A1 - A0) / 1.05);
+  const at = a => { const u = U_BR + a / L; return { p: curve.getPointAt(u), t: curve.getTangentAt(u) }; };
+  const side = (a, lat, up) => { const q = at(a), n = Math.hypot(q.t.x, q.t.z); return new THREE.Vector3(q.p.x + q.t.z / n * lat, q.p.y - EYE + up, q.p.z - q.t.x / n * lat); };
+  const plank = new THREE.InstancedMesh(new THREE.BoxGeometry(3.3, .14, .82), wood, N + 1), M = new THREE.Matrix4(), Q = new THREE.Quaternion(), S = new THREE.Vector3(1, 1, 1), P = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
+  for (let i = 0; i <= N; i++) { const q = at(A0 + i * 1.05); P.set(q.p.x, q.p.y - EYE - .07, q.p.z); Q.setFromAxisAngle(Y, Math.atan2(q.t.x, q.t.z)); M.compose(P, Q, S); plank.setMatrixAt(i, M); }
+  scene.add(plank);
+  const cols = [0xffffff, 0x74D2E7, 0x2f7fb5, 0xcfeaf5];
+  [-1, 1].forEach(sd => {
+    const hand = [], main = [];
+    for (let a = A0; a <= A1 + .01; a += 2) { const k = Math.abs(a) / A1; hand.push(side(a, sd * 1.75, 1.25)); main.push(side(a, sd * 1.85, 1.25 + 4.4 * k * k)); }
+    const low = []; for (let a = A0; a <= A1 + .01; a += 2) low.push(side(a, sd * 1.7, .06));
+    [hand, main, low].forEach(pts => scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 3, .07, 5), rope)));
+    main.forEach((top, i) => { const bot = side(A0 + i * 2, sd * 1.7, 0), h = top.y - bot.y, m = new THREE.Mesh(new THREE.BoxGeometry(.06, h, .06), rope); m.position.set((top.x + bot.x) / 2, bot.y + h / 2, (top.z + bot.z) / 2); scene.add(m); });
+    [A0, A1].forEach(a => { const b = side(a, sd * 1.9, 0), m = new THREE.Mesh(new THREE.BoxGeometry(.55, 6.4, .55), wood); m.position.set(b.x, b.y + 2.9, b.z); scene.add(m); });
+    main.forEach((top, i) => {                                    // ribbons tied along the high ropes
+      if (i % 2 === 0 || i < 2 || i > main.length - 3) return;
+      const len = 2.2 + (i * 37 % 10) / 9, g = new THREE.PlaneGeometry(len, .2, 10, 1);
+      const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: cols[(i + (sd > 0 ? 1 : 0)) % 4], side: THREE.DoubleSide }));
+      m.frustumCulled = false; scene.add(m); wind.ribbons.push({ g, at: top.clone(), len, ph: i * 1.7 + sd });
+    });
+  });
+  const lx = BT.z, lz = -BT.x, deckY = BR.y - EYE;                // the chasm runs this way; so does the wind
+  wind.dir = new THREE.Vector3(lx, 0, lz);
+  const river = new THREE.Mesh(new THREE.PlaneGeometry(11, 150), new THREE.MeshPhongMaterial({ color: 0x2c5f7c, shininess: 110, specular: 0xdcecf8 }));
+  river.rotation.order = 'YXZ'; river.rotation.set(-Math.PI / 2, Math.atan2(lx, lz), 0); river.position.set(BR.x + lx * BR_DOWN * 30, deckY - 42.5, BR.z + lz * BR_DOWN * 30); scene.add(river);
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), gr = x.createRadialGradient(32, 32, 1, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(.45, 'rgba(255,255,255,.4)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+  const tex = new THREE.CanvasTexture(cv), rnd = rng(41);
+  [-1, 1].forEach(sd => { for (let i = 0; i < 70; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xd6ecf8, transparent: true, depthWrite: false, opacity: 0 }));
+    const size = 13 + rnd() * 15; s.scale.set(size, size * 1.3, 1); scene.add(s);
+    wind.mist.push({ s, sd, a: (rnd() * 2 - 1) * (BR_HALF - 1), lat: 6.5 + rnd() * 20, ph: rnd(), sp: .035 + rnd() * .04, deckY });
+  } });
+})();
+function animateWind(t) {
+  if (camera.position.distanceToSquared(BR) > 260 * 260) return;
+  const d = wind.dir;
+  wind.ribbons.forEach(r => {
+    const pos = r.g.attributes.position;
+    for (let i = 0; i <= 10; i++) { const s = i / 10, w = Math.sin(t * 5.2 - s * 6 + r.ph) * .5 * s + Math.sin(t * 2.1 + r.ph) * .25 * s, sw = Math.sin(t * 3.3 - s * 4 + r.ph * 2) * .45 * s;
+      const x = r.at.x + d.x * s * r.len + BT.x * sw, y = r.at.y - .5 * s * s * r.len * .35 + w, z = r.at.z + d.z * s * r.len + BT.z * sw;
+      pos.setXYZ(i, x, y + .1, z); pos.setXYZ(i + 11, x, y - .1, z); }
+    pos.needsUpdate = true;
+  });
+  wind.mist.forEach(m => {
+    const k = (t * m.sp + m.ph) % 1, lat = m.sd * (m.lat + 11 * k * k) + Math.sin(t * .7 + m.ph * 9) * 1.2;
+    m.s.position.set(BR.x + BT.x * m.a + d.x * lat, m.deckY - 34 + k * 52, BR.z + BT.z * m.a + d.z * lat);
+    m.s.material.opacity = Math.sin(Math.PI * k) * .7;
+  });
+}
+
+/* ---------- trees and rocks ---------- */
+(function buildForest() {
+  const clear = [[TENTS_AT.x, TENTS_AT.z, 22], [CAIRN_AT.x, CAIRN_AT.z, 7], [GARDEN.x, GARDEN.z, GARDEN_BUILT ? 27 : 12], [STONES_AT.x, STONES_AT.z, 26], [166, 46, 34], [112, 102, 36], [74, 120, 30], [95, -110, 44], [262, -104, 12]];
+  const rnd = rng(7), MAX = 9500, cone = new THREE.ConeGeometry(1, 1, 6); cone.translate(0, .5, 0);
+  const mesh = new THREE.InstancedMesh(cone, flat(0xffffff), MAX);
+  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), S = new THREE.Vector3(), P = new THREE.Vector3(), C = new THREE.Color(), Y = new THREE.Vector3(0, 1, 0);
+  let n = 0;
+  for (let k = 0; k < 110000 && n < MAX; k++) {
+    const a = rnd() * Math.PI * 2, r = 40 + Math.sqrt(rnd()) * 520, x = Math.cos(a) * r, z = Math.sin(a) * r, h = heightRaw(x, z);
+    if (h < WATER + 3 || h > 160) continue;
+    const woods = 1 - sstep(60, 130, Math.hypot(x - 345, z + 262));           // thick around the trailhead
+    const p = Math.max(woods * .95, (1 - sstep(118, 160, h)) * (fbm(x / 38 + 2, z / 38, 2) > 0.44 ? 1 : 0.12));
+    if (rnd() > p) continue;
+    if (trailDist(x, z) < 7.5) continue;
+    if (clear.some(t => Math.hypot(x - t[0], z - t[1]) < t[2])) continue;
+    const s = 6 + rnd() * 7;
+    P.set(x, height(x, z) - .4, z); Q.setFromAxisAngle(Y, rnd() * 6.28); S.set(s * .3, s, s * .3); M.compose(P, Q, S); mesh.setMatrixAt(n, M);
+    C.setHSL(.33 + rnd() * .06, .32 + rnd() * .15, .16 + rnd() * .09); mesh.setColorAt(n, C); n++;
+  }
+  mesh.count = n; mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true; scene.add(mesh);
+
+  const rock = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), flat(0xffffff), 900);
+  let m = 0; const E = new THREE.Euler();
+  for (let k = 0; k < 14000 && m < 900; k++) {
+    const x = -140 + rnd() * 440, z = -220 + rnd() * 420, h = height(x, z), d = trailDist(x, z);
+    if (h < 90 || h > 232 || d < 3.4 || chasm(x, z) > .5 || (GARDEN_BUILT && Math.hypot(x - GARDEN.x, z - GARDEN.z) < 16) || rnd() > (.08 + sstep(130, 175, h) * .5)) continue;
+    const s = .5 + rnd() * rnd() * 3.2;
+    P.set(x, h - s * .25, z); E.set(rnd() * 3, rnd() * 3, rnd() * 3); Q.setFromEuler(E); S.set(s, s * (.6 + rnd() * .4), s); M.compose(P, Q, S); rock.setMatrixAt(m, M);
+    C.setHSL(.08, .06, .34 + rnd() * .16); rock.setColorAt(m, C); m++;
+  }
+  rock.count = m; rock.instanceMatrix.needsUpdate = true; if (rock.instanceColor) rock.instanceColor.needsUpdate = true; scene.add(rock);
+})();
+
+/* ---------- sky, sun, stars, clouds ---------- */
+const skyU = { uZenith: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uGlow: { value: new THREE.Color() },
+               uSunDir: { value: new THREE.Vector3(1, 0, 0) }, uGlowAmt: { value: 0 }, uSunAmt: { value: 0 } };
+const sky = new THREE.Mesh(new THREE.SphereGeometry(9000, 48, 24), new THREE.ShaderMaterial({
+  uniforms: skyU, side: THREE.BackSide, depthWrite: false, fog: false,
+  vertexShader: 'varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: [
+    'varying vec3 vDir; uniform vec3 uZenith, uHorizon, uGlow, uSunDir; uniform float uGlowAmt, uSunAmt;',
+    'void main(){ vec3 d = normalize(vDir); float h = max(d.y, 0.0);',
+    '  vec3 col = mix(uHorizon, uZenith, pow(h, 0.42));',
+    '  vec3 sf = normalize(vec3(uSunDir.x, 0.0, uSunDir.z));',
+    '  float az = max(dot(normalize(vec3(d.x, 0.0, d.z) + vec3(0.0001)), sf), 0.0);',
+    '  col = mix(col, uGlow, uGlowAmt * exp(-h * 5.5) * pow(az, 2.2));',
+    '  float sd = max(dot(d, normalize(uSunDir)), 0.0);',
+    '  col += uGlow * pow(sd, 40.0) * 0.45 * uGlowAmt;',
+    '  col = mix(col, vec3(1.0, 0.96, 0.84), smoothstep(0.99905, 0.99935, sd) * uSunAmt);',
+    '  gl_FragColor = vec4(col, 1.0); }'].join('\n')
+}));
+sky.renderOrder = -10; sky.frustumCulled = false; scene.add(sky);
+const stars = (function () {
+  const rnd = rng(3), n = 1100, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const y = rnd() * .96 + .03, t = rnd() * 6.283, r = Math.sqrt(1 - y * y); a[i * 3] = Math.cos(t) * r * 8000; a[i * 3 + 1] = y * 8000; a[i * 3 + 2] = Math.sin(t) * r * 8000; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(a, 3));
+  const p = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 2.2, sizeAttenuation: false, transparent: true, depthWrite: false, fog: false }));
+  p.frustumCulled = false; p.renderOrder = -9; scene.add(p); return p;
+})();
+const clouds = (function () {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 64; const x = cv.getContext('2d');
+  const g = x.createRadialGradient(128, 32, 2, 128, 32, 128); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.5, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.save(); x.translate(128, 32); x.scale(1, .25); x.translate(-128, -32); x.fillStyle = g; x.fillRect(0, -200, 256, 464); x.restore();
+  const tex = new THREE.CanvasTexture(cv), rnd = rng(11), list = [];
+  for (let i = 0; i < 18; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, fog: false, opacity: .5 }));
+    s.scale.set(1400 + rnd() * 2200, 130 + rnd() * 170, 1); s.renderOrder = -8;
+    list.push({ s, az: (rnd() - .5) * 6.2, el: (2.5 + rnd() * 9) * DEG, k: .6 + rnd() * .5 }); scene.add(s);
+  }
+  for (let i = 0; i < 26; i++) {                      // a middle layer all the way round
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, fog: false, opacity: .5 }));
+    s.scale.set(900 + rnd() * 1700, 190 + rnd() * 260, 1); s.renderOrder = -8;
+    list.push({ s, az: rnd() * 6.283, el: (11 + rnd() * 22) * DEG, k: .4 + rnd() * .45 }); scene.add(s);
+  }
+  for (let i = 0; i < 20; i++) {                      // high clouds, for when we look up
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, fog: false, opacity: .5 }));
+    s.scale.set(1500 + rnd() * 1500, 420 + rnd() * 380, 1); s.renderOrder = -8;
+    list.push({ s, az: rnd() * 6.283, el: (34 + rnd() * 40) * DEG, k: .4 + rnd() * .35 }); scene.add(s);
+  }
+  return list;
+})();
+
+/* ---------- time of day ---------- */
+const TOD = [
+  { zen: 0x070b24, hor: 0x1b2550, glow: 0x8a4a5e, ga: .55, sa: 0, el: -9,  sun: 0x7f95d8, si: .22, hs: 0x2e3f80, hg: 0x0a0d18, hi: .62, fog: 0x161f46, st: 1,   la: 1,   cl: 0x39355f, co: .32 },
+  { zen: 0x15285e, hor: 0x67648f, glow: 0xff9a5a, ga: .95, sa: 1, el: 0.5, sun: 0xffa070, si: .34, hs: 0x5a6aa8, hg: 0x1a1a26, hi: .72, fog: 0x4c4b76, st: .22, la: .7,  cl: 0xe27c6b, co: .62 },
+  { zen: 0x234e9a, hor: 0xeeb27c, glow: 0xffd58a, ga: 1,   sa: 1, el: 8,   sun: 0xffc890, si: .92, hs: 0x8fb0e0, hg: 0x3a3028, hi: .6,  fog: 0xb99c8c, st: 0,   la: .15, cl: 0xffc2a2, co: .72 },
+  { zen: 0x1c58b0, hor: 0xb4d3ea, glow: 0xfff0d0, ga: .45, sa: 1, el: 21,  sun: 0xfff2dc, si: 1.0, hs: 0xa8c8f0, hg: 0x4a4436, hi: .55, fog: 0xa5c3de, st: 0,   la: 0,   cl: 0xffffff, co: .7 },
+  { zen: 0x1a60c2, hor: 0xc2dcf0, glow: 0xffffff, ga: .3,  sa: 1, el: 38,  sun: 0xfffaf0, si: 1.05, hs: 0xb4d0f4, hg: 0x545040, hi: .58, fog: 0xb2cde6, st: 0,   la: 0,   cl: 0xffffff, co: .75 }
+];
+const SUN_AZ = 12 * DEG, cA = new THREE.Color(), cB = new THREE.Color(), sunDir = new THREE.Vector3();
+const mixc = (a, b, t, out) => out.copy(cA.setHex(a)).lerp(cB.setHex(b), t);
+function applyTOD(t) {
+  t = clamp(t, 0, TOD.length - 1); const i = Math.min(Math.floor(t), TOD.length - 2), f = t - i, a = TOD[i], b = TOD[i + 1];
+  mixc(a.zen, b.zen, f, skyU.uZenith.value); mixc(a.hor, b.hor, f, skyU.uHorizon.value); mixc(a.glow, b.glow, f, skyU.uGlow.value);
+  skyU.uGlowAmt.value = lerp(a.ga, b.ga, f); skyU.uSunAmt.value = lerp(a.sa, b.sa, f);
+  const el = lerp(a.el, b.el, f) * DEG; sunDir.set(Math.cos(el) * Math.cos(SUN_AZ), Math.sin(el), Math.cos(el) * Math.sin(SUN_AZ));
+  skyU.uSunDir.value.copy(sunDir);
+  mixc(a.sun, b.sun, f, sunLight.color); sunLight.intensity = lerp(a.si, b.si, f);
+  mixc(a.hs, b.hs, f, hemi.color); mixc(a.hg, b.hg, f, hemi.groundColor); hemi.intensity = lerp(a.hi, b.hi, f);
+  mixc(a.fog, b.fog, f, scene.fog.color);
+  stars.material.opacity = lerp(a.st, b.st, f);
+  const la = lerp(a.la, b.la, f);
+  glows.forEach(g => { g.light.intensity = g.k * la; if (g.basic) g.basic.color.setHex(0xffc070).multiplyScalar(.35 + .65 * la); if (g.mat) g.mat.emissiveIntensity = .85 * la; });
+  clouds.forEach(c => { mixc(a.cl, b.cl, f, c.s.material.color); c.s.material.opacity = lerp(a.co, b.co, f) * c.k; });
+}
+
+/* =====================================================================
+   Camera poses
+   ===================================================================== */
+// Aim so that a subject direction lands at screen position (nx, ny), each -1..1, right and up positive.
+function aimAt(dir, nx, ny) {
+  const yaw = Math.atan2(-dir.x, -dir.z), pitch = Math.atan2(dir.y, Math.hypot(dir.x, dir.z));
+  return { yaw: yaw + Math.atan(nx * TAN_H), pitch: pitch - Math.atan(ny * TAN_V) };
+}
+function pathAim(u, lift) {
+  const a = curve.getPointAt(clamp(u, 0, 1)), b = curve.getPointAt(clamp(u + 14 / L, 0, 1)), d = b.clone().sub(a);
+  if (d.lengthSq() < 1) { const t = curve.getTangentAt(clamp(u, 0, 1)); d.copy(t); }
+  return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.atan2(d.y, Math.hypot(d.x, d.z)) * .55 + (lift || 0) * DEG };
+}
+(function composeStops() {
+  const V = (x, y, z) => new THREE.Vector3(x, y, z), at = u => curve.getPointAt(clamp(u, 0, 1));
+  const to = (p, t) => V(t.x - p.x, t.y - p.y, t.z - p.z), sunFlat = V(Math.cos(SUN_AZ), 0, Math.sin(SUN_AZ));
+  const A = {};
+  A.cairn = aimAt(to(at(STOPS.cairn.u), CAIRN_AT.clone().add(V(0, 1.4, 0))), 0.34, -0.5);          // cairn low, right of centre
+  A.tents = aimAt(to(at(STOPS.tents.u), TENTS_AT.clone().add(V(0, 1.5, 0))), 0.3, -0.56);          // tents low in the frame
+  A.garden = GARDEN_BUILT ? aimAt(to(at(STOPS.garden.u), V(GARDEN.x, GARDEN.y + 2.6, GARDEN.z)), 0.1, -0.5) : pathAim(STOPS.garden.u, 6);
+  A.climb = pathAim(STOPS.climb.u, 9);                                                             // up the trail toward the gate
+  const g = at(U_GATE); A.gate = aimAt(to(at(STOPS.gate.u), V(g.x, g.y + .8, g.z)), 0.62, 0.34);   // gate up and right, clear of the text
+  A.ridge = aimAt(sunFlat, 0.42, -0.5);                                                            // sunrise low on the right
+  A.overlook = aimAt(V(0.12, 0, 1).normalize(), 0, -0.34);                                         // south over the valley
+  A.bridge = aimAt(to(at(STOPS.bridge.u), V(BR.x, BR.y - 2, BR.z)), 0, -0.18);                      // along the bridge
+  A.summit = aimAt(V(-1, 0, -0.25).normalize(), 0, -0.42);                                          // big sky, ranges below
+  A.shoulder = aimAt(V(1, 0, -0.35).normalize(), 0.1, 0.2);                                       // back over the valley we left
+  A.stones = aimAt(to(at(STOPS.stones.u), STONES_AT.clone().add(V(0, 1.2, 0))), 0.25, -0.5);       // the small cairns, valley beyond
+  A.trailhead = aimAt(to(at(STOPS.trailhead.u), V(0, curve.getPointAt(U_SUMMIT).y, 0)), 0.5, 0.2); // the mountain, in daylight
+  for (const k in STOPS) STOPS[k].aim = A[k];
+  // At the summit each part of the Amidah looks a different way.
+  const S = at(U_SUMMIT), west = V(-1, 0, -0.25).normalize();
+  STOPS.summit.views = {
+    avot:     { aim: aimAt(to(S, at(0)), 0, -0.42) },                                              // back the way we came: the woods where we began
+    gvurot:   { du: -17, aim: aimAt(to(at(U_SUMMIT - 17 / L), V(BR.x, BR.y - 6, BR.z)), 0, -0.3) },                            // down the hard last climb, to the bridge
+    kedushah: { aim: { yaw: Math.atan2(-west.x, -west.z), pitch: 50 * DEG } },                     // up
+    silent:   { aim: A.summit },                                                                   // the far ranges
+    oseh:     { du: 12, aim: pathAim(U_SUMMIT + 12 / L, -5) }                                      // the first steps down
+  };
+})();
+const cur = { pos: new THREE.Vector3(), yaw: 0, pitch: 0, zoom: 1 };
+function setPose(pos, yaw, pitch, zoom) {
+  cur.pos.copy(pos); cur.yaw = yaw; cur.pitch = pitch; camera.position.copy(pos); camera.rotation.set(pitch, yaw, 0);
+  zoom = zoom || 1; if (zoom !== cur.zoom) { cur.zoom = zoom; camera.fov = 2 * Math.atan(TAN_V / zoom) / DEG; camera.updateProjectionMatrix(); }
+}
+const toPose = q => setPose(q.pos, q.aim.yaw, q.aim.pitch, q.zoom), tmpP = new THREE.Vector3();
+function poseTravel(A, B, p) {
+  const e = ease(p), u = lerp(A.u, B.u, e), pa = pathAim(u), w0 = 1 - sstep(0, .2, p), w1 = sstep(.68, 1, p);
+  let yaw = lerpAngle(pa.yaw, A.aim.yaw, w0), pitch = lerp(pa.pitch, A.aim.pitch, w0);
+  yaw = lerpAngle(yaw, B.aim.yaw, w1); pitch = lerp(pitch, B.aim.pitch, w1);
+  tmpP.copy(curve.getPointAt(clamp(u, 0, 1))).addScaledVector(A.d, w0).addScaledVector(B.d, w1);   // step off the trail to where each view stands
+  setPose(tmpP, yaw, pitch, lerp(lerp(1, A.zoom, w0), B.zoom, w1)); return e;
+}
+
+/* =====================================================================
+   Slides: deck slides from slides.js, weekly slides from weekly.js
+   ===================================================================== */
+const WEEKLY = Object.assign({ title: 'Tefillah on the Mountain', line1: '', line2: '', conversation: [], dvarTorah: '', song: '', closing: 'Have a great day!' }, window.WEEKLY || {});
+const esc = s => String(s).replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
+const slidesEl = document.getElementById('slides'); slidesEl.innerHTML = window.SLIDES_HTML;
+function weeklySlide(id, en, he, body) {
+  const d = document.createElement('div'); d.className = 'slide'; d.id = id;
+  d.innerHTML = '<div class="box h-en">' + en + '</div><div class="box h-he he">' + he + '</div>' + body; slidesEl.appendChild(d); return id;
+}
+const big = (txt, pt, top, extra) => '<div class="box" style="left:calc(var(--in)*.45);top:calc(var(--in)*' + top + ');font-size:calc(var(--pt)*' + pt + ');line-height:1.25;' + (extra || '') + '">' + txt + '</div>';
+const WEEKLY_SLIDES = {
+  '@conversation': () => weeklySlide('s-conversation', 'Conversation', 'שִׂיחָה', big(WEEKLY.conversation.map(esc).join('<br>'), 48, 1.21, 'font-style:italic')),
+  '@dvar': () => weeklySlide('s-dvar', 'D’var Torah', 'דְּבַר תּוֹרָה', WEEKLY.dvarTorah ? big(esc(WEEKLY.dvarTorah), 88, 1.4, 'font-weight:700') : ''),
+  '@announcements': () => weeklySlide('s-announcements', 'Announcements', 'הוֹדָעוֹת', ''),
+  '@song': () => weeklySlide('s-song', 'Closing Song', 'שִׁיר סִיּוּם', WEEKLY.song ? big(esc(WEEKLY.song), 72, 1.4, 'font-weight:700') : ''),
+  '@closing': () => weeklySlide('s-closing', '', '', big(esc(WEEKLY.closing), 72, 1.3, 'font-weight:700'))
+};
+document.querySelector('#title .t1').textContent = WEEKLY.title;
+document.querySelector('#title .t2').innerHTML = [WEEKLY.line1, WEEKLY.line2].filter(Boolean).map(esc).join(' · ');
+
+/* =====================================================================
+   Mini-map: a side profile of the whole route
+   ===================================================================== */
+const MAPXY = { woods: [26, 170], cairn: [48, 166], tents: [74, 159], garden: [100, 148], climb: [126, 135], gate: [154, 117], ridge: [182, 93], overlook: [208, 71], bridge: [234, 48], summit: [258, 27], shoulder: [292, 78], stones: [322, 122], trailhead: [356, 168] };
+const mapEl = document.getElementById('map'), mapCap = document.getElementById('mapcap'), svg = document.getElementById('mapsvg');
+const SVGNS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
+let ROUTE = [], SUMMIT_X = 258, doneLine, dots, lblFrom, lblTo, halo, marker;
+function buildMap() {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  el('polygon', { points: '0,190 0,178 26,174 60,168 92,160 128,140 158,121 186,97 212,75 236,54 258,22 268,26 284,52 304,86 326,124 350,166 400,180 400,190', fill: 'rgba(255,255,255,.13)', stroke: 'rgba(255,255,255,.4)', 'stroke-width': 1.2 });
+  el('polyline', { points: ROUTE.map(s => s.x + ',' + s.y).join(' '), fill: 'none', stroke: 'rgba(255,255,255,.5)', 'stroke-width': 2, 'stroke-dasharray': '4 4' });
+  doneLine = el('polyline', { points: '', fill: 'none', stroke: '#74D2E7', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  dots = ROUTE.map(s => el('circle', { cx: s.x, cy: s.y, r: 3.6, fill: '#05305E', stroke: '#fff', 'stroke-width': 1.6 }));
+  lblFrom = el('text', { 'font-size': 15, fill: 'rgba(255,255,255,.75)' }); lblTo = el('text', { 'font-size': 17, 'font-weight': 700, fill: '#fff' });
+  halo = el('circle', { r: 9, fill: 'rgba(255,200,67,.3)' }); marker = el('circle', { r: 5, fill: '#FFC843', stroke: '#fff', 'stroke-width': 1.5 });
+  ROUTE.forEach((s, i) => {                                // click a stop on the map to jump there
+    const h = el('circle', { cx: s.x, cy: s.y, r: 10, fill: 'transparent', class: 'hit' }), t = document.createElementNS(SVGNS, 'title');
+    t.textContent = s.place.charAt(0).toUpperCase() + s.place.slice(1) + ': ' + s.name; h.appendChild(t);
+    h.addEventListener('click', e => { e.stopPropagation(); jumpTo(i); });
+  });
+}
+function jumpTo(i) { const n = i === 0 ? 0 : STEPS.findIndex(s => s.k === 'travel' && s.mi === i); if (n >= 0) enter(n, -1); }
+mapEl.addEventListener('click', e => e.stopPropagation());
+let mapForce = false, mapOff = false;
+const mapAuto = s => s.k === 'hold' || s.k === 'travel';
+function showMap() { const on = !mapOff && (mapForce || mapAuto(STEPS[idx])); mapEl.classList.toggle('on', on); document.getElementById('tbMap').classList.toggle('act', on); }
+function toggleMap() { if (mapEl.classList.contains('on')) { mapForce = false; mapOff = true; } else { mapForce = true; mapOff = false; } showMap(); }
+document.getElementById('mapX').addEventListener('click', e => { e.stopPropagation(); toggleMap(); });
+function label(t, i, txt, isFrom) {
+  const s = ROUTE[i], right = s.x > SUMMIT_X, low = !right && s.x < 130; t.textContent = txt;
+  t.setAttribute('text-anchor', right || low ? 'start' : 'end'); t.setAttribute('x', low ? Math.max(2, s.x - 14) : s.x + (right ? 10 : -9));
+  t.setAttribute('y', s.y + (low ? (isFrom ? 19 : -11) : (isFrom ? -5 : -6)));
+}
+function setMap(fi, ti, t, arrived) {
+  const a = ROUTE[fi], b = ROUTE[ti], x = lerp(a.x, b.x, t), y = lerp(a.y, b.y, t);
+  marker.setAttribute('cx', x); marker.setAttribute('cy', y); halo.setAttribute('cx', x); halo.setAttribute('cy', y);
+  doneLine.setAttribute('points', ROUTE.slice(0, fi + 1).map(s => s.x + ',' + s.y).join(' ') + ' ' + x + ',' + y);
+  dots.forEach((d, i) => d.setAttribute('fill', (i <= fi || (i === ti && t >= 1)) ? '#74D2E7' : '#05305E'));
+  label(lblFrom, fi, fi === ti ? '' : a.name, true); label(lblTo, ti, b.name, false);
+  const P = b.place.charAt(0).toUpperCase() + b.place.slice(1);
+  mapCap.innerHTML = arrived ? '<b>' + P + '</b> · ' + b.name : 'To <b>' + b.place + '</b> · ' + b.name;
+}
+
+/* =====================================================================
+   Steps: one click each. A click during travel jumps to arrival.
+   The control panel chooses which prayers are in; the steps are rebuilt from that choice.
+   ===================================================================== */
+const ORDER = window.ORDER, LS_KEY = 'mountain-tefillah-traditional';
+// Settings: defaults.js (travels with the folder) first, then whatever this computer has saved on top.
+const DEF = window.DEFAULTS || {};
+let saved = {}; try { saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; } catch (e) {}
+const sel = Object.assign({}, DEF.sel, saved.sel);
+const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y: 6.3, w: 12.2, fs: 25 } };
+const guideBox = {};                                                 // one box per script moment: "start", "stop:tents", "turn:gvurot"...
+[DEF.guide, saved.guide].forEach(g => { for (const k in (g || {})) guideBox[k] = Object.assign({}, guideBox[k], g[k]); });
+const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
+let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
+const settings = () => ({ name: designName, sel, script: showScript, guide: guideBox, views: viewAdj });
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(Object.assign(settings(), { barOff }))); } catch (e) {} };
+const isOn = p => (p.id in sel) ? !!sel[p.id] : !p.off;
+const made = {}, slideId = id => id.charAt(0) === '@' ? (made[id] || (made[id] = WEEKLY_SLIDES[id]())) : id;
+let STEPS = [];
+// A view = where the trail puts us, plus this view's saved changes: look direction, zoom, and a few steps off the trail.
+function fixPose(q) {
+  const a = viewAdj[q.key] || {}, c = curve.getPointAt(clamp(q.u, 0, 1));
+  q.aim = { yaw: q.base.yaw + (a.y || 0), pitch: q.base.pitch + (a.p || 0) }; q.zoom = a.z || 1;
+  if (a.dx || a.dz || a.dh) { const x = c.x + (a.dx || 0), z = c.z + (a.dz || 0); q.pos = new THREE.Vector3(x, height(x, z) + EYE + (a.dh || 0), z); } else q.pos = c.clone();
+  q.d = q.pos.clone().sub(c); return q;
+}
+function buildSteps() {
+  STEPS = []; ROUTE = [];
+  ORDER.forEach(o => { const ps = o.prayers.filter(isOn); if (ps.length) ROUTE.push({ stop: o.stop, prayers: ps }); });
+  if (!ROUTE.length) ROUTE.push({ stop: ORDER[0].stop, prayers: [] });
+  let lastPose = null;
+  ROUTE.forEach((r, ri) => {
+    const st = STOPS[r.stop], names = r.prayers.map(p => p.name).join(', ');
+    r.x = MAPXY[r.stop][0]; r.y = MAPXY[r.stop][1]; r.place = st.place; r.name = names && names.length <= 24 ? names : st.name;
+    const list = []; r.prayers.forEach(p => p.slides.forEach((id, k) => list.push({ p, id: slideId(id), first: k === 0 })));
+    const n = list.length;
+    const poseOf = (j, p) => { const v = st.views && p && st.views[p.id], u = st.u + (st.walk && n > 1 ? st.walk * j / (n - 1) / L : 0) + ((v && v.du) || 0) / L; return fixPose({ u, key: p ? r.stop + '/' + p.id : r.stop, base: v ? v.aim : st.walk ? pathAim(u, 5) : st.aim, label: p ? p.name : st.place }); };
+    const first = poseOf(0, list[0] && list[0].p);
+    STEPS.push(ri === 0 ? { k: 'hold', stop: r.stop, mi: 0, pose: first } : { k: 'travel', from: ROUTE[ri - 1].stop, to: r.stop, mi: ri, A: lastPose, B: first });
+    lastPose = first;
+    list.forEach((it, j) => {
+      const pose = poseOf(j, it.p);
+      if (it.first && j > 0 && ((st.views && st.views[it.p.id]) || linesOf((SCRIPT.turns || {})[it.p.id]).length)) STEPS.push({ k: 'turn', stop: r.stop, mi: ri, pose, prayer: it.p });   // turn to the new view; the guide speaks
+      STEPS.push({ k: 'slide', stop: r.stop, mi: ri, id: it.id, pose, tod: lerp(st.tod[0], st.tod[1], (j + 1) / n) });
+      lastPose = pose;
+    });
+  });
+  buildMap();
+}
+document.querySelectorAll('.slide').forEach(s => {       // which scrim each slide wants
+  const body = [...s.querySelectorAll('.box')].filter(b => !b.classList.contains('h-en') && !b.classList.contains('h-he') && !b.classList.contains('dots'));
+  let low = 0; body.forEach(b => { const m = /top:calc\(var\(--in\)\*([\d.]+)\)/.exec(b.getAttribute('style') || ''); if (m) low = Math.max(low, +m[1]); });
+  s.dataset.scrim = body.length ? (low >= 4.5 ? 'tall' : 'top') : 'none';
+});
+
+/* ---------- the guide's script, shown while we walk (S turns it on and off) ---------- */
+const SCRIPT = window.SCRIPT || {}, guideEl = document.getElementById('guide');
+const anyOn = id => ORDER.some(o => o.prayers.some(p => p.id === id && isOn(p)));
+const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if || anyOn(l.if)).map(l => typeof l === 'string' ? l : l.t);
+function guideFor(s) {
+  if (s.k === 'hold') return { head: 'Welcome', lines: linesOf(SCRIPT.start) };
+  if (s.k === 'travel') return { head: 'On the way to ' + STOPS[s.to].place, lines: linesOf((SCRIPT.stops || {})[s.to]) };
+  if (s.k === 'turn') return { head: 'Before ' + s.prayer.name, lines: linesOf((SCRIPT.turns || {})[s.prayer.id]) };
+  return null;
+}
+function showGuide(s) {
+  const g = showScript ? guideFor(s) : null, on = !!(g && g.lines.length);
+  if (on) { guideEl.querySelector('h4').textContent = g.head; guideEl.querySelector('ul').innerHTML = g.lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
+  if (on) { guideMode = s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : 'turn:' + s.prayer.id; placeGuide(); }
+  guideEl.classList.toggle('on', on);
+}
+let guideMode = 'start';
+const boxOf = (k, own) => guideBox[k] || (own ? (guideBox[k] = Object.assign({}, boxOf(k))) : Object.assign({}, GUIDE0[k === 'start' ? 'start' : 'walk'], k === 'start' ? null : guideBox.walk));
+function placeGuide() {
+  const b = boxOf(guideMode); guideEl.style.left = 'calc(var(--in)*' + b.x + ')'; guideEl.style.top = 'calc(var(--in)*' + b.y + ')';
+  guideEl.style.width = 'calc(var(--in)*' + b.w + ')'; guideEl.style.fontSize = 'calc(var(--pt)*' + b.fs + ')';
+}
+(function () {                                          // drag to move, drag the corner for width, A− / A+ for text size; each box keeps its own place
+  let drag = null; const inch = () => stage.getBoundingClientRect().width / 20, r2 = v => Math.round(v * 100) / 100;
+  guideEl.addEventListener('mousedown', e => {
+    if (e.target.closest('.tools')) return;
+    const b = boxOf(guideMode, true); drag = { size: e.target.classList.contains('grip'), x: e.clientX, y: e.clientY, b: Object.assign({}, b) }; e.preventDefault();
+  });
+  addEventListener('mousemove', e => {
+    if (!drag) return; const b = boxOf(guideMode, true), dx = (e.clientX - drag.x) / inch(), dy = (e.clientY - drag.y) / inch();
+    if (drag.size) b.w = r2(clamp(drag.b.w + dx, 4, 20 - b.x)); else { b.x = r2(clamp(drag.b.x + dx, 0, 20 - b.w)); b.y = r2(clamp(drag.b.y + dy, 0, 10.6)); }
+    placeGuide();
+  });
+  addEventListener('mouseup', () => { if (drag) { drag = null; save(); } });
+  guideEl.addEventListener('click', e => {
+    e.stopPropagation(); if (e.target.id !== 'gSmaller' && e.target.id !== 'gBigger') return;
+    const b = boxOf(guideMode, true); b.fs = e.target.id === 'gSmaller' ? Math.max(16, b.fs - 2) : Math.min(48, b.fs + 2); placeGuide(); save();
+  });
+})();
+function setScript(on) { showScript = on; document.getElementById('tbScript').classList.toggle('act', on); const o = document.getElementById('optScript'); if (o) o.checked = on; save(); showGuide(STEPS[idx]); }
+
+/* ---------- adjusting a view: V, then drag the scene or use the arrow keys ---------- */
+let adjusting = false;
+const curPose = () => { const s = STEPS[idx]; return s.k === 'travel' ? s.B : s.pose; };
+const REACH = 40, r3 = v => Math.round(v * 1000) / 1000;     // how far a view may stand from its spot on the trail
+function endGlide() { const g = glide; glide = null; if (g) { toPose(g.to); if (g.then) g.then(); } }   // finish a move at once, text and all
+function replayMove() {                                 // in adjust mode: play the move into this view again, as the room will see it
+  const j = idx; if (j < 1) return; enter(j - 1, -1); setTimeout(() => enter(j, 1), 700);
+}
+function nudge(ch) {                                    // ch: { y, p } look, { z } zoom factor, { f, r } steps forward / right, { h } up, or { reset }
+  const p = curPose(); let a = Object.assign({ y: 0, p: 0, z: 1, dx: 0, dz: 0, dh: 0 }, viewAdj[p.key]);
+  if (ch.reset) a = null;
+  else {
+    a.y = r3(a.y + (ch.y || 0)); a.p = r3(clamp(a.p + (ch.p || 0), -1.4 - p.base.pitch, 1.4 - p.base.pitch)); a.z = r3(clamp(a.z * (ch.z || 1), .6, 3));
+    if (ch.f || ch.r) {                                  // forward is where we are looking; stay within reach of the trail
+      const yaw = p.base.yaw + a.y, fx = -Math.sin(yaw), fz = -Math.cos(yaw); let dx = a.dx + fx * (ch.f || 0) - fz * (ch.r || 0), dz = a.dz + fz * (ch.f || 0) + fx * (ch.r || 0);
+      const d = Math.hypot(dx, dz); if (d > REACH) { dx *= REACH / d; dz *= REACH / d; } a.dx = r3(dx); a.dz = r3(dz);
+    }
+    a.dh = r3(clamp(a.dh + (ch.h || 0), -1.2, 30));
+  }
+  if (a) viewAdj[p.key] = a; else delete viewAdj[p.key];
+  STEPS.forEach(s => [s.pose, s.A, s.B].forEach(q => { if (q && q.key === p.key) fixPose(q); }));
+  endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } else toPose(p);
+  save();
+}
+function setAdjust(on) {
+  adjusting = on; autoNext = false; document.body.classList.toggle('adjusting', on); document.getElementById('tbView').classList.toggle('act', on);
+  if (on) { endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
+}
+(function () {
+  let d = null;
+  stage.addEventListener('mousedown', e => { if (adjusting && !e.target.closest('#guide, #bar, #barTab, #adj, #map, #panel')) d = { x: e.clientX, y: e.clientY }; });
+  addEventListener('mousemove', e => { if (!d) return; const k = 2 * Math.atan(TAN_H / cur.zoom) / stage.getBoundingClientRect().width; nudge({ y: (e.clientX - d.x) * k, p: (e.clientY - d.y) * k }); d = { x: e.clientX, y: e.clientY }; });
+  addEventListener('mouseup', () => { d = null; });
+  stage.addEventListener('wheel', e => { if (!adjusting) return; e.preventDefault(); nudge({ z: e.deltaY < 0 ? 1.05 : 1 / 1.05 }); }, { passive: false });
+  document.getElementById('adj').addEventListener('click', e => { e.stopPropagation(); if (e.target.id === 'adjReset') nudge({ reset: true }); else if (e.target.id === 'adjPlay') replayMove(); else if (e.target.id === 'adjPrev') stepView(-1); else if (e.target.id === 'adjNext') stepView(1); else if (e.target.id === 'adjDone') setAdjust(false); });
+})();
+function stepView(dir) {                                // in adjust mode: straight to the next (or previous) prayer's view, text up, no walking
+  const key = curPose().key; let j = idx + dir;
+  while (j >= 0 && j < STEPS.length && !(STEPS[j].k === 'slide' && STEPS[j].pose.key !== key)) j += dir;
+  if (j < 0 || j >= STEPS.length) return;
+  while (j > 0 && STEPS[j - 1].k === 'slide' && STEPS[j - 1].pose.key === STEPS[j].pose.key) j--;   // the first slide of that prayer
+  enter(j, -1); setAdjust(true);
+}
+function adjustKey(e) {                                 // returns true if the key was used
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, big = e.shiftKey ? 4 : 1;
+  if (k === 'ArrowLeft') nudge({ y: big * DEG }); else if (k === 'ArrowRight') nudge({ y: -big * DEG }); else if (k === 'ArrowUp') nudge({ p: big * DEG }); else if (k === 'ArrowDown') nudge({ p: -big * DEG });
+  else if (k === 'w') nudge({ f: big }); else if (k === 's') nudge({ f: -big }); else if (k === 'd') nudge({ r: big }); else if (k === 'a') nudge({ r: -big });
+  else if (k === 'r') nudge({ h: .5 * big }); else if (k === 'f') nudge({ h: -.5 * big });
+  else if (k === '+' || k === '=') nudge({ z: 1.05 }); else if (k === '-' || k === '_') nudge({ z: 1 / 1.05 });
+  else if (k === 't') replayMove();
+  else if (k === ']' || k === '.') stepView(1); else if (k === '[' || k === ',') stepView(-1);
+  else if (k === 'Escape') setAdjust(false); else return false;
+  e.preventDefault(); return true;
+}
+function scriptSections() {                                // the whole script for the prayers that are ticked
+  const out = [{ head: 'Start: before the first click', lines: linesOf(SCRIPT.start) }]; let walk = 0;
+  STEPS.forEach(s => {
+    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), lines: linesOf((SCRIPT.stops || {})[s.to]) }); }
+    else if (s.k === 'turn') out.push({ head: 'At ' + STOPS[s.stop].place + ': before ' + s.prayer.name, lines: linesOf((SCRIPT.turns || {})[s.prayer.id]) });
+  });
+  out.push({ head: 'End: closing', lines: linesOf(SCRIPT.end) });
+  return out.filter(x => x.lines.length);
+}
+function printScript() {
+  document.getElementById('print').innerHTML = '<h1>' + esc(WEEKLY.title) + ': guides’ script</h1><p>A guide speaks while we walk. The prayer text comes up on the next click after the guide is done.</p>' +
+    scriptSections().map(x => '<section><h2>' + esc(x.head) + '<span class="who">&nbsp;</span></h2>' + (x.sub ? '<h3>' + esc(x.sub) + '</h3>' : '') + '<ul>' + x.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></section>').join('');
+  window.print();
+}
+function downloadScript() {
+  const txt = WEEKLY.title + ': guides’ script\r\n\r\n' + scriptSections().map(x => x.head.toUpperCase() + (x.sub ? '\r\n(' + x.sub + ')' : '') + '\r\n' + x.lines.map(l => '  - ' + l).join('\r\n')).join('\r\n\r\n') + '\r\n';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/plain' })); a.download = 'Mountain Tefillah script.txt'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- control panel ---------- */
+const panel = document.getElementById('panel');
+const IC = {
+  script: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/></svg>',
+  print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 8 V3 H17 V8"/><rect x="3" y="8" width="18" height="9" rx="2"/><rect x="7" y="14" width="10" height="7" fill="#fff"/></svg>',
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M6 2.5 H14 L19 7.5 V21.5 H6 Z"/><path d="M14 2.5 V7.5 H19"/><path d="M9 12 H16 M9 15.5 H16 M9 19 H13"/></svg>',
+  open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2.5 19.5 V5 H9 L11 7.5 H21.5 V19.5 Z"/></svg>',
+  save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 3.5 H16.5 L20.5 7.5 V20.5 H3.5 Z"/><path d="M7.5 3.5 V9 H15.5 V3.5"/><rect x="7.5" y="13" width="9" height="7.5"/></svg>',
+  reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 8.5 A8 8 0 1 1 4 12"/><path d="M4.5 3.5 V8.8 H9.8"/></svg>'
+};
+let designName = saved.name || DEF.name || '';
+function drawPanel() {
+  const slides = STEPS.filter(s => s.k === 'slide').length;
+  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1) + ' clicks. Choices are remembered on this computer.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div><div class="cols">' +
+    ORDER.map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
+      return '<div class="stop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + (st.note ? ' <span class="under">(' + st.note + ')</span>' : '') + '</label>' +
+        o.prayers.map(p => '<label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label>').join('') +
+        (o.stop === 'tents' ? '<div class="later">Nisim B’chol Yom side loop: coming later</div>' : '') + '</div>'; }).join('') +
+    '</div><div class="bar"><label class="switch"><input type="checkbox" id="optScript"' + (showScript ? ' checked' : '') + '><i></i><span class="ic">' + IC.script + '</span>Guide’s script on screen (S)</label>' +
+    '<button class="ib" id="btnPrint" title="Print the guides’ script for the ticked prayers">' + IC.print + '</button>' +
+    '<button class="ib" id="btnTxt" title="Save the guides’ script as a text file">' + IC.doc + '</button>' +
+    '<button class="ib" id="btnOpen" title="Open a saved design (a file made with the save button)">' + IC.open + '</button>' +
+    '<button class="ib" id="btnSave" title="Save this design: prayer choices, views and script boxes">' + IC.save + '</button>' +
+    '<button class="ib" id="btnReset" title="Reset this computer to the defaults">' + IC.reset + '</button></div><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none">';
+  panel.querySelectorAll('input[data-part]').forEach(i => { i.indeterminate = true; });
+}
+function applyChoice() { save(); buildSteps(); enter(0, -1); drawPanel(); }
+panel.addEventListener('click', e => e.stopPropagation());
+panel.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.p) { sel[t.dataset.p] = t.checked; applyChoice(); }
+  else if (t.dataset.stop) { ORDER.find(o => o.stop === t.dataset.stop).prayers.forEach(p => { sel[p.id] = t.checked; }); applyChoice(); }
+  else if (t.id === 'optScript') setScript(t.checked);
+});
+function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
+  showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice();
+}
+function saveDesign(name, asDefault) {
+  designName = asDefault ? '' : name; save();
+  const txt = '// Mountain Tefillah design: prayer choices, camera views and script box places.\r\n// Open it from the Prayer List (folder icon). A file named defaults.js next to index.html is what every computer starts from.\r\nwindow.DEFAULTS = ' + JSON.stringify(settings(), null, 2) + ';\r\n';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/javascript' }));
+  a.download = (asDefault ? 'defaults' : name.replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'design') + '.js'; document.body.appendChild(a); a.click(); a.remove();
+}
+const dlg = html => { document.getElementById('dlg').innerHTML = html ? '<div class="card">' + html + '</div>' : ''; };
+let typedName = '';
+panel.addEventListener('click', e => {
+  const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
+  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnX') togglePanel(false);
+  else if (id === 'btnOpen') document.getElementById('fileOpen').click();
+  else if (id === 'btnSave') { typedName = designName;
+    dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
+      '<label class="chk"><input type="checkbox" id="svDef">save as default</label>' +
+      '<p>The file goes to your Downloads folder. Open a named design later with the folder icon. To make a default for every computer, move defaults.js into the Mountain Tefillah folder, replacing the one there.</p>' +
+      '<div class="row"><button id="dlgNo">Cancel</button><button class="main" id="svGo">Save</button></div>'); document.getElementById('svName').focus(); }
+  else if (id === 'btnReset') dlg('<h3>Reset this computer?</h3><p>Prayer choices, views and script box places changed on this computer will go back to the defaults. Saved design files are not touched.</p><div class="row"><button id="dlgNo">Cancel</button><button class="main" id="rsGo">Reset</button></div>');
+  else if (id === 'dlgNo') dlg('');
+  else if (id === 'rsGo') loadDesign(DEF, DEF.name);
+  else if (id === 'svGo') { const def = document.getElementById('svDef').checked, name = document.getElementById('svName').value.trim(); if (!def && !name) return document.getElementById('svName').focus(); saveDesign(name, def); drawPanel(); }
+});
+panel.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'svDef') { const n = document.getElementById('svName'); if (t.checked) { typedName = n.value; n.value = 'default'; n.disabled = true; } else { n.value = typedName; n.disabled = false; n.focus(); } }
+  else if (t.id === 'fileOpen' && t.files[0]) { const file = t.files[0], rd = new FileReader();
+    rd.onload = () => { try { const txt = String(rd.result), d = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1)); loadDesign(d, d.name || file.name.replace(/\.[^.]+$/, '')); }
+      catch (err) { dlg('<h3>That file could not be read</h3><p>Choose a design file saved from this page.</p><div class="row"><button class="main" id="dlgNo">OK</button></div>'); } };
+    rd.readAsText(file); }
+});
+panel.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && e.target.id === 'svName') document.getElementById('svGo').click(); if (e.key === 'Escape') { if (document.getElementById('dlg').innerHTML) dlg(''); else togglePanel(false); } });
+function togglePanel(on) { if (on == null) on = !panel.classList.contains('on'); if (on) drawPanel(); panel.classList.toggle('on', on); document.getElementById('tbList').classList.toggle('act', on); }
+function setBar(off) { barOff = off; stage.classList.toggle('barOff', off); save(); }
+document.getElementById('bar').addEventListener('click', e => {
+  e.stopPropagation(); const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'tbList') togglePanel(); else if (b.id === 'tbScript') setScript(!showScript); else if (b.id === 'tbMap') toggleMap(); else if (b.id === 'tbView') setAdjust(!adjusting); else if (b.id === 'tbHide') setBar(true);
+});
+document.getElementById('barTab').addEventListener('click', e => { e.stopPropagation(); setBar(false); });
+stage.classList.toggle('barOff', barOff); document.getElementById('tbScript').classList.toggle('act', showScript);
+
+const SPEED = 4.6;                                // world units per second while travelling
+let autoNext = false;                             // (arrivals wait for a click; kept so an automatic mode can be added later)
+let idx = 0, travelP = 0, travelling = false, travelDur = 12, todFrom = 0, tod = 0, todTarget = 0, glide = null;
+const titleEl = document.getElementById('title'), scrimEl = document.getElementById('scrim');
+function showText(id, stop) {
+  document.querySelectorAll('.slide.on').forEach(e => e.classList.remove('on'));
+  const s = id && document.getElementById(id);
+  if (s) { s.classList.add('on'); stage.style.setProperty('--sa', STOPS[stop].sa); scrimEl.classList.toggle('tall', s.dataset.scrim === 'tall'); }
+  scrimEl.classList.toggle('on', !!s && s.dataset.scrim !== 'none');
+}
+function enter(i, dir) {
+  idx = clamp(i, 0, STEPS.length - 1); const s = STEPS[idx]; glide = null; autoNext = false; let post = null;
+  titleEl.classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
+  if (s.k === 'slide' || s.k === 'turn') {
+    // text fades out, the camera moves to this prayer's view, then the new text fades in
+    const pose = s.pose; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
+    const moved = pose.pos.distanceTo(cur.pos) > .5 || Math.abs(lerpAngle(cur.yaw, pose.aim.yaw, 1) - cur.yaw) > .02 || Math.abs(pose.aim.pitch - cur.pitch) > .02 || Math.abs(pose.zoom - cur.zoom) > .01;
+    const go = dir > 0 && moved, after = s.k === 'slide' ? () => showText(s.id, s.stop) : null;   // a turn, like an arrival, waits for a click so the guide can speak
+    showText(s.k === 'slide' && !go ? s.id : null, s.stop);
+    if (go) glide = { pos0: cur.pos.clone(), y0: cur.yaw, p0: cur.pitch, z0: cur.zoom, to: pose, t: 0, then: after, dur: Math.abs(pose.aim.pitch - cur.pitch) > .5 || pose.pos.distanceTo(cur.pos) > 14 ? 5 : 3.6 };
+    else { toPose(pose); if (dir <= 0 && s.k === 'slide') tod = s.tod; if (s.k === 'turn') post = after; }
+  } else if (s.k === 'hold') {
+    showText(null); todTarget = tod = STOPS[s.stop].tod[0]; toPose(s.pose); setMap(s.mi, s.mi, 0, true);
+  } else {
+    showText(null);
+    travelDur = clamp(Math.abs(s.B.u - s.A.u) * L / (STOPS[s.to].speed || SPEED), 9, 34);
+    todTarget = STOPS[s.to].tod[0];
+    if (dir > 0) { travelP = 0; travelling = true; todFrom = tod; } else { travelP = 1; travelling = false; todFrom = tod = todTarget; }
+  }
+  showGuide(s); if (adjusting) document.getElementById('adjName').textContent = curPose().label;
+  if (post) post();
+  try { history.replaceState(null, '', '#' + idx); } catch (e) {}
+}
+function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
+function prev() { if (idx > 0) enter(idx - 1, -1); }
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && panel.classList.contains('on')) return togglePanel(false);
+  if ((e.key === 'c' || e.key === 'C') && !(e.target && e.target.tagName === 'INPUT')) return togglePanel();
+  if (panel.classList.contains('on')) return;
+  if (adjusting && adjustKey(e)) return;
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+  else if (e.key === 'f' || e.key === 'F') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }
+  else if (e.key === 'p' || e.key === 'P') { fpsEl.style.display = fpsEl.style.display === 'block' ? 'none' : 'block'; }
+  else if (e.key === 's' || e.key === 'S') setScript(!showScript);
+  else if (e.key === 'm' || e.key === 'M') toggleMap();
+  else if (e.key === 'v' || e.key === 'V') setAdjust(!adjusting);
+  else if (e.key === 'Home') enter(0, -1);
+});
+stage.addEventListener('click', () => { if (!panel.classList.contains('on') && !adjusting) next(); });
+buildSteps();
+
+/* =====================================================================
+   Layout and the frame loop
+   ===================================================================== */
+function layout() {
+  const w = Math.min(innerWidth, innerHeight * ASPECT), h = w / ASPECT;
+  stage.style.width = w + 'px'; stage.style.height = h + 'px';
+  document.documentElement.style.setProperty('--in', (w / 20) + 'px');
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.setSize(w, h, false);
+  camera.aspect = ASPECT; camera.updateProjectionMatrix();
+}
+addEventListener('resize', layout); layout();
+
+const fpsEl = document.getElementById('fps'), tmpV = new THREE.Vector3(); let fAcc = 0, fN = 0, last = performance.now(), clock = 0;
+function frame(now) {
+  const dt = Math.min((now - last) / 1000, .1); last = now; clock += dt;
+  const s = STEPS[idx];
+  if (s.k === 'travel') {
+    if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; }
+    const e = poseTravel(s.A, s.B, travelP), arrived = travelP >= 1 && autoNext;
+    tod = lerp(todFrom, todTarget, e); setMap(s.mi - 1, s.mi, e, travelP >= 1);
+    if (arrived) { autoNext = false; if (!adjusting && !guideEl.classList.contains('on')) enter(idx + 1, 1); }
+  } else {
+    if (glide) {                                                  // a few steps along the trail between slides
+      glide.t = Math.min(1, glide.t + dt / glide.dur); const e = ease(glide.t);
+      tmpP.copy(glide.pos0).lerp(glide.to.pos, e); tmpP.y = Math.max(tmpP.y, height(tmpP.x, tmpP.z) + 1.3);
+      setPose(tmpP, lerpAngle(glide.y0, glide.to.aim.yaw, e), lerp(glide.p0, glide.to.aim.pitch, e), lerp(glide.z0, glide.to.zoom, e));
+      if (glide.t >= 1) { const g = glide; glide = null; if (g.then) g.then(); }
+    }
+    tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
+  }
+  applyTOD(tod); animateWind(clock);
+  sky.position.copy(camera.position); stars.position.copy(camera.position);
+  clouds.forEach(c => { const az = SUN_AZ + c.az + clock * 0.0009; c.s.position.set(camera.position.x + Math.cos(c.el) * Math.cos(az) * 6000, camera.position.y + Math.sin(c.el) * 6000, camera.position.z + Math.cos(c.el) * Math.sin(az) * 6000); });
+  tmpV.copy(sunDir); if (tmpV.y < .12) tmpV.y = .12;
+  sunLight.position.copy(camera.position).addScaledVector(tmpV, 500); sunLight.target.position.copy(camera.position);
+  renderer.render(scene, camera);
+  fAcc += dt; fN++; if (fAcc > .5) { fpsEl.textContent = Math.round(fN / fAcc) + ' fps'; fAcc = 0; fN = 0; }
+  requestAnimationFrame(frame);
+}
+const startAt = parseInt((location.hash || '').slice(1), 10);
+enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length; i++) enter(i, -1);
+window.__mt = { enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+  at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
+  arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
+  setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
