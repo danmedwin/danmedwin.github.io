@@ -100,6 +100,9 @@
   .adjusting #bar, .editing #bar, .god #bar, .listOn #bar, .filing #bar { opacity: 1; }
   #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #fileBar b:first-child { margin-left: 0; }
   #dock .bi { display: inline-flex; align-items: center; gap: .35em; } #dock .bi svg { width: 1.15em; height: 1.15em; flex: none; pointer-events: none; }
+  #dock button.tbl { flex-direction: column; gap: calc(var(--pt)*2); background: transparent; color: #fff; padding: calc(var(--pt)*3) calc(var(--pt)*7) calc(var(--pt)*2); border-radius: calc(var(--pt)*7);
+                     font: 600 calc(var(--pt)*9.5)/1 Calibri, Carlito, sans-serif; letter-spacing: .02em; }
+  #dock button.tbl svg { width: calc(var(--pt)*20); height: calc(var(--pt)*20); } #dock button.tbl:hover { background: rgba(255,255,255,.22); }
   #dock button.fx { background: transparent; color: #fff; font-size: 1.6em; font-weight: 700; line-height: 1; padding: 0 .25em; opacity: .75; } #dock button.fx:hover { opacity: 1; color: #FFC843; }
   .adjusting #adj, .editing #ed, .god #godBar, .filing #fileBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
   #ed.top { bottom: auto; top: calc(var(--in)*.2); } #ed, #godBar { gap: .45em; }
@@ -188,7 +191,7 @@
     <button id="edAddT" title="Add a text box">Add text</button><button id="edAddS" title="Add a shaded box behind the text">Add shade</button><button id="edDel" title="Delete the selected box">Delete</button><button id="edReset" title="Put this slide back the way it came">Reset slide</button><button id="edDone" class="fx" title="Close (E, or the pencil icon)">×</button></div>
   <div id="edMove" title="Drag to move this text">✥</div>
   <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
-  <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" title="Leave the overview and adjust this view (Enter)">Go there</button><button id="godReset">Reset this stop</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
+  <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" class="tbl" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" class="tbl" title="Fly down to this prayer’s view (Enter)">Go there</button><button id="godReset" class="tbl" title="Put this stop back to its default view">Reset</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
   <div id="fileBar"><b>Script</b><button id="btnPrint" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" title="Save the guides’ script as a text file">Save as text</button>
     <b>Design</b><button id="btnOpen" title="Open a saved design file">Open…</button><button id="btnSave" title="Save this design: prayer choices, names, views, slide and script edits">Save…</button><button id="btnReset" title="Put this computer back to the defaults">Reset…</button><button id="fileDone" class="fx" title="Close">×</button></div>
   <div id="tools"><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none"></div>
@@ -1212,14 +1215,10 @@ function setGod(on) {
 }
 function godFrame(dt) {
   if (god.fly) {
-    const f = god.fly, q = f.q; f.t = Math.min(1, f.t + dt / f.dur); const e = ease(f.t), u = f.u = f.back ? 1 - e : e, a = 1 - u;
-    tmpP.set(0, 0, 0).addScaledVector(f.p0, a * a * a).addScaledVector(f.p1, 3 * a * a * u).addScaledVector(f.p2, 3 * a * u * u).addScaledVector(f.p3, u * u * u);
-    const tx = 3 * a * a * (f.p1.x - f.p0.x) + 6 * a * u * (f.p2.x - f.p1.x) + 3 * u * u * (f.p3.x - f.p2.x), ty = 3 * a * a * (f.p1.y - f.p0.y) + 6 * a * u * (f.p2.y - f.p1.y) + 3 * u * u * (f.p3.y - f.p2.y),
-      tz = 3 * a * a * (f.p1.z - f.p0.z) + 6 * a * u * (f.p2.z - f.p1.z) + 3 * u * u * (f.p3.z - f.p2.z);
-    tmpP.y = Math.max(tmpP.y, height(tmpP.x, tmpP.z) + 2.2 + 16 * (1 - sstep(.7, 1, u)));      // never through the mountain; the margin closes as we land
-    if (u >= 1) tmpP.copy(f.p3); else if (u <= 0) tmpP.copy(f.p0);
-    const wi = sstep(0, .3, u), wo = sstep(.72, 1, u), yawT = Math.atan2(-tx, -tz), pitchT = clamp(Math.atan2(ty, Math.hypot(tx, tz)), -1.15, .5);   // look where we are flying
-    setPose(tmpP, lerpAngle(lerpAngle(f.yaw0, yawT, wi), q.aim.yaw, wo), lerp(lerp(f.pitch0, pitchT, wi), q.aim.pitch, wo), lerp(1, q.zoom, wo));
+    const f = god.fly; f.t = Math.min(1, f.t + dt / f.dur); const e = ease(f.t), want = f.back ? 1 - e : e, T = f.tab, N = T.length - 1;
+    let k = 1; while (k < N && T[k] < want) k++;          // the point on the path that this much of the time has reached
+    const u = f.u = f.t >= 1 ? (f.back ? 0 : 1) : clamp((k - 1 + (want - T[k - 1]) / ((T[k] - T[k - 1]) || 1)) / N, 0, 1);
+    flightAt(f, u, flightNow); setPose(flightNow.pos, flightNow.yaw, flightNow.pitch, flightNow.zoom);
     godG.visible = u < .4;                               // the markers are only there from high up
     if (f.t >= 1) { if (f.back) god.fly = null; else { const step = f.m.step; setGod(false); enter(step, -1); } }
     return;
@@ -1274,8 +1273,28 @@ function godFlight(q, eye, back, todAt) {
   const fwd = new THREE.Vector3(-Math.sin(q.aim.yaw), 0, -Math.cos(q.aim.yaw)), p3 = q.pos.clone(), D = clamp(eye.pos.distanceTo(p3) * .24, 34, 110);
   const p2 = p3.clone().addScaledVector(fwd, -D); p2.y += D * .34;
   const p1 = eye.pos.clone().lerp(p2, .55); p1.y = lerp(eye.pos.y, p2.y, .3);
-  return { t: 0, u: back ? 1 : 0, dur: 4, q, back, p0: eye.pos.clone(), p1, p2, p3, yaw0: eye.yaw, pitch0: eye.pitch, tod: todAt };
+  const f = { t: 0, u: back ? 1 : 0, dur: 5, q, back, p0: eye.pos.clone(), p1, p2, p3, yaw0: eye.yaw, pitch0: eye.pitch, tod: todAt };
+  // Pace: time is shared out mostly by how much the view turns, a little by distance, so the dip and the turn go slowly
+  // and the straight stretches at either end go quickly. tab[i] is the share of the time used up by point i of N along the path.
+  const N = 160, len = [0], ang = [0], a = { pos: new THREE.Vector3() }, b = { pos: new THREE.Vector3() }; let L = 0, A = 0; flightAt(f, 0, a);
+  for (let i = 1; i <= N; i++) {
+    flightAt(f, i / N, b); const dl = b.pos.distanceTo(a.pos), dy = lerpAngle(a.yaw, b.yaw, 1) - a.yaw, da = Math.hypot(dy * Math.cos(b.pitch), b.pitch - a.pitch);
+    len.push(dl); ang.push(da); L += dl; A += da; a.pos.copy(b.pos); a.yaw = b.yaw; a.pitch = b.pitch;
+  }
+  f.tab = [0]; for (let i = 1; i <= N; i++) f.tab.push(f.tab[i - 1] + .22 * len[i] / (L || 1) + .78 * ang[i] / (A || 1));
+  return f;
 }
+function flightAt(f, u, o) {                            // where the camera is and looks at point u (0 overview, 1 the view) of a flight
+  const q = f.q, a = 1 - u;
+  o.pos.set(0, 0, 0).addScaledVector(f.p0, a * a * a).addScaledVector(f.p1, 3 * a * a * u).addScaledVector(f.p2, 3 * a * u * u).addScaledVector(f.p3, u * u * u);
+  const tx = 3 * a * a * (f.p1.x - f.p0.x) + 6 * a * u * (f.p2.x - f.p1.x) + 3 * u * u * (f.p3.x - f.p2.x), ty = 3 * a * a * (f.p1.y - f.p0.y) + 6 * a * u * (f.p2.y - f.p1.y) + 3 * u * u * (f.p3.y - f.p2.y),
+    tz = 3 * a * a * (f.p1.z - f.p0.z) + 6 * a * u * (f.p2.z - f.p1.z) + 3 * u * u * (f.p3.z - f.p2.z);
+  o.pos.y = Math.max(o.pos.y, height(o.pos.x, o.pos.z) + 2.2 + 16 * (1 - sstep(.7, 1, u)));     // never through the mountain; the margin closes as we land
+  if (u >= 1) o.pos.copy(f.p3); else if (u <= 0) o.pos.copy(f.p0);
+  const wi = sstep(0, .3, u), wo = sstep(.72, 1, u), yawT = Math.atan2(-tx, -tz), pitchT = clamp(Math.atan2(ty, Math.hypot(tx, tz)), -1.15, .5);   // look where we are flying
+  o.yaw = lerpAngle(lerpAngle(f.yaw0, yawT, wi), q.aim.yaw, wo); o.pitch = lerp(lerp(f.pitch0, pitchT, wi), q.aim.pitch, wo); o.zoom = lerp(1, q.zoom, wo);
+}
+const flightNow = { pos: new THREE.Vector3() };
 function godGo() {                                      // the light changes to that prayer's hour on the way in, then the live shot fades up
   const m = god && god.list[god.sel]; if (!m || god.fly) return; const st = STEPS[m.step];
   god.fly = godFlight(m.pose, { pos: camera.position.clone(), yaw: cur.yaw, pitch: cur.pitch }, false, st.tod != null ? st.tod : 4); god.fly.m = m;
@@ -1529,7 +1548,7 @@ function frame(now) {
 }
 const startAt = parseInt((location.hash || '').slice(1), 10);
 enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length; i++) enter(i, -1);
-window.__mt = { curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
