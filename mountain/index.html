@@ -107,7 +107,7 @@
   .adjusting #adj, .editing #ed, .god #godBar, .filing #fileBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
   #ed.top { bottom: auto; top: calc(var(--in)*.2); } #ed, #godBar { gap: .45em; }
   #ed .nav, #godBar .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #edName, #godName { min-width: 7em; text-align: center; color: #FFC843; }
-  #ed .grp { display: flex; gap: .45em; } #ed .shd, #ed.onShade .txt { display: none; } #ed.onShade .shd { display: flex; }
+  #ed .grp { display: flex; gap: .15em; } #ed { gap: .15em; } #ed .nav { margin: 0 .25em; } #ed .shd, #ed.onShade .txt { display: none; } #ed.onShade .shd { display: flex; }
   #edMove { position: absolute; display: none; z-index: 4; width: calc(var(--pt)*26); height: calc(var(--pt)*26); border-radius: 50%; background: #FFC843; color: #05305E; cursor: move;
             font: 700 calc(var(--pt)*18)/calc(var(--pt)*26) Calibri, Carlito, sans-serif; text-align: center; user-select: none; }
   #edGrip, #edRot { position: absolute; display: none; z-index: 4; width: calc(var(--pt)*22); height: calc(var(--pt)*22); margin: calc(var(--pt)*-11) 0 0 calc(var(--pt)*-11); background: #FFC843; color: #05305E; user-select: none;
@@ -186,9 +186,9 @@
   <div id="barTab" title="Show the toolbar">›</div>
   <div id="adj"><button id="adjPrev" class="nav" title="Previous prayer's view ( [ )">‹</button><b id="adjName"></b><button id="adjNext" class="nav" title="Next prayer's view ( ] )">›</button><span>drag: look · W A S D: move · R F: up, down · wheel: zoom</span><button id="adjPlay" class="tbl" title="Play the move into this view ( T )">Play move</button><button id="adjReset" class="tbl" title="Put this view back to its default">Reset</button><button id="adjDone" class="fx" title="Close (V, or the eye icon)">×</button></div>
   <div id="ed"><button id="edPrev" class="nav" title="Previous slide ( [ )">‹</button><b id="edName"></b><button id="edNext" class="nav" title="Next slide ( ] )">›</button>
-    <span class="grp txt"><button id="edB" title="Bold on or off: the selected words, or the whole box"><b>B</b></button><button id="edSm" title="Smaller text">A−</button><button id="edBg" title="Bigger text">A+</button></span>
-    <span class="grp shd"><button id="edKind" title="Fade down, solid, or fade up">Style</button><button id="edLt">Lighter</button><button id="edDk">Darker</button><button id="edSf" title="Softer edges">Softer</button><button id="edSh" title="Sharper edges">Sharper</button></span>
-    <button id="edAddT" title="Add a text box">Add text</button><button id="edAddS" title="Add a shaded box behind the text">Add shade</button><button id="edDel" title="Delete the selected box">Delete</button><button id="edReset" title="Put this slide back the way it came">Reset slide</button><button id="edDone" class="fx" title="Close (E, or the pencil icon)">×</button></div>
+    <span class="grp txt"><button id="edB" class="tbl" title="Bold on or off: the selected words, or the whole box">Bold</button><button id="edSm" class="tbl" title="Smaller text">Smaller</button><button id="edBg" class="tbl" title="Bigger text">Bigger</button></span>
+    <span class="grp shd"><button id="edKind" class="tbl" title="Fade down, solid, or fade up">Style</button><button id="edLt" class="tbl" title="Lighter shade">Lighter</button><button id="edDk" class="tbl" title="Darker shade">Darker</button><button id="edSf" class="tbl" title="Softer edges">Softer</button><button id="edSh" class="tbl" title="Sharper edges">Sharper</button></span>
+    <button id="edAddT" class="tbl" title="Add a text box">Add text</button><button id="edAddS" class="tbl" title="Add a shaded box behind the text">Add shade</button><button id="edDel" class="tbl" title="Delete the selected box">Delete</button><button id="edReset" class="tbl" title="Put this slide back to its default">Reset</button><button id="edDone" class="fx" title="Close (E, or the pencil icon)">×</button></div>
   <div id="edMove" title="Drag to move this text">✥</div>
   <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
   <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" class="tbl" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" class="tbl" title="Fly down to this prayer’s view (Enter)">Go there</button><button id="godReset" class="tbl" title="Put this stop back to its default view">Reset</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
@@ -1350,12 +1350,20 @@ const IC = {
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 H20 M9.5 7 V4 H14.5 V7 M6.5 7 L7.5 20.5 H16.5 L17.5 7 M10 11 V17 M14 11 V17"/></svg>',
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5 L12 4 L20.5 11.5 M6 10 V20 H18 V10"/></svg>',
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5 L19.5 12 L7 19.5 Z"/></svg>',
+  bold: '<svg viewBox="0 0 24 24"><text x="12" y="19" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="21" fill="currentColor">B</text></svg>',
+  smaller: '<svg viewBox="0 0 24 24"><text x="9" y="19" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="15" fill="currentColor">A</text><path d="M16 14 H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  bigger: '<svg viewBox="0 0 24 24"><text x="9" y="19" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="21" fill="currentColor">A</text><path d="M16.5 9 H22.5 M19.5 6 V12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  style: '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 6 H19 V12 H5 Z" fill="currentColor"/><path d="M5 12 H19 V15 H5 Z" fill="currentColor" opacity=".45"/></svg>',
+  lighter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7.5"/></svg>',
+  darker: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="currentColor"/></svg>',
+  softer: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" opacity=".25"/><circle cx="12" cy="12" r="7.5" opacity=".4"/><circle cx="12" cy="12" r="5"/></svg>',
+  sharper: '<svg viewBox="0 0 24 24"><rect x="4.5" y="5.5" width="15" height="13" fill="currentColor"/></svg>',
   go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H19 M13 6 L19 12 L13 18"/></svg>',
   text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 V5 H19 V7 M12 5 V19 M9 19 H15"/></svg>',
   shade: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="5" width="17" height="7" rx="3.5" fill="currentColor"/></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
-[['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'],
+[['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
  ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
