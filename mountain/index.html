@@ -66,6 +66,9 @@
   #guide ul { margin: 0; padding-left: 1em; } #guide li { margin: .23em 0; }
   #guide .tools { position: absolute; right: calc(var(--pt)*10); top: calc(var(--pt)*6); display: none; gap: 4px; font-size: calc(var(--pt)*15); }
   #guide:hover .tools { display: flex; } #guide:hover { border-color: rgba(255,200,67,.8); }
+  #guide.edit { cursor: default; border-color: #FFC843; } #guide.edit .tools { display: flex; } #guide.edit #gEdit { background: #FFC843; color: #05305E; }
+  #guide.edit ul, #guide.edit .who { cursor: text; outline: 1px dashed rgba(255,255,255,.45); outline-offset: 2px; user-select: text; min-width: 6em; }
+  #guide.edit .who:empty::before { content: 'reader’s name'; opacity: .55; font-style: italic; } #guide .who:empty { display: none; } #guide.edit .who:empty { display: block; }
   #guide .tools span { cursor: pointer; background: rgba(255,255,255,.18); border-radius: 4px; padding: 0 .5em; line-height: 1.5; }
   #guide .grip { position: absolute; right: 0; bottom: 0; width: calc(var(--pt)*26); height: calc(var(--pt)*26); cursor: ew-resize; display: none;
                  background: linear-gradient(135deg, transparent 50%, rgba(255,200,67,.85) 50%); border-bottom-right-radius: calc(var(--pt)*12); }
@@ -152,7 +155,7 @@
   <div id="title"><div class="t1"></div><div class="t2"></div><div class="t3">Click or → to begin · C: prayer list · S: guide script on screen · M: map (click a stop to jump) · V: adjust a view · E: edit text · G: overview · F: full screen</div></div>
   <div id="slides"></div>
   <div id="map"><svg viewBox="0 0 400 190" id="mapsvg"></svg><div class="cap" id="mapcap"></div><div class="x" id="mapX" title="Hide the map (M)">×</div></div>
-  <div id="guide"><h4></h4><ul></ul><div class="tools"><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
+  <div id="guide"><h4></h4><ul></ul><div class="tools"><span id="gEdit" title="Edit these words and the reader's name">✎</span><span id="gUndo" title="Back to the original words">↺</span><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
   <div id="bar">
     <button id="tbList" title="Prayer List (C)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="5" r="1.7"/><rect x="8" y="3.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="12" r="1.7"/><rect x="8" y="10.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="19" r="1.7"/><rect x="8" y="17.8" width="13" height="2.4" rx="1.2"/></svg></button>
     <button id="tbScript" title="Guide’s script on screen (S)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/><rect x="6" y="7" width="12" height="1.9" rx=".9" fill="#05305E"/><rect x="6" y="11" width="8" height="1.9" rx=".9" fill="#05305E"/></svg></button>
@@ -808,10 +811,12 @@ const textEd = Object.assign({}, DEF.text, saved.text);              // slides c
 const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
-const settings = () => ({ name: designName, sel, names, text: textEd, script: showScript, guide: guideBox, views: viewAdj });
+const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
+const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
+const settings = () => ({ name: designName, sel, names, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(names, DEF.names), text: changed(textEd, DEF.text),
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(names, DEF.names), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
   guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff })); } catch (e) {} };
 const isOn = p => (p.id in sel) ? !!sel[p.id] : !p.off;
 const made = {}, slideId = id => id.charAt(0) === '@' ? (made[id] || (made[id] = WEEKLY_SLIDES[id]())) : id;
@@ -879,11 +884,32 @@ function guideFor(s) {
   if (s.k === 'slide' && s.first && !glide) return { head: s.prayer.name, lines: linesOf((SCRIPT.pops || {})[s.prayer.id]) };   // with the prayer's first slide, once its text is up
   return null;
 }
+// Words and reader for one script moment, after any rewording done on screen. key: "start", "stop:tents", "pop:modeh", "turn:gvurot", "end".
+const linesAt = (key, lines) => scriptEd[key] || lines, whoAt = (key, who) => key in readers ? readers[key] : who;
+const guideKey = s => s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : (s.k === 'slide' ? 'pop:' : 'turn:') + s.prayer.id;
+let guideStep = null;
 function showGuide(s) {
-  const g = showScript ? guideFor(s) : null, on = !!(g && g.lines.length);
-  if (on) { const who = whoFor(s); guideEl.querySelector('h4').innerHTML = esc(g.head) + (who ? '<span class="who">' + esc(who) + '</span>' : ''); guideEl.querySelector('ul').innerHTML = g.lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
-  if (on) { guideMode = s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : (s.k === 'slide' ? 'pop:' : 'turn:') + s.prayer.id; placeGuide(); }
+  setGuideEdit(false); guideStep = s;
+  const g = showScript ? guideFor(s) : null, key = g ? guideKey(s) : '', lines = g ? linesAt(key, g.lines) : [], on = lines.length > 0;
+  if (on) { const who = whoAt(key, whoFor(s)); guideEl.querySelector('h4').innerHTML = '<span class="hd">' + esc(g.head) + '</span><span class="who">' + esc(who) + '</span>'; guideEl.querySelector('ul').innerHTML = lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
+  if (on) { guideMode = key; placeGuide(); }
   guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide');
+  document.getElementById('gUndo').style.display = on && (key in scriptEd || key in readers) ? '' : 'none';
+}
+// The pencil on a script box: type straight into the lines and the reader's name. Enter starts a new bullet.
+function setGuideEdit(on) {
+  guideEl.classList.toggle('edit', on); const ul = guideEl.querySelector('ul'), who = guideEl.querySelector('.who');
+  [ul, who].forEach(n => { if (!n) return; if (on) { n.setAttribute('contenteditable', 'true'); n.setAttribute('spellcheck', 'false'); } else { n.removeAttribute('contenteditable'); n.removeAttribute('spellcheck'); } });
+  if (on) ul.focus(); else if (document.activeElement && guideEl.contains(document.activeElement)) document.activeElement.blur();
+}
+function guideTyped() {                                 // keep what was typed: lines for this box, and the name
+  const s = guideStep, key = guideMode, g = guideFor(s); if (!g) return;
+  const lines = [...guideEl.querySelectorAll('li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
+  const who = guideEl.querySelector('.who').textContent.replace(/\s+/g, ' ').trim();
+  if (s.k === 'slide' || s.k === 'turn') { if (who) names[s.prayer.id] = who; else delete names[s.prayer.id]; }   // one prayer: the same name as in the Prayer List
+  else if (who === whoFor(s)) delete readers[key]; else readers[key] = who;
+  document.getElementById('gUndo').style.display = key in scriptEd || key in readers ? '' : 'none'; save();
 }
 let guideMode = 'start';
 const boxOf = (k, own) => guideBox[k] || (own ? (guideBox[k] = Object.assign({}, boxOf(k))) : k.indexOf('pop:') === 0 ? Object.assign({}, GUIDE0.pop) : Object.assign({}, GUIDE0[k === 'start' ? 'start' : 'walk'], k === 'start' ? null : guideBox.walk));
@@ -897,7 +923,7 @@ function placeGuide() {
 (function () {                                          // drag to move, drag the corner for width, A− / A+ for text size; each box keeps its own place
   let drag = null; const inch = () => stage.getBoundingClientRect().width / 20, r2 = v => Math.round(v * 100) / 100;
   guideEl.addEventListener('mousedown', e => {
-    if (e.target.closest('.tools')) return;
+    if (e.target.closest('.tools') || e.target.closest('[contenteditable]')) return;
     const b = boxOf(guideMode, true); if (b.yb != null) { b.y = r2((guideEl.getBoundingClientRect().top - stage.getBoundingClientRect().top) / inch()); delete b.yb; }
     drag = { size: e.target.classList.contains('grip'), x: e.clientX, y: e.clientY, b: Object.assign({}, b) }; e.preventDefault();
   });
@@ -912,7 +938,10 @@ function placeGuide() {
     save();
   });
   guideEl.addEventListener('click', e => {
-    e.stopPropagation(); if (e.target.id !== 'gSmaller' && e.target.id !== 'gBigger') return;
+    e.stopPropagation();
+    if (e.target.id === 'gEdit') return setGuideEdit(!guideEl.classList.contains('edit'));
+    if (e.target.id === 'gUndo') { delete scriptEd[guideMode]; delete readers[guideMode]; save(); return showGuide(guideStep); }
+    if (e.target.id !== 'gSmaller' && e.target.id !== 'gBigger') return;
     const b = boxOf(guideMode, true); b.fs = e.target.id === 'gSmaller' ? Math.max(16, b.fs - 2) : Math.min(48, b.fs + 2); placeGuide(); save();
   });
 })();
@@ -1084,6 +1113,8 @@ slidesBox.addEventListener('mousedown', e => {
   edPick(n);
   if (isShade(n)) { edDrag = { n, x: e.clientX, y: e.clientY }; e.preventDefault(); }
 });
+guideEl.addEventListener('input', guideTyped);
+guideEl.addEventListener('paste', e => { e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
 slidesBox.addEventListener('input', () => { if (editing) { edSave(); placeMove(); } });
 slidesBox.addEventListener('paste', e => { if (!editing) return; e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
 slidesBox.addEventListener('click', e => { if (editing) e.stopPropagation(); });
@@ -1215,11 +1246,11 @@ document.getElementById('godBar').addEventListener('click', e => {
 });
 
 function scriptSections() {                                // the whole script for the prayers that are ticked
-  const out = [{ head: 'Start: before the first click', who: whoFor(STEPS[0]), lines: linesOf(SCRIPT.start) }]; let walk = 0;
+  const out = [{ head: 'Start: before the first click', who: whoAt('start', whoFor(STEPS[0])), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
-    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), who: whoFor(s), lines: linesOf((SCRIPT.stops || {})[s.to]) }); }
-    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (names[p.id] || '').trim(), lines: linesOf((SCRIPT.pops || {})[p.id]) }));
-    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (names[p.id] || '').trim(), lines: linesOf((SCRIPT.turns || {})[p.id]) }));
+    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), who: whoAt('stop:' + s.to, whoFor(s)), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
+    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (names[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
+    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (names[p.id] || '').trim(), lines: linesAt('turn:' + p.id, linesOf((SCRIPT.turns || {})[p.id])) }));
   });
   out.push({ head: 'End: closing', lines: linesOf(SCRIPT.end) });
   return out.filter(x => x.lines.length);
@@ -1273,7 +1304,7 @@ panel.addEventListener('change', e => {
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
-  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
   showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh();
 }
@@ -1361,6 +1392,10 @@ function enter(i, dir) {
 function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
 function prev() { if (idx > 0) enter(idx - 1, -1); }
 addEventListener('keydown', e => {
+  if (e.target && e.target.isContentEditable && guideEl.contains(e.target)) {     // typing in a script box
+    if (e.key === 'Escape') setGuideEdit(false); else if (e.key === 'Enter' && e.target.classList.contains('who')) { e.preventDefault(); setGuideEdit(false); }
+    return;
+  }
   if (editing && !panel.classList.contains('on')) return edKey(e);
   if (e.key === 'Escape' && panel.classList.contains('on')) return togglePanel(false);
   if ((e.key === 'c' || e.key === 'C') && !(e.target && e.target.tagName === 'INPUT')) return togglePanel();
