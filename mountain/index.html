@@ -275,10 +275,18 @@ samples.forEach((p, i) => { const k = Math.floor(p.x / BK) * 4096 + Math.floor(p
 const U_BR = uNear(48, 123.5, .3, .8), BR = curve.getPointAt(U_BR), BR_HALF = 18;
 const BT = (function () { const t = curve.getTangentAt(U_BR), n = Math.hypot(t.x, t.z); return { x: t.x / n, z: t.z / n }; })();
 const BR_DOWN = heightRaw(BR.x + BT.z * 50, BR.z - BT.x * 50) < heightRaw(BR.x - BT.z * 50, BR.z + BT.x * 50) ? 1 : -1;
+// Under the bridge the ravine is a plain notch, so the bridge and its posts sit true. Away from the bridge (wild goes 0 to 1) it wanders,
+// widens and narrows, and its walls are rough, so from above it reads as something water cut rather than a slice.
+const ravineWild = l => sstep(10, 42, Math.abs(l));
+const ravineMid = l => ravineWild(l) * (7 * Math.sin(l / 23 + 1.3) + 4 * Math.sin(l / 9.5 + .4));   // how far the middle of the ravine strays sideways at distance l down it
 function chasm(x, z) {
-  const dx = x - BR.x, dz = z - BR.z, a = Math.abs(dx * BT.x + dz * BT.z); if (a > BR_HALF + 3) return 0;
-  const l = (dx * BT.z - dz * BT.x) * BR_DOWN;                 // + is downhill: the gully runs down the fall line
-  return 46 * (1 - sstep(5, BR_HALF + 2, a)) * (l > 0 ? 1 - sstep(50, 105, l) : 1 - sstep(40, 90, -l));
+  const dx = x - BR.x, dz = z - BR.z, a0 = dx * BT.x + dz * BT.z; if (a0 > 46 || a0 < -46) return 0;
+  const l = (dx * BT.z - dz * BT.x) * BR_DOWN; if (l > 106 || l < -91) return 0;   // + is downhill: the gully runs down the fall line
+  const k = ravineWild(l), fade = l > 0 ? 1 - sstep(50, 105, l) : 1 - sstep(40, 90, -l);
+  if (k === 0) return 46 * (1 - sstep(5, BR_HALF + 2, Math.abs(a0))) * fade;
+  const n = fbm(x / 11 + 3, z / 11 + 8, 3) - .5, a = Math.abs(a0 - ravineMid(l)) + k * 6.5 * n;        // ragged rim
+  const wide = (BR_HALF + 2) * (1 + k * (.3 * Math.sin(l / 17 + 2) + .2 * Math.sin(l / 7.3))), floor = 5 * (1 + k * .5 * Math.sin(l / 13 + .7));
+  return Math.max(0, 46 * (1 - sstep(floor, wide, a)) * fade * (1 + k * .5 * (fbm(x / 7, z / 7 + 5, 3) - .5)));   // uneven walls and floor
 }
 // Level ground beside the trail for the stone garden.
 function beside(u, lateral, along) { const p = curve.getPointAt(clamp(u + (along || 0) / L, 0, 1)), t = curve.getTangentAt(clamp(u, 0, 1)); return { x: p.x + t.z * lateral, z: p.z - t.x * lateral, y: p.y - EYE }; }
@@ -323,7 +331,7 @@ function riverNear(x, z) {                              // sets rvD (distance to
 }
 (function buildRiverPath() {
   const lx = BT.z * BR_DOWN, lz = -BT.x * BR_DOWN, pts = [];
-  for (let l = -66; l <= 105; l += 3) pts.push({ x: BR.x + lx * l, z: BR.z + lz * l });          // down the mountainside and through the chasm
+  for (let l = -66; l <= 105; l += 3) { const c = ravineMid(l); pts.push({ x: BR.x + lx * l + BT.x * c, z: BR.z + lz * l + BT.z * c }); }   // down the mountainside and through the ravine, following its bends
   let x = pts[pts.length - 1].x, z = pts[pts.length - 1].z, hd = Math.atan2(lx, lz);
   for (let n = 0; n < 400 && height(x, z) > WATER + .3; n++) {                                   // then wherever the ground falls fastest
     let best = 1e9, ba = hd;
