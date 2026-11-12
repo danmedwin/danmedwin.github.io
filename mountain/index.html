@@ -88,9 +88,12 @@
   .adjusting #adj, .editing #ed, .god #godBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
   #ed.top { bottom: auto; top: calc(var(--in)*.2); } #ed, #godBar { gap: .45em; }
   #ed .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #edName, #godName { min-width: 7em; text-align: center; color: #FFC843; }
-  #ed .grp { display: flex; gap: .45em; } #ed .shd, #ed.shade .txt { display: none; } #ed.shade .shd { display: flex; }
+  #ed .grp { display: flex; gap: .45em; } #ed .shd, #ed.onShade .txt { display: none; } #ed.onShade .shd { display: flex; }
   #edMove { position: absolute; display: none; z-index: 4; width: calc(var(--pt)*26); height: calc(var(--pt)*26); border-radius: 50%; background: #FFC843; color: #05305E; cursor: move;
             font: 700 calc(var(--pt)*18)/calc(var(--pt)*26) Calibri, Carlito, sans-serif; text-align: center; user-select: none; }
+  #edGrip, #edRot { position: absolute; display: none; z-index: 4; width: calc(var(--pt)*22); height: calc(var(--pt)*22); margin: calc(var(--pt)*-11) 0 0 calc(var(--pt)*-11); background: #FFC843; color: #05305E; user-select: none;
+                    font: 700 calc(var(--pt)*17)/calc(var(--pt)*22) Calibri, Carlito, sans-serif; text-align: center; box-shadow: 0 0 0 2px rgba(5,48,94,.6); }
+  #edGrip { cursor: nwse-resize; border-radius: 3px; } #edRot { cursor: grab; border-radius: 50%; }
   .shade { position: absolute; border-radius: calc(var(--in)*.4); pointer-events: none; }
   .editing .slide { transition: none; } .editing .slide.on { pointer-events: auto; }
   .editing .slide.on .box:not(.dots) { outline: 1px dashed rgba(255,255,255,.4); outline-offset: 3px; cursor: text; }
@@ -165,6 +168,7 @@
     <span class="grp shd"><button id="edKind" title="Fade down, solid, or fade up">Style</button><button id="edLt">Lighter</button><button id="edDk">Darker</button><button id="edSf" title="Softer edges">Softer</button><button id="edSh" title="Sharper edges">Sharper</button></span>
     <button id="edAddT" title="Add a text box">+ Text</button><button id="edAddS" title="Add a shaded box behind the text">+ Shade</button><button id="edDel" title="Delete the selected box">Delete</button><button id="edReset" title="Put this slide back the way it came">Reset slide</button><button id="edFlip" title="Move this bar to the top or bottom">⇅</button><button id="edDone">Done</button></div>
   <div id="edMove" title="Drag to move this text">✥</div>
+  <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
   <div id="godBar"><b id="godName"></b><span>drag: orbit · wheel: zoom · W A S D: move · drag a marker to move that stop · arrows: turn its camera · [ ]: next stop</span><button id="godGo" title="Leave the overview and adjust this view (Enter)">Go there</button><button id="godReset">Reset this stop</button><button id="godDone">Done</button></div>
   <div id="panel"></div>
   <div id="fps"></div>
@@ -1003,14 +1007,22 @@ function edSave() {
   c.querySelectorAll('*').forEach(n => { n.removeAttribute('contenteditable'); n.removeAttribute('spellcheck'); n.classList.remove('sel'); if (!n.getAttribute('class')) n.removeAttribute('class'); });
   textEd[sl.id] = c.innerHTML; over[sl.id] = 1; save();
 }
+const edGrip = document.getElementById('edGrip'), edRot = document.getElementById('edRot');
 function placeMove() {
-  if (!edSel || isShade(edSel)) { edMove.style.display = 'none'; return; }
+  const sh = isShade(edSel); edGrip.style.display = edRot.style.display = sh ? 'block' : 'none';
+  if (sh) {                                              // the size handle sits on the shade's lower right corner, the turn handle above its top edge
+    const r = edSel.getBoundingClientRect(), S = stage.getBoundingClientRect(), cx = (r.left + r.right) / 2 - S.left, cy = (r.top + r.bottom) / 2 - S.top;
+    const a = (+edSel.dataset.r || 0) * DEG, w = edSel.offsetWidth / 2, h = edSel.offsetHeight / 2, up = h + inchPx() * .35, co = Math.cos(a), si = Math.sin(a);
+    edGrip.style.left = cx + w * co - h * si + 'px'; edGrip.style.top = cy + w * si + h * co + 'px'; let rx = cx + up * si, ry = cy - up * co; if (rx < 14 || ry < 14 || rx > S.width - 14 || ry > S.height - 14) { rx = cx + (h - inchPx() * .45) * si; ry = cy - (h - inchPx() * .45) * co; }   // no room outside: just inside the top edge
+    edRot.style.left = rx + 'px'; edRot.style.top = ry + 'px';
+  }
+  if (!edSel || sh) { edMove.style.display = 'none'; return; }
   const r = edSel.getBoundingClientRect(), S = stage.getBoundingClientRect(), k = inchPx() / 72 * 26, rtl = getComputedStyle(edSel).direction === 'rtl';
   edMove.style.display = 'block'; edMove.style.left = clamp(rtl ? r.right - S.left + 4 : r.left - S.left - k - 4, 0, S.width - k) + 'px'; edMove.style.top = clamp(r.top - S.top - k * .2, 0, S.height - k) + 'px';
 }
 function edPick(n) {
   if (edSel) edSel.classList.remove('sel'); edSel = n; if (n) n.classList.add('sel');
-  edBar.classList.toggle('shade', isShade(n)); placeMove();
+  edBar.classList.toggle('onShade', isShade(n)); placeMove();
 }
 function edAnchor(b) {                                   // write the box's place into its own style, keeping the edge it hangs from
   const r = b.getBoundingClientRect(), S = stage.getBoundingClientRect(), k = inchPx();
@@ -1024,7 +1036,7 @@ function edShift(b, dx, dy) {                            // in inches
 function paintShade(n) {
   const a = +n.dataset.a, k = n.dataset.k, soft = +n.dataset.s, c = v => 'rgba(0,0,0,' + Math.round(v * 100) / 100 + ')';
   n.style.background = k === 'solid' ? c(a) : 'linear-gradient(' + (k === 'up' ? '0deg' : '180deg') + ',' + c(a) + ' 0%,' + c(a * .7) + ' 45%,' + c(0) + ' 100%)';
-  n.style.filter = soft > 0 ? 'blur(calc(var(--in)*' + soft + '))' : '';
+  n.style.filter = soft > 0 ? 'blur(calc(var(--in)*' + soft + '))' : ''; n.style.transform = +n.dataset.r ? 'rotate(' + (+n.dataset.r) + 'deg)' : '';
 }
 function edBold() {
   const b = edSel; if (!b || isShade(b)) return; const pick = getSelection();
@@ -1057,16 +1069,26 @@ function edStep(dir) { let j = idx + dir; while (j >= 0 && j < STEPS.length && S
 slidesBox.addEventListener('mousedown', e => {
   if (!editing) return; const n = e.target.closest('.shade, .box'); if (!n || n.classList.contains('dots')) return edPick(null);
   edPick(n);
-  if (isShade(n)) { const r = n.getBoundingClientRect(), k = inchPx(); edDrag = { n, x: e.clientX, y: e.clientY, size: r.right - e.clientX < k * .5 && r.bottom - e.clientY < k * .5 }; e.preventDefault(); }
+  if (isShade(n)) { edDrag = { n, x: e.clientX, y: e.clientY }; e.preventDefault(); }
 });
 slidesBox.addEventListener('input', () => { if (editing) { edSave(); placeMove(); } });
 slidesBox.addEventListener('paste', e => { if (!editing) return; e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
 slidesBox.addEventListener('click', e => { if (editing) e.stopPropagation(); });
 edMove.addEventListener('mousedown', e => { if (!edSel) return; edAnchor(edSel); edDrag = { n: edSel, x: e.clientX, y: e.clientY }; e.preventDefault(); e.stopPropagation(); });
 edMove.addEventListener('click', e => e.stopPropagation());
+[edGrip, edRot].forEach(hd => { hd.addEventListener('click', e => e.stopPropagation());
+  hd.addEventListener('mousedown', e => { if (!isShade(edSel)) return; edDrag = { n: edSel, x: e.clientX, y: e.clientY, size: hd === edGrip, turn: hd === edRot }; e.preventDefault(); e.stopPropagation(); }); });
 addEventListener('mousemove', e => {
   if (!edDrag) return; const k = inchPx(), dx = (e.clientX - edDrag.x) / k, dy = (e.clientY - edDrag.y) / k, n = edDrag.n; edDrag.x = e.clientX; edDrag.y = e.clientY;
-  if (edDrag.size) { setIn(n, 'width', Math.max(.6, getIn(n, 'width') + dx)); setIn(n, 'height', Math.max(.4, getIn(n, 'height') + dy)); } else edShift(n, dx, dy);
+  if (edDrag.turn) {                                     // turn about the centre; it settles on level when close
+    const r = n.getBoundingClientRect(), now = Math.atan2(e.clientY - (r.top + r.bottom) / 2, e.clientX - (r.left + r.right) / 2) / DEG; if (edDrag.a0 == null) { edDrag.a0 = now; edDrag.r0 = +n.dataset.r || 0; }
+    let deg = Math.round(edDrag.r0 + now - edDrag.a0); deg = ((deg + 180) % 360 + 360) % 360 - 180;
+    if (Math.abs(deg) < 3) deg = 0; n.dataset.r = deg; paintShade(n);
+  } else if (edDrag.size) {                              // grow or shrink about the centre, along the shade's own sides, so the corner follows the pointer
+    const a = (+n.dataset.r || 0) * DEG, lx = dx * Math.cos(a) + dy * Math.sin(a), ly = -dx * Math.sin(a) + dy * Math.cos(a);
+    const w = Math.max(.6, getIn(n, 'width') + 2 * lx), h = Math.max(.4, getIn(n, 'height') + 2 * ly);
+    setIn(n, 'left', getIn(n, 'left') - (w - getIn(n, 'width')) / 2); setIn(n, 'top', getIn(n, 'top') - (h - getIn(n, 'height')) / 2); setIn(n, 'width', w); setIn(n, 'height', h);
+  } else edShift(n, dx, dy);
   placeMove();
 });
 addEventListener('mouseup', () => { if (edDrag) { edDrag = null; edSave(); } });
