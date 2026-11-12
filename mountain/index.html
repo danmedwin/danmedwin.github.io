@@ -1070,7 +1070,11 @@ function edShade(ch) {
   paintShade(n); edSave();
 }
 function edDelete() { if (!edSel) return; const n = edSel; edPick(null); n.remove(); edSave(); }
-function edReset() { const sl = curSlide(); if (!sl) return; delete textEd[sl.id]; delete over[sl.id]; sl.innerHTML = ORIG[sl.id]; save(); edRefresh(); }
+function edReset() {                                     // back to the default for this slide: the defaults file's edited copy if it has one, else the slide as built
+  const sl = curSlide(); if (!sl) return; const def = DEF.text && DEF.text[sl.id];
+  if (def) { textEd[sl.id] = def; over[sl.id] = 1; sl.innerHTML = cleanHTML(def); } else { delete textEd[sl.id]; delete over[sl.id]; sl.innerHTML = ORIG[sl.id]; }
+  save(); edRefresh();
+}
 function edStep(dir) { let j = idx + dir; while (j >= 0 && j < STEPS.length && STEPS[j].k !== 'slide') j += dir; if (j >= 0 && j < STEPS.length) enter(j, -1); }
 slidesBox.addEventListener('mousedown', e => {
   if (!editing) return; const n = e.target.closest('.shade, .box'); if (!n || n.classList.contains('dots')) return edPick(null);
