@@ -2,9 +2,100 @@
 // Open it from the Prayer List (folder icon). A file named defaults.js next to index.html is what every computer starts from.
 window.DEFAULTS = {
   "name": "default",
-  "sel": {},
-  "script": false,
-  "guide": {},
+  "sel": {
+    "elohai": true
+  },
+  "names": {
+    "opening": "Rabbi Dan",
+    "rocks": "Rabbi Micah"
+  },
+  "script": true,
+  "guide": {
+    "start": {
+      "x": 7.4,
+      "y": 5.31,
+      "w": 12.2,
+      "fs": 25,
+      "yb": 10.4
+    },
+    "stop:cairn": {
+      "x": 7.4,
+      "y": 5.95,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:tents": {
+      "x": 7.4,
+      "y": 2.7,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:climb": {
+      "x": 7.4,
+      "y": 4.59,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:gate": {
+      "x": 7.4,
+      "y": 5.62,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:ridge": {
+      "x": 7.4,
+      "y": 5.08,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:overlook": {
+      "x": 7.4,
+      "y": 4.62,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:bridge": {
+      "x": 7.4,
+      "y": 3.49,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:summit": {
+      "x": 7.4,
+      "y": 3.99,
+      "w": 12.2,
+      "fs": 30,
+      "yb": 10.4
+    },
+    "stop:shoulder": {
+      "x": 7.4,
+      "y": 4.6,
+      "yb": 10.4,
+      "w": 12.2,
+      "fs": 30
+    },
+    "stop:stones": {
+      "x": 7.4,
+      "y": 4.6,
+      "yb": 10.4,
+      "w": 12.2,
+      "fs": 30
+    },
+    "stop:trailhead": {
+      "x": 7.4,
+      "y": 4.6,
+      "yb": 10.4,
+      "w": 12.2,
+      "fs": 30
+    }
+  },
   "views": {
     "tents/modeh": {
       "y": 0.457,
@@ -71,11 +162,11 @@ window.DEFAULTS = {
       "dh": 0
     },
     "summit/avot": {
-      "y": -1.47,
-      "p": 0.125,
+      "y": 2.039,
+      "p": 0.053,
       "z": 1,
-      "dx": -0.311,
-      "dz": 16.959,
+      "dx": -7.823,
+      "dz": 2.535,
       "dh": 0
     },
     "summit/gvurot": {
@@ -121,6 +212,14 @@ window.DEFAULTS = {
     "stones/kaddish": {
       "y": -0.002,
       "p": 0.134,
+      "z": 1,
+      "dx": 0,
+      "dz": 0,
+      "dh": 0
+    },
+    "gate/barchu": {
+      "y": -0.001,
+      "p": -0.057,
       "z": 1,
       "dx": 0,
       "dz": 0,

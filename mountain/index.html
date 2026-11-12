@@ -83,11 +83,22 @@
   #map .x, #panel .x { position: absolute; cursor: pointer; color: #fff; opacity: .7; font: 700 calc(var(--pt)*20) Calibri, Carlito, sans-serif; line-height: 1; }
   #map .x { right: calc(var(--pt)*7); top: calc(var(--pt)*4); } #panel .x { right: calc(var(--pt)*20); top: calc(var(--pt)*16); font-size: calc(var(--pt)*30); }
   #map .x:hover, #panel .x:hover { opacity: 1; color: #FFC843; }
-  #adj { position: absolute; left: 50%; bottom: calc(var(--in)*.2); transform: translateX(-50%); display: none; align-items: center; gap: .8em; z-index: 4;
+  #adj, #ed, #godBar { position: absolute; left: 50%; bottom: calc(var(--in)*.2); transform: translateX(-50%); display: none; align-items: center; gap: .8em; z-index: 4;
          background: #041c3a; border: 1px solid #FFC843; border-radius: 999px; padding: .35em 1em; color: #fff; font: calc(var(--pt)*18) Calibri, Carlito, sans-serif; white-space: nowrap; }
-  .adjusting #adj { display: flex; } .adjusting #stage { cursor: grab; }
+  .adjusting #adj, .editing #ed, .god #godBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
+  #ed.top { bottom: auto; top: calc(var(--in)*.2); } #ed, #godBar { gap: .45em; }
+  #ed .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #edName, #godName { min-width: 7em; text-align: center; color: #FFC843; }
+  #ed .grp { display: flex; gap: .45em; } #ed .shd, #ed.shade .txt { display: none; } #ed.shade .shd { display: flex; }
+  #edMove { position: absolute; display: none; z-index: 4; width: calc(var(--pt)*26); height: calc(var(--pt)*26); border-radius: 50%; background: #FFC843; color: #05305E; cursor: move;
+            font: 700 calc(var(--pt)*18)/calc(var(--pt)*26) Calibri, Carlito, sans-serif; text-align: center; user-select: none; }
+  .shade { position: absolute; border-radius: calc(var(--in)*.4); pointer-events: none; }
+  .editing .slide { transition: none; } .editing .slide.on { pointer-events: auto; }
+  .editing .slide.on .box:not(.dots) { outline: 1px dashed rgba(255,255,255,.4); outline-offset: 3px; cursor: text; }
+  .editing .slide.on .shade { pointer-events: auto; cursor: move; outline: 1px dashed rgba(255,255,255,.4); }
+  .editing .slide.on .sel { outline: 2px solid #FFC843 !important; }
+  .editing #guide, .editing #map, .god #guide, .god #map, .god #title, .god #scrim, .god #slides, .god #adj { display: none !important; }
   #adj .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #adjName { min-width: 9em; text-align: center; color: #FFC843; }
-  #adj button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
+  #adj button, #ed button, #godBar button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
 
   /* ---------- control panel (for the person at the computer) ---------- */
   #panel { position: absolute; inset: 4% 5%; display: none; flex-direction: column; background: #041c3a; color: #fff; border: 1px solid rgba(255,255,255,.3);
@@ -134,7 +145,7 @@
 <body>
 <div id="stage">
   <div id="scrim"></div>
-  <div id="title"><div class="t1"></div><div class="t2"></div><div class="t3">Click or → to begin · C: prayer list · S: guide script on screen · M: map (click a stop to jump) · V: adjust a view · F: full screen</div></div>
+  <div id="title"><div class="t1"></div><div class="t2"></div><div class="t3">Click or → to begin · C: prayer list · S: guide script on screen · M: map (click a stop to jump) · V: adjust a view · E: edit text · G: overview · F: full screen</div></div>
   <div id="slides"></div>
   <div id="map"><svg viewBox="0 0 400 190" id="mapsvg"></svg><div class="cap" id="mapcap"></div><div class="x" id="mapX" title="Hide the map (M)">×</div></div>
   <div id="guide"><h4></h4><ul></ul><div class="tools"><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
@@ -143,10 +154,18 @@
     <button id="tbScript" title="Guide’s script on screen (S)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/><rect x="6" y="7" width="12" height="1.9" rx=".9" fill="#05305E"/><rect x="6" y="11" width="8" height="1.9" rx=".9" fill="#05305E"/></svg></button>
     <button id="tbMap" title="Map (M)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 20 L9 6 L13 13 L16 9 L23 20 Z"/><path d="M9 6 L7.2 9.2 L9 10.4 L10.6 9.2 Z" fill="#05305E" opacity=".55"/></svg></button>
     <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg></button>
+    <button id="tbEdit" title="Edit the text on screen (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L4.8 15.6 L16.2 4.2 A1.8 1.8 0 0 1 19.8 7.8 L8.4 19.2 Z"/><path d="M14 6.5 L17.5 10"/></svg></button>
+    <button id="tbGod" title="Overview: see and move every stop (G)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L17.5 9 L12 16 L6.5 9 Z"/><path d="M4 20 H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <button id="tbHide" title="Tuck the toolbar away"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
   </div>
   <div id="barTab" title="Show the toolbar">›</div>
   <div id="adj"><button id="adjPrev" class="nav" title="Previous prayer's view ( [ )">‹</button><b id="adjName"></b><button id="adjNext" class="nav" title="Next prayer's view ( ] )">›</button><span>look: drag or arrows · move: W A S D · up, down: R F · zoom: wheel or + − · next view: [ ]</span><button id="adjPlay" title="Play the move into this view ( T )">▶ Play move</button><button id="adjReset">Reset this view</button><button id="adjDone">Done</button></div>
+  <div id="ed"><button id="edPrev" class="nav" title="Previous slide ( [ )">‹</button><b id="edName"></b><button id="edNext" class="nav" title="Next slide ( ] )">›</button>
+    <span class="grp txt"><button id="edB" title="Bold on or off: the selected words, or the whole box"><b>B</b></button><button id="edSm" title="Smaller text">A−</button><button id="edBg" title="Bigger text">A+</button></span>
+    <span class="grp shd"><button id="edKind" title="Fade down, solid, or fade up">Style</button><button id="edLt">Lighter</button><button id="edDk">Darker</button><button id="edSf" title="Softer edges">Softer</button><button id="edSh" title="Sharper edges">Sharper</button></span>
+    <button id="edAddT" title="Add a text box">+ Text</button><button id="edAddS" title="Add a shaded box behind the text">+ Shade</button><button id="edDel" title="Delete the selected box">Delete</button><button id="edReset" title="Put this slide back the way it came">Reset slide</button><button id="edFlip" title="Move this bar to the top or bottom">⇅</button><button id="edDone">Done</button></div>
+  <div id="edMove" title="Drag to move this text">✥</div>
+  <div id="godBar"><b id="godName"></b><span>drag: orbit · wheel: zoom · W A S D: move · drag a marker to move that stop · arrows: turn its camera · [ ]: next stop</span><button id="godGo" title="Leave the overview and adjust this view (Enter)">Go there</button><button id="godReset">Reset this stop</button><button id="godDone">Done</button></div>
   <div id="panel"></div>
   <div id="fps"></div>
   <div id="err"></div>
@@ -729,10 +748,11 @@ const sel = Object.assign({}, DEF.sel, saved.sel);
 const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y: 6.3, w: 12.2, fs: 25 } };
 const guideBox = {};                                                 // one box per script moment: "start", "stop:tents", "turn:gvurot"...
 [DEF.guide, saved.guide].forEach(g => { for (const k in (g || {})) guideBox[k] = Object.assign({}, guideBox[k], g[k]); });
+const textEd = Object.assign({}, DEF.text, saved.text);              // slides changed with the text editor: { "s-shma-1": html }
 const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
-const settings = () => ({ name: designName, sel, names, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, names, text: textEd, script: showScript, guide: guideBox, views: viewAdj });
 const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(Object.assign(settings(), { barOff }))); } catch (e) {} };
 const isOn = p => (p.id in sel) ? !!sel[p.id] : !p.off;
 const made = {}, slideId = id => id.charAt(0) === '@' ? (made[id] || (made[id] = WEEKLY_SLIDES[id]())) : id;
@@ -800,22 +820,30 @@ function showGuide(s) {
 }
 let guideMode = 'start';
 const boxOf = (k, own) => guideBox[k] || (own ? (guideBox[k] = Object.assign({}, boxOf(k))) : Object.assign({}, GUIDE0[k === 'start' ? 'start' : 'walk'], k === 'start' ? null : guideBox.walk));
+const MAP_BOTTOM = 10.4;                                // the mini-map's bottom edge, in inches from the top of the slide
 function placeGuide() {
-  const b = boxOf(guideMode); guideEl.style.left = 'calc(var(--in)*' + b.x + ')'; guideEl.style.top = 'calc(var(--in)*' + b.y + ')';
+  const b = boxOf(guideMode); guideEl.style.left = 'calc(var(--in)*' + b.x + ')';
+  // yb: the box hangs from its bottom edge (level with the mini-map's), so it stays lined up however many lines it holds
+  if (b.yb != null) { guideEl.style.top = 'auto'; guideEl.style.bottom = 'calc(var(--in)*' + (11.25 - b.yb) + ')'; } else { guideEl.style.bottom = 'auto'; guideEl.style.top = 'calc(var(--in)*' + b.y + ')'; }
   guideEl.style.width = 'calc(var(--in)*' + b.w + ')'; guideEl.style.fontSize = 'calc(var(--pt)*' + b.fs + ')';
 }
 (function () {                                          // drag to move, drag the corner for width, A− / A+ for text size; each box keeps its own place
   let drag = null; const inch = () => stage.getBoundingClientRect().width / 20, r2 = v => Math.round(v * 100) / 100;
   guideEl.addEventListener('mousedown', e => {
     if (e.target.closest('.tools')) return;
-    const b = boxOf(guideMode, true); drag = { size: e.target.classList.contains('grip'), x: e.clientX, y: e.clientY, b: Object.assign({}, b) }; e.preventDefault();
+    const b = boxOf(guideMode, true); if (b.yb != null) { b.y = r2((guideEl.getBoundingClientRect().top - stage.getBoundingClientRect().top) / inch()); delete b.yb; }
+    drag = { size: e.target.classList.contains('grip'), x: e.clientX, y: e.clientY, b: Object.assign({}, b) }; e.preventDefault();
   });
   addEventListener('mousemove', e => {
     if (!drag) return; const b = boxOf(guideMode, true), dx = (e.clientX - drag.x) / inch(), dy = (e.clientY - drag.y) / inch();
     if (drag.size) b.w = r2(clamp(drag.b.w + dx, 4, 20 - b.x)); else { b.x = r2(clamp(drag.b.x + dx, 0, 20 - b.w)); b.y = r2(clamp(drag.b.y + dy, 0, 10.6)); }
     placeGuide();
   });
-  addEventListener('mouseup', () => { if (drag) { drag = null; save(); } });
+  addEventListener('mouseup', () => {
+    if (!drag) return; drag = null; const b = boxOf(guideMode, true), bottom = (guideEl.getBoundingClientRect().bottom - stage.getBoundingClientRect().top) / inch();
+    if (Math.abs(bottom - MAP_BOTTOM) < .35) { b.yb = MAP_BOTTOM; placeGuide(); }   // dropped near the mini-map's bottom edge: line up with it
+    save();
+  });
   guideEl.addEventListener('click', e => {
     e.stopPropagation(); if (e.target.id !== 'gSmaller' && e.target.id !== 'gBigger') return;
     const b = boxOf(guideMode, true); b.fs = e.target.id === 'gSmaller' ? Math.max(16, b.fs - 2) : Math.min(48, b.fs + 2); placeGuide(); save();
@@ -826,14 +854,14 @@ function setScript(on) { showScript = on; document.getElementById('tbScript').cl
 /* ---------- adjusting a view: V, then drag the scene or use the arrow keys ---------- */
 let adjusting = false;
 const curPose = () => { const s = STEPS[idx]; return s.k === 'travel' ? s.B : s.pose; };
-const REACH = 40, r3 = v => Math.round(v * 1000) / 1000;     // how far a view may stand from its spot on the trail
+const REACH = 60, r3 = v => Math.round(v * 1000) / 1000;     // how far a view may stand from its spot on the trail
 function endGlide() { const g = glide; glide = null; if (g) { toPose(g.to); if (g.then) g.then(); } }   // finish a move at once, text and all
 function replayMove() {                                 // in adjust mode: play the move into this view again, as the room will see it
   const j = idx; if (j < 1) return; enter(j - 1, -1); setTimeout(() => enter(j, 1), 700);
 }
 function nudge(ch) {                                    // ch: { y, p } look, { z } zoom factor, { f, r } steps forward / right, { h } up, or { reset }
   const p = curPose(); let a = Object.assign({ y: 0, p: 0, z: 1, dx: 0, dz: 0, dh: 0 }, viewAdj[p.key]);
-  if (ch.reset) a = null;
+  if (ch.reset) a = DEF.views && DEF.views[p.key] ? Object.assign({}, DEF.views[p.key]) : null;   // back to the default view
   else {
     a.y = r3(a.y + (ch.y || 0)); a.y = r3(a.y - 2 * Math.PI * Math.round(a.y / (2 * Math.PI))); a.p = r3(clamp(a.p + (ch.p || 0), -1.4 - p.base.pitch, 1.4 - p.base.pitch)); a.z = r3(clamp(a.z * (ch.z || 1), .6, 3));
     if (ch.f || ch.r) {                                  // forward is where we are looking; stay within reach of the trail
@@ -849,7 +877,7 @@ function nudge(ch) {                                    // ch: { y, p } look, { 
 }
 function setAdjust(on) {
   adjusting = on; autoNext = false; document.body.classList.toggle('adjusting', on); document.getElementById('tbView').classList.toggle('act', on);
-  if (on) { endGlide(); if (STEPS[idx].drift) { STEPS[idx].dp = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
+  if (on) { if (editing) setEdit(false); if (god) setGod(false); endGlide(); if (STEPS[idx].drift) { STEPS[idx].dp = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
 }
 (function () {
   let d = null;
@@ -877,6 +905,226 @@ function adjustKey(e) {                                 // returns true if the k
   else if (k === 'Escape') setAdjust(false); else return false;
   e.preventDefault(); return true;
 }
+
+/* =====================================================================
+   Editing the text on screen (E): type in any box, move it, bold, size, add boxes and shaded panels.
+   A changed slide is kept whole in the design ("text"), so it travels with a saved design or defaults.js.
+   ===================================================================== */
+const ORIG = {}, over = {};
+function cleanHTML(html) {                               // a design file can come from anywhere: keep only plain text markup
+  const t = document.createElement('template'); t.innerHTML = String(html);
+  const OK = { DIV: 1, SPAN: 1, BR: 1, B: 1, I: 1, U: 1, EM: 1, STRONG: 1 };
+  [...t.content.querySelectorAll('*')].forEach(n => {
+    if (!OK[n.tagName]) { n.replaceWith(document.createTextNode(n.textContent)); return; }
+    [...n.attributes].forEach(a => { const k = a.name.toLowerCase(); if (!(k === 'class' || k === 'style' || k === 'dir' || k.indexOf('data-') === 0) || /url\(|expression|javascript:|@import/i.test(a.value)) n.removeAttribute(a.name); });
+  });
+  return t.innerHTML;
+}
+function applyText() {                                   // put every changed slide on screen, and put back any that are no longer changed
+  document.querySelectorAll('#slides .slide').forEach(sl => {
+    if (!(sl.id in ORIG)) ORIG[sl.id] = sl.innerHTML;
+    if (sl.id in textEd) { sl.innerHTML = cleanHTML(textEd[sl.id]); over[sl.id] = 1; } else if (over[sl.id]) { sl.innerHTML = ORIG[sl.id]; delete over[sl.id]; }
+  });
+}
+let editing = false, edSel = null, edDrag = null;
+const edBar = document.getElementById('ed'), edMove = document.getElementById('edMove'), slidesBox = document.getElementById('slides');
+const curSlide = () => { const s = STEPS[idx]; return s.k === 'slide' ? document.getElementById(s.id) : null; };
+const inchPx = () => stage.getBoundingClientRect().width / 20, isShade = n => !!n && n.classList.contains('shade');
+const getIn = (n, prop) => { const m = /\*\s*(-?[\d.]+)\s*\)/.exec(n.style[prop] || ''); return m ? +m[1] : 0; };
+const setIn = (n, prop, v) => { n.style[prop] = 'calc(var(--in)*' + (Math.round(v * 100) / 100) + ')'; };
+function setEdit(on) {
+  if (on) { if (adjusting) setAdjust(false); if (god) setGod(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } }
+  editing = on; document.body.classList.toggle('editing', on); document.getElementById('tbEdit').classList.toggle('act', on);
+  if (on) edRefresh(); else { edPick(null); slidesBox.querySelectorAll('[contenteditable]').forEach(b => { b.removeAttribute('contenteditable'); b.removeAttribute('spellcheck'); }); }
+}
+function edRefresh() {                                   // make the slide now on screen editable
+  edPick(null); slidesBox.querySelectorAll('[contenteditable]').forEach(b => { b.removeAttribute('contenteditable'); b.removeAttribute('spellcheck'); });
+  const sl = curSlide(), s = STEPS[idx];
+  if (sl) { showText(s.id, s.stop); sl.querySelectorAll('.box:not(.dots)').forEach(b => { b.setAttribute('contenteditable', 'true'); b.setAttribute('spellcheck', 'false'); }); }
+  const n = sl ? STEPS.filter(t => t.k === 'slide' && t.pose.key === s.pose.key) : [];
+  document.getElementById('edName').textContent = sl ? s.pose.label + (n.length > 1 ? ' ' + (n.indexOf(s) + 1) + '/' + n.length : '') : 'No text at this step';
+}
+function edSave() {
+  const sl = curSlide(); if (!sl) return; const c = sl.cloneNode(true);
+  c.querySelectorAll('*').forEach(n => { n.removeAttribute('contenteditable'); n.removeAttribute('spellcheck'); n.classList.remove('sel'); if (!n.getAttribute('class')) n.removeAttribute('class'); });
+  textEd[sl.id] = c.innerHTML; over[sl.id] = 1; save();
+}
+function placeMove() {
+  if (!edSel || isShade(edSel)) { edMove.style.display = 'none'; return; }
+  const r = edSel.getBoundingClientRect(), S = stage.getBoundingClientRect(), k = inchPx() / 72 * 26, rtl = getComputedStyle(edSel).direction === 'rtl';
+  edMove.style.display = 'block'; edMove.style.left = clamp(rtl ? r.right - S.left + 4 : r.left - S.left - k - 4, 0, S.width - k) + 'px'; edMove.style.top = clamp(r.top - S.top - k * .2, 0, S.height - k) + 'px';
+}
+function edPick(n) {
+  if (edSel) edSel.classList.remove('sel'); edSel = n; if (n) n.classList.add('sel');
+  edBar.classList.toggle('shade', isShade(n)); placeMove();
+}
+function edAnchor(b) {                                   // write the box's place into its own style, keeping the edge it hangs from
+  const r = b.getBoundingClientRect(), S = stage.getBoundingClientRect(), k = inchPx();
+  if (b.style.left === '' && b.style.right === '') { if (getComputedStyle(b).direction === 'rtl') setIn(b, 'right', (S.right - r.right) / k); else setIn(b, 'left', (r.left - S.left) / k); }
+  if (b.style.top === '' && b.style.bottom === '') setIn(b, 'top', (r.top - S.top) / k);
+}
+function edShift(b, dx, dy) {                            // in inches
+  if (b.style.left !== '') setIn(b, 'left', getIn(b, 'left') + dx); if (b.style.right !== '') setIn(b, 'right', getIn(b, 'right') - dx);
+  if (b.style.top !== '') setIn(b, 'top', getIn(b, 'top') + dy); if (b.style.bottom !== '') setIn(b, 'bottom', getIn(b, 'bottom') - dy);
+}
+function paintShade(n) {
+  const a = +n.dataset.a, k = n.dataset.k, soft = +n.dataset.s, c = v => 'rgba(0,0,0,' + Math.round(v * 100) / 100 + ')';
+  n.style.background = k === 'solid' ? c(a) : 'linear-gradient(' + (k === 'up' ? '0deg' : '180deg') + ',' + c(a) + ' 0%,' + c(a * .7) + ' 45%,' + c(0) + ' 100%)';
+  n.style.filter = soft > 0 ? 'blur(calc(var(--in)*' + soft + '))' : '';
+}
+function edBold() {
+  const b = edSel; if (!b || isShade(b)) return; const pick = getSelection();
+  if (pick && !pick.isCollapsed && b.contains(pick.anchorNode)) document.execCommand('bold');
+  else if (b.style.fontWeight || b.querySelector('b, strong, [style*="font-weight"]')) {       // any bold in the box: make it all plain
+    b.style.fontWeight = ''; b.querySelectorAll('[style*="font-weight"]').forEach(n => { n.style.fontWeight = ''; if (!n.getAttribute('style')) n.removeAttribute('style'); });
+    b.querySelectorAll('b, strong').forEach(n => n.replaceWith(...n.childNodes));
+  } else b.style.fontWeight = '700';
+  edSave(); placeMove();
+}
+function edSize(d) {
+  const b = edSel; if (!b || isShade(b)) return; const k = inchPx() / 72, cs = getComputedStyle(b), fs = parseFloat(cs.fontSize) / k, lh = parseFloat(cs.lineHeight) / k, n = clamp(Math.round(fs + d), 10, 200);
+  b.style.fontSize = 'calc(var(--pt)*' + n + ')'; if (lh) b.style.lineHeight = 'calc(var(--pt)*' + Math.round(lh * n / fs * 10) / 10 + ')'; edSave(); placeMove();
+}
+function edAdd(shade) {
+  const sl = curSlide(); if (!sl) return; const b = document.createElement('div');
+  if (shade) { b.className = 'shade'; b.dataset.k = 'down'; b.dataset.a = '.85'; b.dataset.s = '.15'; b.setAttribute('style', 'left:calc(var(--in)*.25);top:calc(var(--in)*.9);width:calc(var(--in)*9.6);height:calc(var(--in)*4.5)'); paintShade(b); sl.insertBefore(b, sl.firstChild); }
+  else { b.className = 'box'; b.setAttribute('style', 'left:calc(var(--in)*1);top:calc(var(--in)*5);font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60)'); b.textContent = 'New text'; b.setAttribute('contenteditable', 'true'); b.setAttribute('spellcheck', 'false'); sl.appendChild(b); }
+  edPick(b); edSave();
+}
+function edShade(ch) {
+  const n = edSel; if (!isShade(n)) return;
+  if (ch.kind) n.dataset.k = { down: 'solid', solid: 'up', up: 'down' }[n.dataset.k] || 'down';
+  if (ch.a) n.dataset.a = clamp(Math.round((+n.dataset.a + ch.a) * 100) / 100, .1, 1); if (ch.s) n.dataset.s = clamp(Math.round((+n.dataset.s + ch.s) * 100) / 100, 0, .8);
+  paintShade(n); edSave();
+}
+function edDelete() { if (!edSel) return; const n = edSel; edPick(null); n.remove(); edSave(); }
+function edReset() { const sl = curSlide(); if (!sl) return; delete textEd[sl.id]; delete over[sl.id]; sl.innerHTML = ORIG[sl.id]; save(); edRefresh(); }
+function edStep(dir) { let j = idx + dir; while (j >= 0 && j < STEPS.length && STEPS[j].k !== 'slide') j += dir; if (j >= 0 && j < STEPS.length) enter(j, -1); }
+slidesBox.addEventListener('mousedown', e => {
+  if (!editing) return; const n = e.target.closest('.shade, .box'); if (!n || n.classList.contains('dots')) return edPick(null);
+  edPick(n);
+  if (isShade(n)) { const r = n.getBoundingClientRect(), k = inchPx(); edDrag = { n, x: e.clientX, y: e.clientY, size: r.right - e.clientX < k * .5 && r.bottom - e.clientY < k * .5 }; e.preventDefault(); }
+});
+slidesBox.addEventListener('input', () => { if (editing) { edSave(); placeMove(); } });
+slidesBox.addEventListener('paste', e => { if (!editing) return; e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
+slidesBox.addEventListener('click', e => { if (editing) e.stopPropagation(); });
+edMove.addEventListener('mousedown', e => { if (!edSel) return; edAnchor(edSel); edDrag = { n: edSel, x: e.clientX, y: e.clientY }; e.preventDefault(); e.stopPropagation(); });
+edMove.addEventListener('click', e => e.stopPropagation());
+addEventListener('mousemove', e => {
+  if (!edDrag) return; const k = inchPx(), dx = (e.clientX - edDrag.x) / k, dy = (e.clientY - edDrag.y) / k, n = edDrag.n; edDrag.x = e.clientX; edDrag.y = e.clientY;
+  if (edDrag.size) { setIn(n, 'width', Math.max(.6, getIn(n, 'width') + dx)); setIn(n, 'height', Math.max(.4, getIn(n, 'height') + dy)); } else edShift(n, dx, dy);
+  placeMove();
+});
+addEventListener('mouseup', () => { if (edDrag) { edDrag = null; edSave(); } });
+edBar.addEventListener('mousedown', e => e.preventDefault());                     // keep the words that are selected
+edBar.addEventListener('click', e => {
+  e.stopPropagation(); const b = e.target.closest('button'), id = b && b.id; if (!id) return;
+  if (id === 'edPrev') edStep(-1); else if (id === 'edNext') edStep(1); else if (id === 'edB') edBold(); else if (id === 'edSm') edSize(-2); else if (id === 'edBg') edSize(2);
+  else if (id === 'edAddT') edAdd(false); else if (id === 'edAddS') edAdd(true); else if (id === 'edDel') edDelete(); else if (id === 'edReset') edReset();
+  else if (id === 'edKind') edShade({ kind: 1 }); else if (id === 'edLt') edShade({ a: -.1 }); else if (id === 'edDk') edShade({ a: .1 }); else if (id === 'edSf') edShade({ s: .08 }); else if (id === 'edSh') edShade({ s: -.08 });
+  else if (id === 'edFlip') edBar.classList.toggle('top'); else if (id === 'edDone') setEdit(false);
+});
+function edKey(e) {
+  const typing = e.target && e.target.isContentEditable;
+  if (e.key === 'Escape') { if (typing) { e.target.blur(); getSelection().removeAllRanges(); } else setEdit(false); return; }
+  if (typing) {
+    if (e.key === 'Enter') { e.preventDefault(); document.execCommand('insertLineBreak'); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) { e.preventDefault(); edBold(); }
+    return;
+  }
+  if (e.key === 'PageDown' || e.key === ']') edStep(1); else if (e.key === 'PageUp' || e.key === '[') edStep(-1);
+  else if ((e.key === 'Delete' || e.key === 'Backspace') && isShade(edSel)) edDelete();
+  else if (e.key === 'e' || e.key === 'E') setEdit(false); else return;
+  e.preventDefault();
+}
+addEventListener('resize', placeMove);
+
+/* =====================================================================
+   Overview (G): fly above the mountain. Every view has a red marker where we stand and a small camera
+   showing which way it looks. Drag a marker to move that view; arrows turn its camera.
+   ===================================================================== */
+let god = null;
+const godG = new THREE.Group(); godG.visible = false; scene.add(godG);
+const G_RED = new THREE.MeshBasicMaterial({ color: 0xe5202a, fog: false }), G_GOLD = new THREE.MeshBasicMaterial({ color: 0xFFC843, fog: false }),
+  G_DARK = new THREE.MeshBasicMaterial({ color: 0x15161c, fog: false }), G_RAY = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, transparent: true, opacity: .85 });
+const godRay = new THREE.Raycaster(), godNdc = new THREE.Vector2();
+function godBuild() {
+  while (godG.children.length) godG.remove(godG.children[0]); const seen = {}; god.list = [];
+  STEPS.forEach((s, i) => {
+    if (s.k !== 'slide' || seen[s.pose.key]) return; seen[s.pose.key] = 1; const n = god.list.length;
+    const d = new THREE.Mesh(new THREE.OctahedronGeometry(1, 0), G_RED), stem = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, 1, 5), G_RED), c = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, .9, 1.6), G_DARK), lens = new THREE.Mesh(new THREE.ConeGeometry(.85, 1.2, 4), G_GOLD), ray = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 10, 5), G_RAY);
+    lens.rotation.x = Math.PI / 2; lens.position.z = -1.3; ray.rotation.x = Math.PI / 2; ray.position.z = -6.6; c.rotation.order = 'YXZ'; c.add(body, lens, ray);
+    [d, stem, body, lens].forEach(o => { o.userData.i = n; }); godG.add(d, stem, c);
+    god.list.push({ pose: s.pose, step: i, d, stem, c, name: s.pose.label, place: STOPS[s.stop].place });
+  });
+}
+function godSel(i) { if (!god) return; god.sel = i; const m = god.list[i]; document.getElementById('godName').textContent = m ? m.name : 'Overview'; }
+function setGod(on) {
+  on = !!on;
+  if (on) { if (adjusting) setAdjust(false); if (editing) setEdit(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; }
+    god = { tx: 150, tz: -95, dist: 760, az: .9, el: .8, sel: -1, drag: null, list: [] }; godBuild(); const k = curPose().key; godSel(god.list.findIndex(m => m.pose.key === k)); }
+  else { god = null; const s = STEPS[idx]; if (s.k !== 'travel') { s.dp = 0; toPose(s.pose); } }
+  godG.visible = on; document.body.classList.toggle('god', on); document.getElementById('tbGod').classList.toggle('act', on);
+}
+function godFrame() {
+  const g = god, ce = Math.cos(g.el), ty = height(g.tx, g.tz);
+  tmpP.set(g.tx + Math.sin(g.az) * ce * g.dist, ty + Math.sin(g.el) * g.dist, g.tz + Math.cos(g.az) * ce * g.dist); tmpP.y = Math.max(tmpP.y, height(tmpP.x, tmpP.z) + 4);
+  const dx = g.tx - tmpP.x, dy = ty - tmpP.y, dz = g.tz - tmpP.z; setPose(tmpP, Math.atan2(-dx, -dz), Math.atan2(dy, Math.hypot(dx, dz)), 1);
+  g.list.forEach((m, i) => {
+    const p = m.pose.pos, k = clamp(camera.position.distanceTo(p) / 70, .5, 16);
+    m.c.position.copy(p); m.c.rotation.set(m.pose.aim.pitch, m.pose.aim.yaw, 0); m.c.scale.setScalar(k);
+    m.d.material = m.stem.material = i === g.sel ? G_GOLD : G_RED; m.d.scale.set(k * 1.1, k * 1.7, k * 1.1); m.d.position.set(p.x, p.y + 6 * k, p.z); m.d.rotation.y = clock * .9;
+    m.stem.scale.set(k, 4.3 * k, k); m.stem.position.set(p.x, p.y + 2.15 * k, p.z);
+  });
+}
+function godAim(e) { const r = stage.getBoundingClientRect(); godNdc.set((e.clientX - r.left) / r.width * 2 - 1, 1 - (e.clientY - r.top) / r.height * 2); camera.updateMatrixWorld(); godRay.setFromCamera(godNdc, camera); }
+function godHit(e) { godAim(e); godG.updateMatrixWorld(true); const h = godRay.intersectObjects(godG.children, true).find(x => x.object.userData.i != null); return h ? h.object.userData.i : -1; }
+function godGround() {                                   // where the pointer's ray meets the mountain
+  const o = godRay.ray.origin, d = godRay.ray.direction, under = t => o.y + d.y * t < height(o.x + d.x * t, o.z + d.z * t); let t0 = 0, t = 3;
+  for (; t < 5000; t += 3) { if (under(t)) break; t0 = t; } if (t >= 5000) return null;
+  for (let i = 0; i < 12; i++) { const m = (t0 + t) / 2; if (under(m)) t = m; else t0 = m; }
+  return { x: o.x + d.x * t, z: o.z + d.z * t };
+}
+function godAdj(m, fn) {                                 // change one view's saved adjustment, with the same limits as adjust mode
+  const k = m.pose.key, a = Object.assign({ y: 0, p: 0, z: 1, dx: 0, dz: 0, dh: 0 }, viewAdj[k]);
+  if (fn) { fn(a); const d = Math.hypot(a.dx, a.dz); if (d > REACH) { a.dx *= REACH / d; a.dz *= REACH / d; }
+    a.y = r3(a.y - 2 * Math.PI * Math.round(a.y / (2 * Math.PI))); a.p = r3(clamp(a.p, -1.4 - m.pose.base.pitch, 1.4 - m.pose.base.pitch)); a.dx = r3(a.dx); a.dz = r3(a.dz); viewAdj[k] = a; }
+  else if (DEF.views && DEF.views[k]) viewAdj[k] = Object.assign({}, DEF.views[k]); else delete viewAdj[k];
+  STEPS.forEach(s => [s.pose, s.A0, s.B].forEach(q => { if (q && q.key === k) fixPose(q); })); save();
+}
+stage.addEventListener('mousedown', e => {
+  if (!god || e.target.closest('#bar, #barTab, #godBar, #panel')) return; const i = godHit(e); let off = null;
+  if (i >= 0) { godSel(i); const gp = godGround(), p = god.list[i].pose.pos; off = gp ? { x: p.x - gp.x, z: p.z - gp.z } : { x: 0, z: 0 }; }
+  god.drag = { x: e.clientX, y: e.clientY, i, off, moved: false }; e.preventDefault();
+});
+addEventListener('mousemove', e => {
+  const d = god && god.drag; if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y;
+  if (!d.moved && Math.hypot(dx, dy) < 4) return; d.moved = true;
+  if (d.i >= 0) { godAim(e); const gp = godGround(), m = god.list[d.i]; if (gp) { const c = curve.getPointAt(clamp(m.pose.u, 0, 1)); godAdj(m, a => { a.dx = gp.x + d.off.x - c.x; a.dz = gp.z + d.off.z - c.z; }); } }
+  else { god.az -= dx * .006; god.el = clamp(god.el + dy * .005, .1, 1.5); d.x = e.clientX; d.y = e.clientY; }
+});
+addEventListener('mouseup', () => { if (god) god.drag = null; });
+stage.addEventListener('wheel', e => { if (!god) return; e.preventDefault(); god.dist = clamp(god.dist * (e.deltaY > 0 ? 1.1 : 1 / 1.1), 25, 1600); }, { passive: false });
+function godGo() { const m = god && god.list[god.sel]; if (!m) return; setGod(false); enter(m.step, -1); setAdjust(true); }
+function godNext(dir) { const g = god, n = g.list.length; if (!n) return; godSel(((g.sel < 0 ? (dir > 0 ? -1 : 0) : g.sel) + dir + n) % n); const p = g.list[g.sel].pose.pos; g.tx = p.x; g.tz = p.z; }
+function godKey(e) {
+  const g = god, k = e.key.length === 1 ? e.key.toLowerCase() : e.key, big = e.shiftKey ? 4 : 1, m = g.list[g.sel], step = g.dist * .035 * big, fx = -Math.sin(g.az), fz = -Math.cos(g.az);
+  const pan = (f, r) => { g.tx += (fx * f - fz * r) * step; g.tz += (fz * f + fx * r) * step; };
+  if (k === 'w') pan(1, 0); else if (k === 's') pan(-1, 0); else if (k === 'd') pan(0, 1); else if (k === 'a') pan(0, -1);
+  else if (k === 'ArrowLeft') { if (m) godAdj(m, a => { a.y += 2 * big * DEG; }); else g.az += .05; } else if (k === 'ArrowRight') { if (m) godAdj(m, a => { a.y -= 2 * big * DEG; }); else g.az -= .05; }
+  else if (k === 'ArrowUp') { if (m) godAdj(m, a => { a.p += 2 * big * DEG; }); else g.el = clamp(g.el + .04, .1, 1.5); } else if (k === 'ArrowDown') { if (m) godAdj(m, a => { a.p -= 2 * big * DEG; }); else g.el = clamp(g.el - .04, .1, 1.5); }
+  else if (k === '+' || k === '=') g.dist = clamp(g.dist / 1.1, 25, 1600); else if (k === '-' || k === '_') g.dist = clamp(g.dist * 1.1, 25, 1600);
+  else if (k === ']' || k === 'Tab') godNext(1); else if (k === '[') godNext(-1);
+  else if (k === 'Enter') godGo(); else if (k === 'Escape' || k === 'g') setGod(false); else return;
+  e.preventDefault();
+}
+document.getElementById('godBar').addEventListener('mousedown', e => e.stopPropagation());
+document.getElementById('godBar').addEventListener('click', e => {
+  e.stopPropagation(); const id = e.target.id;
+  if (id === 'godGo') godGo(); else if (id === 'godDone') setGod(false); else if (id === 'godReset' && god.list[god.sel]) godAdj(god.list[god.sel], null);
+});
+
 function scriptSections() {                                // the whole script for the prayers that are ticked
   const out = [{ head: 'Start: before the first click', who: whoFor(STEPS[0]), lines: linesOf(SCRIPT.start) }]; let walk = 0;
   STEPS.forEach(s => {
@@ -922,7 +1170,7 @@ function drawPanel() {
     '<button class="ib" id="btnReset" title="Reset this computer to the defaults">' + IC.reset + '</button></div><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none">';
   panel.querySelectorAll('input[data-part]').forEach(i => { i.indeterminate = true; });
 }
-function applyChoice() { save(); buildSteps(); enter(0, -1); drawPanel(); }
+function applyChoice() { save(); buildSteps(); enter(0, -1); drawPanel(); if (god) { godBuild(); godSel(0); } if (editing) edRefresh(); }
 panel.addEventListener('click', e => e.stopPropagation());
 panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
   const t = e.target; if (!t.dataset.n) return;
@@ -935,9 +1183,9 @@ panel.addEventListener('change', e => {
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
-  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
-  showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice();
+  showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh();
 }
 function saveDesign(name, asDefault) {
   designName = asDefault ? '' : name; save();
@@ -974,7 +1222,7 @@ function togglePanel(on) { if (on == null) on = !panel.classList.contains('on');
 function setBar(off) { barOff = off; stage.classList.toggle('barOff', off); save(); }
 document.getElementById('bar').addEventListener('click', e => {
   e.stopPropagation(); const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'tbList') togglePanel(); else if (b.id === 'tbScript') setScript(!showScript); else if (b.id === 'tbMap') toggleMap(); else if (b.id === 'tbView') setAdjust(!adjusting); else if (b.id === 'tbHide') setBar(true);
+  if (b.id === 'tbList') togglePanel(); else if (b.id === 'tbScript') setScript(!showScript); else if (b.id === 'tbMap') toggleMap(); else if (b.id === 'tbView') setAdjust(!adjusting); else if (b.id === 'tbEdit') setEdit(!editing); else if (b.id === 'tbGod') setGod(!god); else if (b.id === 'tbHide') setBar(true);
 });
 document.getElementById('barTab').addEventListener('click', e => { e.stopPropagation(); setBar(false); });
 stage.classList.toggle('barOff', barOff); document.getElementById('tbScript').classList.toggle('act', showScript);
@@ -1012,16 +1260,18 @@ function enter(i, dir) {
     todTarget = STOPS[s.to].tod[0];
     if (dir > 0) { travelP = 0; travelling = true; todFrom = tod; } else { travelP = 1; travelling = false; todFrom = tod = todTarget; }
   }
-  showGuide(s); if (adjusting) document.getElementById('adjName').textContent = curPose().label;
+  showGuide(s); if (adjusting) document.getElementById('adjName').textContent = curPose().label; if (editing) edRefresh();
   if (post) post();
   try { history.replaceState(null, '', '#' + idx); } catch (e) {}
 }
 function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
 function prev() { if (idx > 0) enter(idx - 1, -1); }
 addEventListener('keydown', e => {
+  if (editing && !panel.classList.contains('on')) return edKey(e);
   if (e.key === 'Escape' && panel.classList.contains('on')) return togglePanel(false);
   if ((e.key === 'c' || e.key === 'C') && !(e.target && e.target.tagName === 'INPUT')) return togglePanel();
   if (panel.classList.contains('on')) return;
+  if (god) return godKey(e);
   if (adjusting && adjustKey(e)) return;
   if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
   else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
@@ -1030,10 +1280,12 @@ addEventListener('keydown', e => {
   else if (e.key === 's' || e.key === 'S') setScript(!showScript);
   else if (e.key === 'm' || e.key === 'M') toggleMap();
   else if (e.key === 'v' || e.key === 'V') setAdjust(!adjusting);
+  else if (e.key === 'e' || e.key === 'E') setEdit(true);
+  else if (e.key === 'g' || e.key === 'G') setGod(true);
   else if (e.key === 'Home') enter(0, -1);
 });
-stage.addEventListener('click', () => { if (!panel.classList.contains('on') && !adjusting) next(); });
-buildSteps();
+stage.addEventListener('click', () => { if (!panel.classList.contains('on') && !adjusting && !editing && !god) next(); });
+buildSteps(); applyText();
 
 /* =====================================================================
    Layout and the frame loop
@@ -1051,7 +1303,8 @@ const fpsEl = document.getElementById('fps'), tmpV = new THREE.Vector3(); let fA
 function frame(now) {
   const dt = Math.min((now - last) / 1000, .1); last = now; clock += dt;
   const s = STEPS[idx];
-  if (s.k === 'travel') {
+  if (god) godFrame();
+  else if (s.k === 'travel') {
     if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; }
     const e = poseTravel(s.A, s.B, travelP), arrived = travelP >= 1 && autoNext;
     tod = lerp(todFrom, todTarget, e); setMap(s.mi - 1, s.mi, e, travelP >= 1);
@@ -1063,7 +1316,7 @@ function frame(now) {
       setPose(tmpP, lerpAngle(glide.y0, glide.to.aim.yaw, e), lerp(glide.p0, glide.to.aim.pitch, e), lerp(glide.z0, glide.to.zoom, e));
       if (glide.t >= 1) { const g = glide; glide = null; if (g.then) g.then(); }
     }
-    else if (s.drift && !adjusting) {                             // the bridge: we walk slowly across while the words are up
+    else if (s.drift && !adjusting && !editing) {                             // the bridge: we walk slowly across while the words are up
       s.dp = Math.min(1, (s.dp || 0) + dt / s.drift.secs); const e = lerp(s.dp, ease(s.dp), .5), u = s.du = lerp(s.pose.u, s.drift.to, e);
       const a = viewAdj[s.pose.key] || {}, pa = pathAim(u, -2), w = sstep(0, .12, s.dp);
       tmpP.copy(curve.getPointAt(u)).add(s.pose.d);
@@ -1071,7 +1324,7 @@ function frame(now) {
     }
     tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
   }
-  applyTOD(tod); animateWind(clock);
+  applyTOD(god ? 4 : tod); animateWind(clock);
   sky.position.copy(camera.position); stars.position.copy(camera.position);
   clouds.forEach(c => { const az = SUN_AZ + c.az + clock * 0.0009; c.s.position.set(camera.position.x + Math.cos(c.el) * Math.cos(az) * 6000, camera.position.y + Math.sin(c.el) * 6000, camera.position.z + Math.cos(c.el) * Math.sin(az) * 6000); });
   tmpV.copy(sunDir); if (tmpV.y < .12) tmpV.y = .12;
