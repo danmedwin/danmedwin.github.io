@@ -93,7 +93,8 @@ window.SCRIPT = {
     ]
   },
 
-  // At the summit we turn to a new view before each part of the Amidah.
+  // At the summit the view turns before each part of the Amidah. These lines are in the printed script only:
+  // on screen there is no pause, so a guide says them before clicking on from the prayer before.
   turns: {
     gvurot: [
       "Now we turn and look down at the last stretch of the climb, and the bridge we crossed.",

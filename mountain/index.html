@@ -760,7 +760,6 @@ function buildSteps() {
     lastPose = first;
     list.forEach((it, j) => {
       const pose = poseOf(j, it.p);
-      if (it.first && j > 0 && ((st.views && st.views[it.p.id]) || linesOf((SCRIPT.turns || {})[it.p.id]).length)) STEPS.push({ k: 'turn', stop: r.stop, mi: ri, pose, prayer: it.p });   // turn to the new view; the guide speaks
       STEPS.push({ k: 'slide', stop: r.stop, mi: ri, id: it.id, pose, tod: lerp(st.tod[0], st.tod[1], (j + 1) / n), drift: st.cross && j === n - 1 ? st.cross : null });   // drift: keep walking slowly while this text is up
       lastPose = pose;
     });
@@ -778,8 +777,10 @@ const SCRIPT = window.SCRIPT || {}, guideEl = document.getElementById('guide');
 const anyOn = id => ORDER.some(o => o.prayers.some(p => p.id === id && isOn(p)));
 const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if || anyOn(l.if)).map(l => typeof l === 'string' ? l : l.t);
 // The names typed in the Prayer List, for the prayers a script moment leads into. One shared name is shown alone; otherwise each prayer with its name.
+// A later prayer at a stop with its own lines in the script (the parts of the Amidah): printed as its own section. On screen the view turns and the text follows with no extra click.
+const hasTurn = (r, p) => r.prayers[0] !== p && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
 function whoFor(s) {
-  const ps = s.k === 'turn' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !STEPS.some(t => t.k === 'turn' && t.prayer.id === p.id));
+  const ps = (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p));
   const got = ps.map(p => ({ p: p.name, n: (names[p.id] || '').trim() })).filter(x => x.n);
   if (!got.length) return '';
   return got.every(x => x.n === got[0].n) ? got[0].n : got.map(x => x.p + ': ' + x.n).join(' · ');
@@ -879,7 +880,7 @@ function scriptSections() {                                // the whole script f
   const out = [{ head: 'Start: before the first click', who: whoFor(STEPS[0]), lines: linesOf(SCRIPT.start) }]; let walk = 0;
   STEPS.forEach(s => {
     if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), who: whoFor(s), lines: linesOf((SCRIPT.stops || {})[s.to]) }); }
-    else if (s.k === 'turn') out.push({ head: 'At ' + STOPS[s.stop].place + ': before ' + s.prayer.name, who: whoFor(s), lines: linesOf((SCRIPT.turns || {})[s.prayer.id]) });
+    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (names[p.id] || '').trim(), lines: linesOf((SCRIPT.turns || {})[p.id]) }));
   });
   out.push({ head: 'End: closing', lines: linesOf(SCRIPT.end) });
   return out.filter(x => x.lines.length);
