@@ -5,10 +5,6 @@ window.DEFAULTS = {
   "sel": {
     "elohai": true
   },
-  "names": {
-    "opening": "Rabbi Dan",
-    "rocks": "Rabbi Micah"
-  },
   "script": true,
   "guide": {
     "start": {
