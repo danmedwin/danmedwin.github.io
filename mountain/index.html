@@ -330,6 +330,7 @@ const STOPS = {
   bridge:    { u: U_BR - (BR_HALF + 13) / L,     tod: [3.2, 3.25], sa: .45, cross: { to: U_BR + (BR_HALF + 7) / L, secs: 80 }, name: 'Mi Chamochah',       place: 'the bridge' },
   summit:    { u: U_SUMMIT,                      tod: [3.5, 3.6],  sa: .68, name: 'Amidah',             place: 'the summit' },
   shoulder:  { u: uNear(95, -110, .6, 1),        tod: [3.8, 3.85], sa: .55, name: 'D’var Torah',        place: 'the way down', speed: 11 },
+  lower:     { u: uNear(120.7, -133.5, .7, .95),   tod: [3.86, 3.88], sa: .55, name: 'Aleinu',             place: 'the lower slope', speed: 11 },
   stones:    { u: U_STONES - 13 / L,             tod: [3.9, 3.95], sa: .55, name: 'Mourner’s Kaddish',  place: 'the stones of memory', speed: 11 },
   trailhead: { u: 1 - 24 / L,                    tod: [4, 4],      sa: .6,  name: 'Closing',            place: 'the trailhead', speed: 13 }
 };
@@ -689,6 +690,7 @@ function pathAim(u, lift) {
   A.overlook = aimAt(V(0.12, 0, 1).normalize(), 0, -0.34);                                         // south over the valley
   A.bridge = aimAt(to(at(STOPS.bridge.u), V(BR.x, BR.y - 2, BR.z)), 0, -0.18);                      // along the bridge
   A.summit = aimAt(V(-1, 0, -0.25).normalize(), 0, -0.42);                                          // big sky, ranges below
+  A.lower = aimAt(V(1, 0, -0.35).normalize(), 0.1, 0.2);                                          // the valley, closer now
   A.shoulder = aimAt(V(1, 0, -0.35).normalize(), 0.1, 0.2);                                       // back over the valley we left
   A.stones = aimAt(to(at(STOPS.stones.u), STONES_AT.clone().add(V(0, 1.2, 0))), 0.25, -0.5);       // the small cairns, valley beyond
   A.trailhead = aimAt(to(at(STOPS.trailhead.u), V(0, curve.getPointAt(U_SUMMIT).y, 0)), 0.5, 0.3); // a little above where we began: the mountain we climbed, the camp and the cairn below
@@ -742,7 +744,7 @@ document.querySelector('#title .t2').innerHTML = [WEEKLY.line1, WEEKLY.line2].fi
 /* =====================================================================
    Mini-map: a side profile of the whole route
    ===================================================================== */
-const MAPXY = { woods: [26, 170], cairn: [48, 166], tents: [74, 159], garden: [100, 148], climb: [126, 135], gate: [154, 117], ridge: [182, 93], overlook: [208, 71], bridge: [234, 48], summit: [258, 27], shoulder: [292, 78], stones: [322, 122], trailhead: [356, 168] };
+const MAPXY = { woods: [26, 170], cairn: [48, 166], tents: [74, 159], garden: [100, 148], climb: [126, 135], gate: [154, 117], ridge: [182, 93], overlook: [208, 71], bridge: [234, 48], summit: [258, 27], shoulder: [282, 60], lower: [302, 92], stones: [322, 122], trailhead: [356, 168] };
 const mapEl = document.getElementById('map'), mapCap = document.getElementById('mapcap'), svg = document.getElementById('mapsvg');
 const SVGNS = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
@@ -770,13 +772,13 @@ function toggleMap() { if (mapEl.classList.contains('on')) { mapForce = false; m
 document.getElementById('mapX').addEventListener('click', e => { e.stopPropagation(); toggleMap(); });
 function label(t, i, txt, isFrom) {
   const s = ROUTE[i], right = s.x > SUMMIT_X, low = !right && s.x < 130, start = right || low;
-  let x = low ? Math.max(2, s.x - 14) : s.x + (right ? 10 : -9), y = s.y + (low ? (isFrom ? 19 : -11) : (isFrom ? -5 : -6));
+  let x = low ? Math.max(2, s.x - 14) : s.x + (right ? 10 : -9), y = s.y + (right ? 5 : low ? (isFrom ? 19 : -11) : (isFrom ? -5 : -6));   // on the way down the names sit beside their dots and run downward, so close stops do not collide
   t.setAttribute('text-anchor', start ? 'start' : 'end'); t.setAttribute('x', x); t.setAttribute('y', y);
   // wrap at spaces so a long name stays inside the map; lines stack away from the dot
   const fs = isFrom ? 15 : 17, cw = fs * (isFrom ? .47 : .51), room = start ? 394 - x : x - 6, lines = [];
   txt.split(' ').forEach(w => { const n = lines.length - 1; if (n >= 0 && (lines[n] + ' ' + w).length * cw <= room) lines[n] += ' ' + w; else if (w) lines.push(w); });
   while (t.firstChild) t.removeChild(t.firstChild);
-  const down = low && isFrom, wide = Math.max(0, ...lines.map(l => l.length)) * cw;
+  const down = right || (low && isFrom), wide = Math.max(0, ...lines.map(l => l.length)) * cw;
   if (start && x + wide > 396) x = 396 - wide; else if (!start && x - wide < 4) x = 4 + wide;   // a single long word: slide it back inside
   lines.forEach((ln, k) => { const ts = document.createElementNS(SVGNS, 'tspan'); ts.textContent = ln; ts.setAttribute('x', x); ts.setAttribute('y', y + (down ? k : k - (lines.length - 1)) * fs * 1.08); t.appendChild(ts); });
 }
@@ -1317,6 +1319,10 @@ function showText(id, stop) {
   const s = id && document.getElementById(id);
   if (s) { s.classList.add('on'); stage.style.setProperty('--sa', STOPS[stop].sa); scrimEl.classList.toggle('tall', s.dataset.scrim === 'tall'); }
   scrimEl.classList.toggle('on', !!s && s.dataset.scrim !== 'none');
+  if (s && mapEl.classList.contains('on')) {              // the map steps aside when text comes up under it; M or the map button brings it back
+    const m = mapEl.getBoundingClientRect();
+    if ([...s.querySelectorAll('.box')].some(b => { const r = b.getBoundingClientRect(); return b.textContent.trim() && r.left < m.right && r.right > m.left && r.top < m.bottom && r.bottom > m.top; })) { mapForce = false; showMap(); }
+  }
 }
 function enter(i, dir) {
   idx = clamp(i, 0, STEPS.length - 1); const s = STEPS[idx];

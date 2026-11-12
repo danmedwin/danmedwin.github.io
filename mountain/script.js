@@ -47,14 +47,12 @@ window.SCRIPT = {
     ridge: [
       "We are through the gate and out of the trees. Look east. The sky is starting to change.",
       "Yotzeir Or thanks God for creating light, and for making the world new every single day.",
-      "In the middle of the prayer is a line of pure amazement: Mah rabu ma'asecha, \"How many are the things You have made!\"",
+      "In the middle of the prayer is a line of pure amazement: Mah rabu ma'asecha, \"How great are the things You have made!\"",
       "As the light comes up, look for how many things you can see now that you could not see before."
     ],
     overlook: [
       "Now there is enough light to see, and we are high enough to see far.",
-      "Down in the woods, everything looked separate: this tree, that rock, the next turn in the trail. From up here it is all one mountain.",
-      { if: "shma", t: "The Sh'ma says that God is one. It begins with the word \"listen,\" so before we say it, we get quiet." },
-      { if: "vahavta", t: "The V'ahavta tells us to carry these words everywhere, at home and when we walk on the way. Today we are on the way." }
+      "Down in the woods, everything looked separate: this tree, that rock, the next turn in the trail. From up here it is all one mountain."
     ],
     bridge: [
       "The trail ends at a deep canyon. The only way across is a narrow bridge, and the wind is blowing.",
@@ -74,7 +72,10 @@ window.SCRIPT = {
       "Nobody lives on a summit. The view matters because of what we do with it when we go back down.",
       "Moses climbed a mountain too, and the most important part was what he carried down to the people.",
       { if: "dvar", t: "Partway down, we stop to think about what we learned up there. That is what a d'var Torah is for." },
-      { if: "aleinu", t: "Aleinu means \"it is upon us.\" Look at the valley below: that is the world we are going back to, and repairing it is our job." }
+    ],
+    lower: [
+      "We keep going down. The valley is closer now.",
+      "Aleinu means \"it is upon us.\" Look at the valley below: that is the world we are going back to, and repairing it is our job."
     ],
     stones: [
       "Beside the trail are small piles of stones, like the cairn we passed on the way up.",
@@ -120,6 +121,8 @@ window.SCRIPT = {
     modeh: ["The first words a Jew says in the morning are Modeh Ani, \"I give thanks.\" We say thank you before we do anything else."],
     mahtovu: ["Mah Tovu means \"How good are your tents.\" Those words were first said by someone looking at the camp of Israel from a distance, the way we are looking at this one."],
     asher: ["Asher Yatzar thanks God for a body that works. We slept all night, and this morning everything opened and closed the way it should."],
+    shma: ["The Sh'ma says that God is one. It begins with the word \"listen,\" so before we say it, we get quiet."],
+    vahavta: ["The V'ahavta tells us to carry these words everywhere, at home and when we walk on the way. Today we are on the way."],
     elohai: ["It is cold enough to see your breath. Elohai N'shamah says the soul God breathed into us is pure, and every morning we get it back that way."]
   },
 
