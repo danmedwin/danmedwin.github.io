@@ -760,6 +760,7 @@ function buildSteps() {
     lastPose = first;
     list.forEach((it, j) => {
       const pose = poseOf(j, it.p);
+      if (it.first && hasTurn(r, it.p)) STEPS.push({ k: 'turn', stop: r.stop, mi: ri, pose, prayer: it.p });   // with the script on screen: turn, the guide speaks, a click brings the text. With it off, enter() passes straight through
       STEPS.push({ k: 'slide', stop: r.stop, mi: ri, id: it.id, pose, tod: lerp(st.tod[0], st.tod[1], (j + 1) / n), drift: st.cross && j === n - 1 ? st.cross : null });   // drift: keep walking slowly while this text is up
       lastPose = pose;
     });
@@ -780,7 +781,7 @@ const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if 
 // A later prayer at a stop with its own lines in the script (the parts of the Amidah): printed as its own section. On screen the view turns and the text follows with no extra click.
 const hasTurn = (r, p) => r.prayers[0] !== p && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
 function whoFor(s) {
-  const ps = (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p));
+  const ps = s.k === 'turn' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p));
   const got = ps.map(p => ({ p: p.name, n: (names[p.id] || '').trim() })).filter(x => x.n);
   if (!got.length) return '';
   return got.every(x => x.n === got[0].n) ? got[0].n : got.map(x => x.p + ': ' + x.n).join(' · ');
@@ -908,7 +909,7 @@ const IC = {
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
   const slides = STEPS.filter(s => s.k === 'slide').length;
-  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1) + ' clicks. Choices are remembered on this computer.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div><div class="cols">' +
+  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks. Choices are remembered on this computer.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div><div class="cols">' +
     ORDER.map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
       return '<div class="stop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + (st.note ? ' <span class="under">(' + st.note + ')</span>' : '') + '</label>' +
         o.prayers.map(p => '<div class="prow"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label><input type="text" class="who" data-n="' + p.id + '" maxlength="40" placeholder="name" title="Who leads ' + esc(p.name).replace(/"/g, '&quot;') + '" value="' + esc(names[p.id] || '').replace(/"/g, '&quot;') + '"></div>').join('') +
@@ -989,7 +990,9 @@ function showText(id, stop) {
   scrimEl.classList.toggle('on', !!s && s.dataset.scrim !== 'none');
 }
 function enter(i, dir) {
-  idx = clamp(i, 0, STEPS.length - 1); const s = STEPS[idx]; glide = null; autoNext = false; let post = null;
+  idx = clamp(i, 0, STEPS.length - 1); const s = STEPS[idx];
+  if (s.k === 'turn' && !showScript) return enter(idx + (dir > 0 ? 1 : -1), dir);   // no script on screen, no pause: straight on to the text
+  glide = null; autoNext = false; let post = null;
   titleEl.classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
   if (s.k === 'slide' || s.k === 'turn') {
     // text fades out, the camera moves to this prayer's view, then the new text fades in
