@@ -177,10 +177,10 @@
 </div>
 <div id="print"></div>
 
-<script src="slides.js"></script>
-<script src="script.js"></script>
-<script src="defaults.js"></script>
-<script src="weekly.js"></script>
+<script>
+// The text, script, defaults and weekly files are fetched fresh on every load, so a changed default is never hidden by the browser's cache.
+['slides.js', 'script.js', 'defaults.js', 'weekly.js'].forEach(function (f) { document.write('<script src="' + f + '?t=' + Date.now() + '"><\/script>'); });
+</script>
 <script src="vendor/three.min.js"></script>
 <script>
 (function () {
@@ -809,7 +809,10 @@ const names = Object.assign({}, DEF.names, saved.names);              // who lea
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
 const settings = () => ({ name: designName, sel, names, text: textEd, script: showScript, guide: guideBox, views: viewAdj });
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(Object.assign(settings(), { barOff }))); } catch (e) {} };
+// This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
+const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(names, DEF.names), text: changed(textEd, DEF.text),
+  guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff })); } catch (e) {} };
 const isOn = p => (p.id in sel) ? !!sel[p.id] : !p.off;
 const made = {}, slideId = id => id.charAt(0) === '@' ? (made[id] || (made[id] = WEEKLY_SLIDES[id]())) : id;
 let STEPS = [];

@@ -269,8 +269,8 @@ window.DEFAULTS = {
       "dh": 0
     },
     "trailhead/song": {
-      "y": 0.868,
-      "p": -0.319,
+      "y": 0.906,
+      "p": -0.385,
       "z": 1,
       "dx": 0,
       "dz": 0,
