@@ -62,6 +62,7 @@
   #guide.on { opacity: 1; pointer-events: auto; transition: opacity .7s ease; }   /* fades in, and simply goes when its moment is over */
   #guide h4 { margin: 0 0 .2em; font-size: .73em; font-weight: 700; color: #FFC843; letter-spacing: .04em; text-transform: uppercase; }
   #guide h4 .who { display: block; margin-top: .15em; font-size: .78em; font-weight: 400; color: #fff; opacity: .85; letter-spacing: 0; text-transform: none; }
+  #guide.pop { border-color: rgba(255,200,67,.75); background: rgba(5,40,82,.9); } #guide.pop ul { list-style: none; padding-left: 0; }
   #guide ul { margin: 0; padding-left: 1em; } #guide li { margin: .23em 0; }
   #guide .tools { position: absolute; right: calc(var(--pt)*10); top: calc(var(--pt)*6); display: none; gap: 4px; font-size: calc(var(--pt)*15); }
   #guide:hover .tools { display: flex; } #guide:hover { border-color: rgba(255,200,67,.8); }
@@ -798,7 +799,7 @@ const ORDER = window.ORDER, LS_KEY = 'mountain-tefillah-traditional';
 const DEF = window.DEFAULTS || {};
 let saved = {}; try { saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; } catch (e) {}
 const sel = Object.assign({}, DEF.sel, saved.sel);
-const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y: 6.3, w: 12.2, fs: 25 } };
+const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y: 6.3, w: 12.2, fs: 25 }, pop: { x: 4.5, y: 8, yb: 9.45, w: 11, fs: 24 } };   // pop: a note beside a prayer, just above the translation
 const guideBox = {};                                                 // one box per script moment: "start", "stop:tents", "turn:gvurot"...
 [DEF.guide, saved.guide].forEach(g => { for (const k in (g || {})) guideBox[k] = Object.assign({}, guideBox[k], g[k]); });
 const textEd = Object.assign({}, DEF.text, saved.text);              // slides changed with the text editor: { "s-shma-1": html }
@@ -839,7 +840,7 @@ function buildSteps() {
     list.forEach((it, j) => {
       const pose = poseOf(j, it.p);
       if (it.first && hasTurn(r, it.p)) STEPS.push({ k: 'turn', stop: r.stop, mi: ri, pose, prayer: it.p });   // with the script on screen: turn, the guide speaks, a click brings the text. With it off, enter() passes straight through
-      STEPS.push({ k: 'slide', stop: r.stop, mi: ri, id: it.id, pose, tod: lerp(st.tod[0], st.tod[1], (j + 1) / n), drift: st.cross && j === n - 1 ? st.cross : null });   // drift: keep walking slowly while this text is up
+      STEPS.push({ k: 'slide', stop: r.stop, mi: ri, id: it.id, pose, prayer: it.p, first: it.first, tod: lerp(st.tod[0], st.tod[1], (j + 1) / n), drift: st.cross && j === n - 1 ? st.cross : null });   // drift: keep walking slowly while this text is up
       lastPose = pose;
     });
   });
@@ -858,8 +859,10 @@ const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if 
 // The names typed in the Prayer List, for the prayers a script moment leads into. One shared name is shown alone; otherwise each prayer with its name.
 // A later prayer at a stop with its own lines in the script (the parts of the Amidah): printed as its own section. On screen the view turns and the text follows with no extra click.
 const hasTurn = (r, p) => r.prayers[0] !== p && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
+// A prayer with a note of its own under "pops" in the script: the note comes up beside the prayer's text, pop-up style, not during the walk.
+const hasPop = p => linesOf((SCRIPT.pops || {})[p.id]).length > 0;
 function whoFor(s) {
-  const ps = s.k === 'turn' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p));
+  const ps = s.k === 'turn' || s.k === 'slide' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p) && !hasPop(p));
   const got = ps.map(p => ({ p: p.name, n: (names[p.id] || '').trim() })).filter(x => x.n);
   if (!got.length) return '';
   return got.every(x => x.n === got[0].n) ? got[0].n : got.map(x => x.p + ': ' + x.n).join(' · ');
@@ -868,16 +871,17 @@ function guideFor(s) {
   if (s.k === 'hold') return { head: 'Welcome', lines: linesOf(SCRIPT.start) };
   if (s.k === 'travel') return { head: 'On the way to ' + STOPS[s.to].place, lines: linesOf((SCRIPT.stops || {})[s.to]) };
   if (s.k === 'turn') return { head: 'Before ' + s.prayer.name, lines: linesOf((SCRIPT.turns || {})[s.prayer.id]) };
+  if (s.k === 'slide' && s.first && !glide) return { head: s.prayer.name, lines: linesOf((SCRIPT.pops || {})[s.prayer.id]) };   // with the prayer's first slide, once its text is up
   return null;
 }
 function showGuide(s) {
   const g = showScript ? guideFor(s) : null, on = !!(g && g.lines.length);
   if (on) { const who = whoFor(s); guideEl.querySelector('h4').innerHTML = esc(g.head) + (who ? '<span class="who">' + esc(who) + '</span>' : ''); guideEl.querySelector('ul').innerHTML = g.lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
-  if (on) { guideMode = s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : 'turn:' + s.prayer.id; placeGuide(); }
-  guideEl.classList.toggle('on', on);
+  if (on) { guideMode = s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : (s.k === 'slide' ? 'pop:' : 'turn:') + s.prayer.id; placeGuide(); }
+  guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide');
 }
 let guideMode = 'start';
-const boxOf = (k, own) => guideBox[k] || (own ? (guideBox[k] = Object.assign({}, boxOf(k))) : Object.assign({}, GUIDE0[k === 'start' ? 'start' : 'walk'], k === 'start' ? null : guideBox.walk));
+const boxOf = (k, own) => guideBox[k] || (own ? (guideBox[k] = Object.assign({}, boxOf(k))) : k.indexOf('pop:') === 0 ? Object.assign({}, GUIDE0.pop) : Object.assign({}, GUIDE0[k === 'start' ? 'start' : 'walk'], k === 'start' ? null : guideBox.walk));
 const MAP_BOTTOM = 10.4;                                // the mini-map's bottom edge, in inches from the top of the slide
 function placeGuide() {
   const b = boxOf(guideMode); guideEl.style.left = 'calc(var(--in)*' + b.x + ')';
@@ -899,7 +903,7 @@ function placeGuide() {
   });
   addEventListener('mouseup', () => {
     if (!drag) return; drag = null; const b = boxOf(guideMode, true), bottom = (guideEl.getBoundingClientRect().bottom - stage.getBoundingClientRect().top) / inch();
-    if (Math.abs(bottom - MAP_BOTTOM) < .35) { b.yb = MAP_BOTTOM; placeGuide(); }   // dropped near the mini-map's bottom edge: line up with it
+    if (guideMode.indexOf('pop:') && Math.abs(bottom - MAP_BOTTOM) < .35) { b.yb = MAP_BOTTOM; placeGuide(); }   // dropped near the mini-map's bottom edge: line up with it
     save();
   });
   guideEl.addEventListener('click', e => {
@@ -1205,6 +1209,7 @@ function scriptSections() {                                // the whole script f
   const out = [{ head: 'Start: before the first click', who: whoFor(STEPS[0]), lines: linesOf(SCRIPT.start) }]; let walk = 0;
   STEPS.forEach(s => {
     if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), who: whoFor(s), lines: linesOf((SCRIPT.stops || {})[s.to]) }); }
+    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (names[p.id] || '').trim(), lines: linesOf((SCRIPT.pops || {})[p.id]) }));
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (names[p.id] || '').trim(), lines: linesOf((SCRIPT.turns || {})[p.id]) }));
   });
   out.push({ head: 'End: closing', lines: linesOf(SCRIPT.end) });
@@ -1322,7 +1327,7 @@ function enter(i, dir) {
     // text fades out, the camera moves to this prayer's view, then the new text fades in
     const pose = s.pose; s.dp = 0; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
     const moved = pose.pos.distanceTo(cur.pos) > .5 || Math.abs(lerpAngle(cur.yaw, pose.aim.yaw, 1) - cur.yaw) > .02 || Math.abs(pose.aim.pitch - cur.pitch) > .02 || Math.abs(pose.zoom - cur.zoom) > .01;
-    const go = dir > 0 && moved, after = s.k === 'slide' ? () => showText(s.id, s.stop) : null;   // a turn, like an arrival, waits for a click so the guide can speak
+    const go = dir > 0 && moved, after = s.k === 'slide' ? () => { showText(s.id, s.stop); showGuide(s); } : null;   // a turn, like an arrival, waits for a click so the guide can speak
     showText(s.k === 'slide' && !go ? s.id : null, s.stop);
     if (go) glide = { pos0: cur.pos.clone(), y0: cur.yaw, p0: cur.pitch, z0: cur.zoom, to: pose, t: 0, then: after, dur: Math.abs(pose.aim.pitch - cur.pitch) > .5 || pose.pos.distanceTo(cur.pos) > 14 ? 5 : 3.6 };
     else { toPose(pose); if (dir <= 0 && s.k === 'slide') tod = s.tod; if (s.k === 'turn') post = after; }

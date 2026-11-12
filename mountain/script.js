@@ -23,10 +23,7 @@ window.SCRIPT = {
     ],
     tents: [
       "Look ahead: there are lights on in those tents. People are waking up.",
-      { if: "modeh", t: "The first words a Jew says in the morning are Modeh Ani, \"I give thanks.\" We say thank you before we do anything else." },
-      { if: "mahtovu", t: "Mah Tovu means \"How good are your tents.\" Those words were first said by someone looking at the camp of Israel from a distance, the way we are looking at this one." },
-      { if: "asher", t: "Asher Yatzar thanks God for a body that works. We slept all night, and this morning everything opened and closed the way it should." },
-      { if: "elohai", t: "It is cold enough to see your breath. Elohai N'shamah says the soul God breathed into us is pure, and every morning we get it back that way." }
+      "The first prayers of the morning are short ones. Watch for a note with each."
     ],
     garden: [                       // the stone garden is under construction; for now this is a clearing beside the trail
       "Before the climb gets steep, we stop in a clearing to pack what we will need.",
@@ -115,6 +112,15 @@ window.SCRIPT = {
       "We are standing in a high place. The prayer asks for that peace to come down to us and to everyone.",
       "So as we sing, we take our first steps down, and we bring it with us."
     ]
+  },
+
+  // Pop-ups: a note that comes up beside one prayer's text (with its first slide) when the script is on screen.
+  // Any prayer can have one: add its id here. The note has its own box, which can be dragged like the others.
+  pops: {
+    modeh: ["The first words a Jew says in the morning are Modeh Ani, \"I give thanks.\" We say thank you before we do anything else."],
+    mahtovu: ["Mah Tovu means \"How good are your tents.\" Those words were first said by someone looking at the camp of Israel from a distance, the way we are looking at this one."],
+    asher: ["Asher Yatzar thanks God for a body that works. We slept all night, and this morning everything opened and closed the way it should."],
+    elohai: ["It is cold enough to see your breath. Elohai N'shamah says the soul God breathed into us is pure, and every morning we get it back that way."]
   },
 
   // After the last slide.
