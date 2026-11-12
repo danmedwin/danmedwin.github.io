@@ -91,11 +91,12 @@
   /* The toolbar and whatever it has opened sit together in the dock: view, text and overview controls slide out beside it. */
   #dock { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.12); display: flex; align-items: stretch; gap: calc(var(--pt)*4); z-index: 4; }
   #dock #bar { position: static; }
-  #adj, #ed, #godBar { display: none; align-items: center; gap: .45em; background: rgba(5,48,94,.9); border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
+  #adj, #ed, #godBar, #fileBar { display: none; align-items: center; gap: .45em; background: rgba(5,48,94,.9); border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
          border-radius: calc(var(--pt)*10); padding: 0 .45em 0 .7em; color: #fff; font: calc(var(--pt)*15) Calibri, Carlito, sans-serif; white-space: nowrap; }
-  .adjusting #bar, .editing #bar, .god #bar, .listOn #bar { opacity: 1; }
+  .adjusting #bar, .editing #bar, .god #bar, .listOn #bar, .filing #bar { opacity: 1; }
+  #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #fileBar b:first-child { margin-left: 0; }
   #dock button.fx { background: transparent; color: #fff; font-size: 1.6em; font-weight: 700; line-height: 1; padding: 0 .25em; opacity: .75; } #dock button.fx:hover { opacity: 1; color: #FFC843; }
-  .adjusting #adj, .editing #ed, .god #godBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
+  .adjusting #adj, .editing #ed, .god #godBar, .filing #fileBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
   #ed.top { bottom: auto; top: calc(var(--in)*.2); } #ed, #godBar { gap: .45em; }
   #ed .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #edName, #godName { min-width: 7em; text-align: center; color: #FFC843; }
   #ed .grp { display: flex; gap: .45em; } #ed .shd, #ed.onShade .txt { display: none; } #ed.onShade .shd { display: flex; }
@@ -111,7 +112,7 @@
   .editing .slide.on .sel { outline: 2px solid #FFC843 !important; }
   .editing #guide, .editing #map, .god #guide, .god #map, .god #title, .god #scrim, .god #slides, .god #adj { display: none !important; }
   #adj .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #adjName { min-width: 9em; text-align: center; color: #FFC843; }
-  #adj button, #ed button, #godBar button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
+  #adj button, #ed button, #godBar button, #fileBar button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
 
   /* ---------- control panel (for the person at the computer) ---------- */
   #panel { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.84); width: calc(100% - var(--in)*.24); max-height: calc(100% - var(--in)*1.05); display: none; flex-direction: column;
@@ -128,11 +129,12 @@
   #panel label { display: block; padding: .12em 0; cursor: pointer; } #panel .pr { padding-left: 1.5em; } #panel .later { padding-left: 1.5em; opacity: .55; font-style: italic; }
   #panel input { width: 1.05em; height: 1.05em; vertical-align: -.12em; margin-right: .45em; accent-color: #FFC843; }
   #panel .bar { display: flex; flex-wrap: wrap; gap: .7em; align-items: center; margin-top: .9em; padding-top: .8em; border-top: 1px solid rgba(255,255,255,.25); }
-  #panel button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .4em .9em; cursor: pointer; }
-  #panel button.main { background: #FFC843; }
+  #tools { font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; font-size: calc(var(--pt)*19); color: #fff; }
+  #panel button, #tools button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .4em .9em; cursor: pointer; }
+  #panel button.main, #tools button.main { background: #FFC843; }
   #panel .ib { width: 2.5em; height: 2.5em; padding: .5em; background: rgba(255,255,255,.14); color: #fff; } #panel .ib:hover { background: rgba(255,255,255,.3); color: #FFC843; }
   #panel .ib svg, #panel .ic svg { width: 100%; height: 100%; display: block; pointer-events: none; } #panel .ic { width: 1.3em; height: 1.3em; color: #FFC843; }
-  #dlg .card { position: absolute; right: calc(var(--pt)*28); bottom: calc(var(--pt)*86); width: 24em; background: #0a3a6e; border: 1px solid #FFC843; border-radius: .7em; padding: 1em 1.2em; box-shadow: 0 .4em 1.6em rgba(0,0,0,.5); }
+  #dlg .card { position: absolute; left: calc(var(--in)*4.1); bottom: calc(var(--in)*.84); z-index: 6; width: 24em; background: #0a3a6e; border: 1px solid #FFC843; border-radius: .7em; padding: 1em 1.2em; box-shadow: 0 .4em 1.6em rgba(0,0,0,.5); }
   #dlg h3 { margin: 0 0 .6em; font-size: 1.2em; } #dlg p { margin: .7em 0; font-size: .85em; opacity: .85; line-height: 1.3; }
   #dlg input[type=text] { width: 100%; box-sizing: border-box; height: auto; font: inherit; padding: .4em .6em; border-radius: .4em; border: 0; margin: 0; }
   #dlg input[type=text]:disabled { background: #9aa7b6; color: #3c4a5a; }
@@ -170,6 +172,7 @@
     <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg></button>
     <button id="tbEdit" title="Edit the text on screen (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L4.8 15.6 L16.2 4.2 A1.8 1.8 0 0 1 19.8 7.8 L8.4 19.2 Z"/><path d="M14 6.5 L17.5 10"/></svg></button>
     <button id="tbGod" title="Overview: see and move every stop (G)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L17.5 9 L12 16 L6.5 9 Z"/><path d="M4 20 H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <button id="tbFile" title="Print the script; open, save or reset this design"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 3.5 H16.5 L20.5 7.5 V20.5 H3.5 Z"/><path d="M7.5 3.5 V9 H15.5 V3.5"/><rect x="7.5" y="13" width="9" height="7.5"/></svg></button>
     <button id="tbHide" title="Tuck the toolbar away"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
   </div>
   <div id="barTab" title="Show the toolbar">›</div>
@@ -181,6 +184,9 @@
   <div id="edMove" title="Drag to move this text">✥</div>
   <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
   <div id="godBar"><b id="godName"></b><span>drag: orbit · wheel: zoom · W A S D: move · drag a marker · arrows: turn it</span><button id="godGo" title="Leave the overview and adjust this view (Enter)">Go there</button><button id="godReset">Reset this stop</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
+  <div id="fileBar"><b>Script</b><button id="btnPrint" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" title="Save the guides’ script as a text file">Save as text</button>
+    <b>Design</b><button id="btnOpen" title="Open a saved design file">Open…</button><button id="btnSave" title="Save this design: prayer choices, names, views, slide and script edits">Save…</button><button id="btnReset" title="Put this computer back to the defaults">Reset…</button><button id="fileDone" class="fx" title="Close">×</button></div>
+  <div id="tools"><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none"></div>
   <div id="panel"></div>
   <div id="fps"></div>
   <div id="err"></div>
@@ -953,7 +959,7 @@ function placeGuide() {
     const b = boxOf(guideMode, true); b.fs = e.target.id === 'gSmaller' ? Math.max(16, b.fs - 2) : Math.min(48, b.fs + 2); placeGuide(); save();
   });
 })();
-(function () { const dock = document.createElement('div'); dock.id = 'dock'; stage.insertBefore(dock, document.getElementById('bar')); ['bar', 'adj', 'ed', 'godBar'].forEach(id => dock.appendChild(document.getElementById(id))); })();
+(function () { const dock = document.createElement('div'); dock.id = 'dock'; stage.insertBefore(dock, document.getElementById('bar')); ['bar', 'adj', 'ed', 'godBar', 'fileBar'].forEach(id => dock.appendChild(document.getElementById(id))); })();
 function setScript(on) { showScript = on; document.getElementById('tbScript').classList.toggle('act', on); const o = document.getElementById('optScript'); if (o) o.checked = on; save(); showGuide(STEPS[idx]); }
 
 /* ---------- adjusting a view: V, then drag the scene or use the arrow keys ---------- */
@@ -982,7 +988,7 @@ function nudge(ch) {                                    // ch: { y, p } look, { 
 }
 function setAdjust(on) {
   adjusting = on; autoNext = false; document.body.classList.toggle('adjusting', on); document.getElementById('tbView').classList.toggle('act', on);
-  if (on) { if (editing) setEdit(false); if (god) setGod(false); endGlide(); if (STEPS[idx].drift) { STEPS[idx].dp = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
+  if (on) { if (filing) setFile(false); if (editing) setEdit(false); if (god) setGod(false); endGlide(); if (STEPS[idx].drift) { STEPS[idx].dp = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
 }
 (function () {
   let d = null;
@@ -1038,7 +1044,7 @@ const inchPx = () => stage.getBoundingClientRect().width / 20, isShade = n => !!
 const getIn = (n, prop) => { const m = /\*\s*(-?[\d.]+)\s*\)/.exec(n.style[prop] || ''); return m ? +m[1] : 0; };
 const setIn = (n, prop, v) => { n.style[prop] = 'calc(var(--in)*' + (Math.round(v * 100) / 100) + ')'; };
 function setEdit(on) {
-  if (on) { if (adjusting) setAdjust(false); if (god) setGod(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } }
+  if (on) { if (filing) setFile(false); if (adjusting) setAdjust(false); if (god) setGod(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } }
   editing = on; document.body.classList.toggle('editing', on); document.getElementById('tbEdit').classList.toggle('act', on);
   if (on) edRefresh(); else { edPick(null); slidesBox.querySelectorAll('[contenteditable]').forEach(b => { b.removeAttribute('contenteditable'); b.removeAttribute('spellcheck'); }); }
 }
@@ -1191,7 +1197,7 @@ function godBuild() {
 function godSel(i) { if (!god) return; god.sel = i; const m = god.list[i]; document.getElementById('godName').textContent = m ? m.name : 'Overview'; }
 function setGod(on) {
   on = !!on;
-  if (on) { if (adjusting) setAdjust(false); if (editing) setEdit(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; }
+  if (on) { if (filing) setFile(false); if (adjusting) setAdjust(false); if (editing) setEdit(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; }
     god = Object.assign({ tx: 150, tz: -95, dist: 760, az: .9, el: .8 }, godCam, { sel: -1, drag: null, list: [] }); godBuild(); const k = curPose().key; godSel(god.list.findIndex(m => m.pose.key === k)); }
   else { if (god) godCam = { tx: god.tx, tz: god.tz, dist: god.dist, az: god.az, el: god.el }; god = null; const s = STEPS[idx]; if (s.k !== 'travel') { s.dp = 0; toPose(s.pose); } }
   godG.visible = on; document.body.classList.toggle('god', on); document.getElementById('tbGod').classList.toggle('act', on);
@@ -1292,12 +1298,7 @@ function drawPanel() {
       return '<div class="stop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + (st.note ? ' <span class="under">(' + st.note + ')</span>' : '') + '</label>' +
         o.prayers.map(p => '<div class="prow"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label><input type="text" class="who" data-n="' + p.id + '" maxlength="40" placeholder="name" title="Who leads ' + esc(p.name).replace(/"/g, '&quot;') + '" value="' + esc(names[p.id] || '').replace(/"/g, '&quot;') + '"></div>').join('') +
         (o.stop === 'tents' ? '<div class="later">Nisim B’chol Yom side loop: coming later</div>' : '') + '</div>'; }).join('') +
-    '</div><div class="bar"><label class="switch"><input type="checkbox" id="optScript"' + (showScript ? ' checked' : '') + '><i></i><span class="ic">' + IC.script + '</span>Guide’s script on screen (S)</label>' +
-    '<button class="ib" id="btnPrint" title="Print the guides’ script for the ticked prayers">' + IC.print + '</button>' +
-    '<button class="ib" id="btnTxt" title="Save the guides’ script as a text file">' + IC.doc + '</button>' +
-    '<button class="ib" id="btnOpen" title="Open a saved design (a file made with the save button)">' + IC.open + '</button>' +
-    '<button class="ib" id="btnSave" title="Save this design: prayer choices, views and script boxes">' + IC.save + '</button>' +
-    '<button class="ib" id="btnReset" title="Reset this computer to the defaults">' + IC.reset + '</button></div><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none">';
+    '</div><div class="bar"><label class="switch"><input type="checkbox" id="optScript"' + (showScript ? ' checked' : '') + '><i></i><span class="ic">' + IC.script + '</span>Guide’s script on screen (S)</label></div>';
   panel.querySelectorAll('input[data-part]').forEach(i => { i.indeterminate = true; });
 }
 function applyChoice() { save(); buildSteps(); enter(0, -1); drawPanel(); if (god) { godBuild(); godSel(0); } if (editing) edRefresh(); }
@@ -1324,22 +1325,29 @@ function saveDesign(name, asDefault) {
   a.download = (asDefault ? 'defaults' : name.replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'design') + '.js'; document.body.appendChild(a); a.click(); a.remove();
 }
 const dlg = html => { document.getElementById('dlg').innerHTML = html ? '<div class="card">' + html + '</div>' : ''; };
-let typedName = '';
-panel.addEventListener('click', e => {
+let typedName = '', filing = false;
+const toolClick = e => {
   const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
-  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnX') togglePanel(false);
+  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false);
   else if (id === 'btnOpen') document.getElementById('fileOpen').click();
   else if (id === 'btnSave') { typedName = designName;
     dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
       '<label class="chk"><input type="checkbox" id="svDef">save as default</label>' +
-      '<p>The file goes to your Downloads folder. Open a named design later with the folder icon. To make a default for every computer, move defaults.js into the Mountain Tefillah folder, replacing the one there.</p>' +
+      '<p>The file goes to your Downloads folder. Open a named design later with Open. To make a default for every computer, move defaults.js into the Mountain Tefillah folder, replacing the one there.</p>' +
       '<div class="row"><button id="dlgNo">Cancel</button><button class="main" id="svGo">Save</button></div>'); document.getElementById('svName').focus(); }
   else if (id === 'btnReset') dlg('<h3>Reset this computer?</h3><p>Prayer choices, views and script box places changed on this computer will go back to the defaults. Saved design files are not touched.</p><div class="row"><button id="dlgNo">Cancel</button><button class="main" id="rsGo">Reset</button></div>');
   else if (id === 'dlgNo') dlg('');
-  else if (id === 'rsGo') loadDesign(DEF, DEF.name);
-  else if (id === 'svGo') { const def = document.getElementById('svDef').checked, name = document.getElementById('svName').value.trim(); if (!def && !name) return document.getElementById('svName').focus(); saveDesign(name, def); drawPanel(); }
-});
-panel.addEventListener('change', e => {
+  else if (id === 'rsGo') { dlg(''); loadDesign(DEF, DEF.name); }
+  else if (id === 'svGo') { const def = document.getElementById('svDef').checked, name = document.getElementById('svName').value.trim(); if (!def && !name) return document.getElementById('svName').focus(); saveDesign(name, def); dlg(''); if (panel.classList.contains('on')) drawPanel(); }
+};
+const fileBar = document.getElementById('fileBar'), toolsBox = document.getElementById('tools');
+[panel, fileBar, toolsBox].forEach(n => n.addEventListener('click', toolClick));
+[fileBar, toolsBox].forEach(n => n.addEventListener('click', e => e.stopPropagation()));
+function setFile(on) {                                   // the disk icon: script and design tools slide out of the toolbar
+  if (on) { if (adjusting) setAdjust(false); if (editing) setEdit(false); if (god) setGod(false); togglePanel(false); } else dlg('');
+  filing = on; document.body.classList.toggle('filing', on); document.getElementById('tbFile').classList.toggle('act', on);
+}
+toolsBox.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'svDef') { const n = document.getElementById('svName'); if (t.checked) { typedName = n.value; n.value = 'default'; n.disabled = true; } else { n.value = typedName; n.disabled = false; n.focus(); } }
   else if (t.id === 'fileOpen' && t.files[0]) { const file = t.files[0], rd = new FileReader();
@@ -1347,12 +1355,13 @@ panel.addEventListener('change', e => {
       catch (err) { dlg('<h3>That file could not be read</h3><p>Choose a design file saved from this page.</p><div class="row"><button class="main" id="dlgNo">OK</button></div>'); } };
     rd.readAsText(file); }
 });
+toolsBox.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && e.target.id === 'svName') document.getElementById('svGo').click(); else if (e.key === 'Escape') dlg(''); });
 panel.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && e.target.id === 'svName') document.getElementById('svGo').click(); if (e.key === 'Escape') { if (document.getElementById('dlg').innerHTML) dlg(''); else togglePanel(false); } });
 function togglePanel(on) { if (on == null) on = !panel.classList.contains('on'); if (on) drawPanel(); panel.classList.toggle('on', on); stage.classList.toggle('listOn', on); document.getElementById('tbList').classList.toggle('act', on); }
 function setBar(off) { barOff = off; stage.classList.toggle('barOff', off); save(); }
 document.getElementById('bar').addEventListener('click', e => {
   e.stopPropagation(); const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'tbList') togglePanel(); else if (b.id === 'tbScript') setScript(!showScript); else if (b.id === 'tbMap') toggleMap(); else if (b.id === 'tbView') setAdjust(!adjusting); else if (b.id === 'tbEdit') setEdit(!editing); else if (b.id === 'tbGod') setGod(!god); else if (b.id === 'tbHide') setBar(true);
+  if (b.id === 'tbList') togglePanel(); else if (b.id === 'tbScript') setScript(!showScript); else if (b.id === 'tbMap') toggleMap(); else if (b.id === 'tbView') setAdjust(!adjusting); else if (b.id === 'tbEdit') setEdit(!editing); else if (b.id === 'tbGod') setGod(!god); else if (b.id === 'tbFile') setFile(!filing); else if (b.id === 'tbHide') setBar(true);
 });
 document.getElementById('barTab').addEventListener('click', e => { e.stopPropagation(); setBar(false); });
 stage.classList.toggle('barOff', barOff); document.getElementById('tbScript').classList.toggle('act', showScript);
