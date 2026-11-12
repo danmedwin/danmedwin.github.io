@@ -2,7 +2,7 @@
 // A guide says these lines while we walk; the prayer text comes up on the next click.
 // A plain line is always used. { if: "id", t: "..." } is used only when that prayer is ticked in the control panel.
 // Prayer ids: opening rocks modeh mahtovu asher elohai laasok eilu psalm150 barchu yotzeir shma vahavta
-//             michamocha avot gvurot kedushah silent oseh conversation dvar aleinu kaddish announcements song closing
+//             michamocha sfatai avot gvurot kedushah silent oseh conversation dvar aleinu kaddish announcements song closing
 window.SCRIPT = {
   // On the title card, before the first click.
   start: [

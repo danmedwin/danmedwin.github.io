@@ -272,10 +272,40 @@ function height(x, z) {
   if (r0 < 60) raw = lerp(Math.min(raw, SUMMIT_Y + .5 - .12 * r0), raw, sstep(40, 60, r0));
   for (let i = 0; i < PADS.length; i++) { const p = PADS[i], d = Math.hypot(x - p.x, z - p.z); if (d < p.b) raw = lerp(p.y, raw, sstep(p.a, p.b, d)); }
   const c = chasm(x, z);
-  if (!nearest(x, z) || nearD > 38) return raw - c;
-  return (nearD >= 9 ? raw : lerp(samples[nearI].y - EYE, raw, sstep(2.8, 9, nearD))) - c;
+  let h = (!nearest(x, z) || nearD > 38) ? raw - c : (nearD >= 9 ? raw : lerp(samples[nearI].y - EYE, raw, sstep(2.8, 9, nearD))) - c;
+  if (RIVER && riverNear(x, z) && rvD < RV_HALF + 6) h = Math.min(h, lerp(rvY, h, sstep(RV_HALF, RV_HALF + 6, rvD)));   // the river's bed
+  return h;
 }
 SUMMIT_Y = curve.getPointAt(uNear(0, 0, .4, .85)).y - EYE;
+// A stream comes down the mountainside beside the bridge, drops into the chasm, runs under the bridge and on down to the lake.
+// The path follows the fall line; its bed only ever goes down, and height() cuts it into the ground.
+let RIVER = null, rvD = 1e9, rvY = 0; const RV_HALF = 3.4, rvB = new Map();
+function riverNear(x, z) {                              // sets rvD (distance to the stream's centre line) and rvY (bed height there)
+  rvD = 1e9; const cx = Math.floor(x / 20), cz = Math.floor(z / 20); let bi = -1;
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+    const list = rvB.get((cx + a) * 4096 + (cz + b)); if (!list) continue;
+    for (let j = 0; j < list.length; j++) { const q = RIVER[list[j]], dd = (q.x - x) * (q.x - x) + (q.z - z) * (q.z - z); if (dd < rvD) { rvD = dd; bi = list[j]; } }
+  }
+  if (bi < 0) return false;
+  const q = RIVER[bi], n = RIVER[Math.min(bi + 1, RIVER.length - 1)], m = RIVER[Math.max(bi - 1, 0)];
+  const along = (o) => { const ex = o.x - q.x, ez = o.z - q.z, l2 = ex * ex + ez * ez; return l2 ? clamp(((x - q.x) * ex + (z - q.z) * ez) / l2, 0, 1) : 0; };
+  const tn = along(n), tm = along(m), o = tn >= tm ? n : m, t = Math.max(tn, tm), px = q.x + (o.x - q.x) * t, pz = q.z + (o.z - q.z) * t;
+  rvD = Math.hypot(x - px, z - pz); rvY = q.y + (o.y - q.y) * t; return true;
+}
+(function buildRiverPath() {
+  const lx = BT.z * BR_DOWN, lz = -BT.x * BR_DOWN, pts = [];
+  for (let l = -66; l <= 105; l += 3) pts.push({ x: BR.x + lx * l, z: BR.z + lz * l });          // down the mountainside and through the chasm
+  let x = pts[pts.length - 1].x, z = pts[pts.length - 1].z, hd = Math.atan2(lx, lz);
+  for (let n = 0; n < 400 && height(x, z) > WATER + .3; n++) {                                   // then wherever the ground falls fastest
+    let best = 1e9, ba = hd;
+    for (let a = -50; a <= 50; a += 10) { const t = hd + a * DEG, hh = height(x + Math.sin(t) * 10, z + Math.cos(t) * 10) + Math.abs(a) * .01; if (hh < best) { best = hh; ba = t; } }
+    hd = ba; x += Math.sin(hd) * 4; z += Math.cos(hd) * 4; pts.push({ x, z });
+  }
+  let bed = 1e9;
+  pts.forEach(q => { bed = Math.min(bed - .03, height(q.x, q.z) - .9); q.y = Math.max(bed, WATER - 1.2); });
+  pts.forEach((q, i) => { const k = Math.floor(q.x / 20) * 4096 + Math.floor(q.z / 20); if (!rvB.has(k)) rvB.set(k, []); rvB.get(k).push(i); });
+  RIVER = pts;
+})();
 function trailDist(x, z) { return nearest(x, z) ? nearD : 99; }
 
 /* =====================================================================
@@ -316,7 +346,7 @@ const flat = (color, extra) => new THREE.MeshPhongMaterial(Object.assign({ color
 
 /* ---------- terrain: a fine grid over the mountain, a coarse polar mesh for everything beyond ---------- */
 (function buildTerrain() {
-  const X0 = -150, X1 = 430, Z0 = -345, Z1 = 235, CELL = 2.4;
+  const X0 = -150, X1 = 430, Z0 = -345, Z1 = Math.max(235, Math.ceil(RIVER[RIVER.length - 1].z + 26)), CELL = 2.4;
   const c = new THREE.Color(), c2 = new THREE.Color();
   const G1 = new THREE.Color(0x2c4a2e), G2 = new THREE.Color(0x61783f), MEADOW = new THREE.Color(0x7f9150),
         R1 = new THREE.Color(0x6c655b), R2 = new THREE.Color(0x938c82), SNOW = new THREE.Color(0xeef2f7),
@@ -334,7 +364,7 @@ const flat = (color, extra) => new THREE.MeshPhongMaterial(Object.assign({ color
       const far = sstep(480, 900, r);
       if (far > 0) { c.lerp(FAR, far * .75); c.lerp(SNOW, far * sstep(200, 265, y) * .9); }
       c.lerp(SHORE, sstep(WATER + 5, WATER, y));
-      if (nearTrail) { const d = trailDist(x, z); if (d < 4 && chasm(x, z) < 1) c.lerp(y > 200 ? SNOW : PATH, sstep(3.4, 1.6, d) * .9); const ch = chasm(x, z); if (ch > 2) c.lerp(CANYON, sstep(2, 26, ch) * .75); }
+      if (nearTrail) { const d = trailDist(x, z); if (d < 4 && chasm(x, z) < 1) c.lerp(y > 200 ? SNOW : PATH, sstep(3.4, 1.6, d) * .9); const ch = chasm(x, z); if (ch > 2) c.lerp(CANYON, sstep(2, 26, ch) * .75); if (riverNear(x, z) && rvD < 9) c.lerp(CANYON, sstep(9, 4.5, rvD) * .5); }
       col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
     }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
@@ -473,8 +503,25 @@ const wind = { ribbons: [], mist: [] };
   });
   const lx = BT.z, lz = -BT.x, deckY = BR.y - EYE;                // the chasm runs this way; so does the wind
   wind.dir = new THREE.Vector3(lx, 0, lz);
-  const river = new THREE.Mesh(new THREE.PlaneGeometry(11, 150), new THREE.MeshPhongMaterial({ color: 0x2c5f7c, shininess: 110, specular: 0xdcecf8 }));
-  river.rotation.order = 'YXZ'; river.rotation.set(-Math.PI / 2, Math.atan2(lx, lz), 0); river.position.set(BR.x + lx * BR_DOWN * 30, deckY - 42.5, BR.z + lz * BR_DOWN * 30); scene.add(river);
+  (function buildRiver() {                                        // a ribbon of water along the stream bed; white where it falls steeply
+    const n = RIVER.length, P = new Float32Array(n * 6), UV = new Float32Array(n * 4), C = new Float32Array(n * 6), idx = []; let run = 0;
+    for (let i = 0; i < n; i++) {
+      const q = RIVER[i], a = RIVER[Math.max(i - 1, 0)], b = RIVER[Math.min(i + 1, n - 1)], tx = b.x - a.x, tz = b.z - a.z, tl = Math.hypot(tx, tz) || 1;
+      const nx = tz / tl * RV_HALF, nz = -tx / tl * RV_HALF, y = Math.max(q.y + .55, WATER + .04), steep = sstep(.25, 1.1, (a.y - b.y) / tl);
+      if (i) run += Math.hypot(q.x - a.x, q.y - a.y, q.z - a.z);
+      P.set([q.x - nx, y, q.z - nz, q.x + nx, y, q.z + nz], i * 6); UV.set([0, run / 16, 1, run / 16], i * 4);
+      const r = lerp(.5, 1, steep), g = lerp(.78, 1, steep), bl = lerp(.95, 1, steep); C.set([r, g, bl, r, g, bl], i * 6);
+      if (i) { const o = (i - 1) * 2; idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2); }
+    }
+    const cv = document.createElement('canvas'); cv.width = 64; cv.height = 256; const g2 = cv.getContext('2d'), rnd = rng(31);
+    g2.fillStyle = '#b9dcee'; g2.fillRect(0, 0, 64, 256);
+    for (let k = 0; k < 90; k++) { const x = rnd() * 64, y = rnd() * 256, len = 30 + rnd() * 90; g2.strokeStyle = rnd() < .6 ? 'rgba(255,255,255,' + (.35 + rnd() * .5) + ')' : 'rgba(70,140,185,' + (.3 + rnd() * .4) + ')'; g2.lineWidth = 1 + rnd() * 2.5;
+      [0, -256].forEach(o => { g2.beginPath(); g2.moveTo(x, y + o); g2.lineTo(x + (rnd() - .5) * 5, y + o + len); g2.stroke(); }); }
+    const tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(P, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(UV, 2)); geo.setAttribute('color', new THREE.BufferAttribute(C, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+    scene.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ map: tex, vertexColors: true, shininess: 70, specular: 0x9fb8c8, side: THREE.DoubleSide })));
+    wind.water = tex;
+  })();
   const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), gr = x.createRadialGradient(32, 32, 1, 32, 32, 32);
   gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(.45, 'rgba(255,255,255,.4)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
   const tex = new THREE.CanvasTexture(cv), rnd = rng(41);
@@ -485,6 +532,7 @@ const wind = { ribbons: [], mist: [] };
   } });
 })();
 function animateWind(t) {
+  if (wind.water) wind.water.offset.y = -(t * .42 % 1);          // the stream runs downhill
   if (camera.position.distanceToSquared(BR) > 260 * 260) return;
   const d = wind.dir;
   wind.ribbons.forEach(r => {
@@ -517,7 +565,7 @@ const LOOKOUT = (function () { const e = curve.getPointAt(STOPS.trailhead.u), d 
     if (rnd() > p) continue;
     if (trailDist(x, z) < 7.5) continue;
     if (clear.some(t => Math.hypot(x - t[0], z - t[1]) < t[2])) continue;
-    if (Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z) < LOOKOUT.r) { rnd(); rnd(); rnd(); rnd(); rnd(); continue; }   // the last view's opening (same random draws, so no other tree moves)
+    if (Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z) < LOOKOUT.r || (riverNear(x, z) && rvD < 9)) { rnd(); rnd(); rnd(); rnd(); rnd(); continue; }   // the last view's opening (same random draws, so no other tree moves)
     const s = 6 + rnd() * 7;
     P.set(x, height(x, z) - .4, z); Q.setFromAxisAngle(Y, rnd() * 6.28); S.set(s * .3, s, s * .3); M.compose(P, Q, S); mesh.setMatrixAt(n, M);
     C.setHSL(.33 + rnd() * .06, .32 + rnd() * .15, .16 + rnd() * .09); mesh.setColorAt(n, C); n++;
@@ -643,6 +691,7 @@ function pathAim(u, lift) {
   // At the summit each part of the Amidah looks a different way.
   const S = at(U_SUMMIT), west = V(-1, 0, -0.25).normalize();
   STOPS.summit.views = {
+    sfatai:   { aim: aimAt(to(S, at(0)), 0, -0.42) },                                              // arriving: back the way we came
     avot:     { aim: aimAt(to(S, at(0)), 0, -0.42) },                                              // back the way we came: the woods where we began
     gvurot:   { du: -17, aim: aimAt(to(at(U_SUMMIT - 17 / L), V(BR.x, BR.y - 6, BR.z)), 0, -0.3) },                            // down the hard last climb, to the bridge
     kedushah: { aim: { yaw: Math.atan2(-west.x, -west.z), pitch: 50 * DEG } },                     // up
@@ -657,10 +706,10 @@ function setPose(pos, yaw, pitch, zoom) {
 }
 const toPose = q => setPose(q.pos, q.aim.yaw, q.aim.pitch, q.zoom), tmpP = new THREE.Vector3();
 function poseTravel(A, B, p) {
-  const e = ease(p), u = lerp(A.u, B.u, e), pa = pathAim(u), w0 = 1 - sstep(0, .2, p), w1 = sstep(.68, 1, p);
+  const e = ease(p), u = lerp(A.ut, B.ut, e), pa = pathAim(u), w0 = 1 - sstep(0, .2, p), w1 = sstep(.68, 1, p);
   let yaw = lerpAngle(pa.yaw, A.aim.yaw, w0), pitch = lerp(pa.pitch, A.aim.pitch, w0);
   yaw = lerpAngle(yaw, B.aim.yaw, w1); pitch = lerp(pitch, B.aim.pitch, w1);
-  tmpP.copy(curve.getPointAt(clamp(u, 0, 1))).addScaledVector(A.d, w0).addScaledVector(B.d, w1);   // step off the trail to where each view stands
+  tmpP.copy(curve.getPointAt(clamp(u, 0, 1))).addScaledVector(A.dt, w0).addScaledVector(B.dt, w1);   // step off the trail to where each view stands
   setPose(tmpP, yaw, pitch, lerp(lerp(1, A.zoom, w0), B.zoom, w1)); return e;
 }
 
@@ -762,7 +811,12 @@ function fixPose(q) {
   const a = viewAdj[q.key] || {}, c = curve.getPointAt(clamp(q.u, 0, 1));
   q.aim = { yaw: q.base.yaw + (a.y || 0), pitch: q.base.pitch + (a.p || 0) }; q.zoom = a.z || 1;
   if (a.dx || a.dz || a.dh) { const x = c.x + (a.dx || 0), z = c.z + (a.dz || 0); q.pos = new THREE.Vector3(x, height(x, z) + EYE + (a.dh || 0), z); } else q.pos = c.clone();
-  q.d = q.pos.clone().sub(c); return q;
+  q.d = q.pos.clone().sub(c);
+  // A view can stand well off its trail spot. ut is the trail point nearest to where it really stands and dt the short step from there,
+  // so a walk starts and ends beside the camera instead of first going back to the stop's own spot.
+  let bu = q.u, bd = 1e18; const span = 75 / L;
+  for (let i = -30; i <= 30; i++) { const u = clamp(q.u + span * i / 30, 0, 1), t = curve.getPointAt(u), dd = (t.x - q.pos.x) ** 2 + (t.z - q.pos.z) ** 2 + (i ? 1e-6 : 0); if (dd < bd) { bd = dd; bu = u; } }
+  q.ut = bu; q.dt = q.pos.clone().sub(curve.getPointAt(bu)); return q;
 }
 function buildSteps() {
   STEPS = []; ROUTE = [];
@@ -1255,8 +1309,8 @@ function enter(i, dir) {
   } else {
     showText(null);
     const was = STEPS[idx - 1];                            // after a slow walk (the bridge), carry on from wherever we have got to
-    s.A = dir > 0 && was && was.drift && was.dp > 0 ? { u: was.du, aim: { yaw: cur.yaw, pitch: cur.pitch }, zoom: cur.zoom, d: was.pose.d } : (s.A0 || s.A);
-    travelDur = clamp(Math.abs(s.B.u - s.A.u) * L / (STOPS[s.to].speed || SPEED), 9, 34);
+    s.A = dir > 0 && was && was.drift && was.dp > 0 ? { u: was.du, ut: was.du, aim: { yaw: cur.yaw, pitch: cur.pitch }, zoom: cur.zoom, d: was.pose.d, dt: was.pose.d } : (s.A0 || s.A);
+    travelDur = clamp(Math.abs(s.B.ut - s.A.ut) * L / (STOPS[s.to].speed || SPEED), 9, 34);
     todTarget = STOPS[s.to].tod[0];
     if (dir > 0) { travelP = 0; travelling = true; todFrom = tod; } else { travelP = 1; travelling = false; todFrom = tod = todTarget; }
   }
@@ -1335,7 +1389,7 @@ function frame(now) {
 }
 const startAt = parseInt((location.hash || '').slice(1), 10);
 enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length; i++) enter(i, -1);
-window.__mt = { curve, CAIRNS, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
