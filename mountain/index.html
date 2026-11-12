@@ -82,7 +82,8 @@
   #bar button, #barTab { cursor: pointer; color: #fff; }
   #bar button { background: transparent; border: 0; border-radius: calc(var(--pt)*7); width: calc(var(--pt)*38); height: calc(var(--pt)*40); padding: calc(var(--pt)*3) 0 calc(var(--pt)*2); color: #fff; cursor: pointer;
                 display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--pt)*2); }
-  #bar button span { font: 600 calc(var(--pt)*9.5)/1 Calibri, Carlito, sans-serif; color: #FFC843; letter-spacing: .02em; pointer-events: none; }
+  #bar button span { font: 600 calc(var(--pt)*9.5)/1 Calibri, Carlito, sans-serif; color: rgba(255,255,255,.88); letter-spacing: .02em; pointer-events: none; }
+  #bar button.act span { color: #FFC843; }                  /* gold means on, for the icon and its name alike */
   #bar #tbHide { width: calc(var(--pt)*24); }
   #bar button:hover, #bar button.act { background: rgba(255,255,255,.22); } #bar button.act { color: #FFC843; }
   #bar svg { width: calc(var(--pt)*20); height: calc(var(--pt)*20); display: block; flex: none; pointer-events: none; }
@@ -171,8 +172,8 @@
   <div id="guide"><h4></h4><ul></ul><div class="gx" id="gClose" title="Hide this box; the walk carries on">×</div><div class="tools"><span id="gEdit" title="Edit these words and the reader's name">✎</span><span id="gUndo" title="Back to the original words">↺</span><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
   <div id="bar">
     <button id="tbList" title="Prayer List (C)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="5" r="1.7"/><rect x="8" y="3.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="12" r="1.7"/><rect x="8" y="10.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="19" r="1.7"/><rect x="8" y="17.8" width="13" height="2.4" rx="1.2"/></svg><span>List</span></button>
-    <button id="tbScript" title="Guide’s script on screen (S)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/><rect x="6" y="7" width="12" height="1.9" rx=".9" fill="#05305E"/><rect x="6" y="11" width="8" height="1.9" rx=".9" fill="#05305E"/></svg><span>Script</span></button>
     <button id="tbMap" title="Map (M)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 20 L9 6 L13 13 L16 9 L23 20 Z"/><path d="M9 6 L7.2 9.2 L9 10.4 L10.6 9.2 Z" fill="#05305E" opacity=".55"/></svg><span>Map</span></button>
+    <button id="tbScript" title="Guide’s script on screen (S)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/><rect x="6" y="7" width="12" height="1.9" rx=".9" fill="#05305E"/><rect x="6" y="11" width="8" height="1.9" rx=".9" fill="#05305E"/></svg><span>Script</span></button>
     <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><span>View</span></button>
     <button id="tbEdit" title="Edit the text on screen (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L4.8 15.6 L16.2 4.2 A1.8 1.8 0 0 1 19.8 7.8 L8.4 19.2 Z"/><path d="M14 6.5 L17.5 10"/></svg><span>Edit</span></button>
     <button id="tbGod" title="Overview: see and move every stop (G)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L17.5 9 L12 16 L6.5 9 Z"/><path d="M4 20 H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Look</span></button>
