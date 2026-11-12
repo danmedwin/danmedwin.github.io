@@ -1364,7 +1364,7 @@ function drawPanel() {
       return '<div class="stop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + (st.note ? ' <span class="under">(' + st.note + ')</span>' : '') + '</label>' +
         o.prayers.map(p => '<div class="prow"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label><input type="text" class="who" data-n="' + p.id + '" maxlength="40" placeholder="name" title="Who leads ' + esc(p.name).replace(/"/g, '&quot;') + '" value="' + esc(names[p.id] || '').replace(/"/g, '&quot;') + '"></div>').join('') +
         (o.stop === 'tents' ? '<div class="later">Nisim B’chol Yom side loop: coming later</div>' : '') + '</div>'; }).join('') +
-    '</div><div class="bar"><label class="switch"><input type="checkbox" id="optScript"' + (showScript ? ' checked' : '') + '><i></i><span class="ic">' + IC.script + '</span>Guide’s script on screen (S)</label></div>';
+    '</div>';
   panel.querySelectorAll('input[data-part]').forEach(i => { i.indeterminate = true; });
 }
 function applyChoice() { save(); buildSteps(); enter(0, -1); drawPanel(); if (god) { godBuild(); godSel(0); } if (editing) edRefresh(); }
