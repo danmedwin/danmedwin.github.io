@@ -80,9 +80,12 @@
                   background: rgba(5,48,94,.72); border: 1px solid rgba(255,255,255,.3); border-radius: calc(var(--pt)*10); padding: calc(var(--pt)*4); opacity: .5; transition: opacity .25s; }
   #bar:hover, #barTab:hover { opacity: 1; }
   #bar button, #barTab { cursor: pointer; color: #fff; }
-  #bar button { background: transparent; border: 0; border-radius: calc(var(--pt)*7); width: calc(var(--pt)*34); height: calc(var(--pt)*34); padding: calc(var(--pt)*6); color: #fff; cursor: pointer; }
+  #bar button { background: transparent; border: 0; border-radius: calc(var(--pt)*7); width: calc(var(--pt)*38); height: calc(var(--pt)*40); padding: calc(var(--pt)*3) 0 calc(var(--pt)*2); color: #fff; cursor: pointer;
+                display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--pt)*2); }
+  #bar button span { font: 600 calc(var(--pt)*9.5)/1 Calibri, Carlito, sans-serif; color: #FFC843; letter-spacing: .02em; pointer-events: none; }
+  #bar #tbHide { width: calc(var(--pt)*24); }
   #bar button:hover, #bar button.act { background: rgba(255,255,255,.22); } #bar button.act { color: #FFC843; }
-  #bar svg { width: 100%; height: 100%; display: block; }
+  #bar svg { width: calc(var(--pt)*20); height: calc(var(--pt)*20); display: block; flex: none; pointer-events: none; }
   #barTab { display: none; left: 0; border-left: 0; border-radius: 0 calc(var(--pt)*8) calc(var(--pt)*8) 0; padding: calc(var(--pt)*8) calc(var(--pt)*3); font: 700 calc(var(--pt)*16) Calibri, Carlito, sans-serif; }
   .barOff #bar { display: none; } .barOff #barTab { display: block; }
   #map .x, #panel .x { position: absolute; cursor: pointer; color: #fff; opacity: .7; font: 700 calc(var(--pt)*20) Calibri, Carlito, sans-serif; line-height: 1; }
@@ -95,6 +98,7 @@
          border-radius: calc(var(--pt)*10); padding: 0 .45em 0 .7em; color: #fff; font: calc(var(--pt)*15) Calibri, Carlito, sans-serif; white-space: nowrap; }
   .adjusting #bar, .editing #bar, .god #bar, .listOn #bar, .filing #bar { opacity: 1; }
   #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #fileBar b:first-child { margin-left: 0; }
+  #dock .bi { display: inline-flex; align-items: center; gap: .35em; } #dock .bi svg { width: 1.15em; height: 1.15em; flex: none; pointer-events: none; }
   #dock button.fx { background: transparent; color: #fff; font-size: 1.6em; font-weight: 700; line-height: 1; padding: 0 .25em; opacity: .75; } #dock button.fx:hover { opacity: 1; color: #FFC843; }
   .adjusting #adj, .editing #ed, .god #godBar, .filing #fileBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
   #ed.top { bottom: auto; top: calc(var(--in)*.2); } #ed, #godBar { gap: .45em; }
@@ -115,7 +119,7 @@
   #adj button, #ed button, #godBar button, #fileBar button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
 
   /* ---------- control panel (for the person at the computer) ---------- */
-  #panel { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.84); width: calc(100% - var(--in)*.24); max-height: calc(100% - var(--in)*1.05); display: none; flex-direction: column;
+  #panel { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.9); width: calc(100% - var(--in)*.24); max-height: calc(100% - var(--in)*1.05); display: none; flex-direction: column;
            background: rgba(5,40,82,.96); color: #fff; border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
            border-radius: calc(var(--pt)*10); padding: calc(var(--pt)*16) calc(var(--pt)*22); box-sizing: border-box; cursor: default;
            font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; font-size: calc(var(--pt)*19); z-index: 5; }
@@ -134,7 +138,7 @@
   #panel button.main, #tools button.main { background: #FFC843; }
   #panel .ib { width: 2.5em; height: 2.5em; padding: .5em; background: rgba(255,255,255,.14); color: #fff; } #panel .ib:hover { background: rgba(255,255,255,.3); color: #FFC843; }
   #panel .ib svg, #panel .ic svg { width: 100%; height: 100%; display: block; pointer-events: none; } #panel .ic { width: 1.3em; height: 1.3em; color: #FFC843; }
-  #dlg .card { position: absolute; left: calc(var(--in)*4.1); bottom: calc(var(--in)*.84); z-index: 6; width: 24em; background: #0a3a6e; border: 1px solid #FFC843; border-radius: .7em; padding: 1em 1.2em; box-shadow: 0 .4em 1.6em rgba(0,0,0,.5); }
+  #dlg .card { position: absolute; left: calc(var(--in)*4.6); bottom: calc(var(--in)*.9); z-index: 6; width: 24em; background: #0a3a6e; border: 1px solid #FFC843; border-radius: .7em; padding: 1em 1.2em; box-shadow: 0 .4em 1.6em rgba(0,0,0,.5); }
   #dlg h3 { margin: 0 0 .6em; font-size: 1.2em; } #dlg p { margin: .7em 0; font-size: .85em; opacity: .85; line-height: 1.3; }
   #dlg input[type=text] { width: 100%; box-sizing: border-box; height: auto; font: inherit; padding: .4em .6em; border-radius: .4em; border: 0; margin: 0; }
   #dlg input[type=text]:disabled { background: #9aa7b6; color: #3c4a5a; }
@@ -166,13 +170,13 @@
   <div id="map"><svg viewBox="0 0 400 190" id="mapsvg"></svg><div class="cap" id="mapcap"></div><div class="x" id="mapX" title="Hide the map (M)">×</div></div>
   <div id="guide"><h4></h4><ul></ul><div class="gx" id="gClose" title="Hide this box; the walk carries on">×</div><div class="tools"><span id="gEdit" title="Edit these words and the reader's name">✎</span><span id="gUndo" title="Back to the original words">↺</span><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
   <div id="bar">
-    <button id="tbList" title="Prayer List (C)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="5" r="1.7"/><rect x="8" y="3.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="12" r="1.7"/><rect x="8" y="10.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="19" r="1.7"/><rect x="8" y="17.8" width="13" height="2.4" rx="1.2"/></svg></button>
-    <button id="tbScript" title="Guide’s script on screen (S)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/><rect x="6" y="7" width="12" height="1.9" rx=".9" fill="#05305E"/><rect x="6" y="11" width="8" height="1.9" rx=".9" fill="#05305E"/></svg></button>
-    <button id="tbMap" title="Map (M)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 20 L9 6 L13 13 L16 9 L23 20 Z"/><path d="M9 6 L7.2 9.2 L9 10.4 L10.6 9.2 Z" fill="#05305E" opacity=".55"/></svg></button>
-    <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg></button>
-    <button id="tbEdit" title="Edit the text on screen (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L4.8 15.6 L16.2 4.2 A1.8 1.8 0 0 1 19.8 7.8 L8.4 19.2 Z"/><path d="M14 6.5 L17.5 10"/></svg></button>
-    <button id="tbGod" title="Overview: see and move every stop (G)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L17.5 9 L12 16 L6.5 9 Z"/><path d="M4 20 H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-    <button id="tbFile" title="Print the script; open, save or reset this design"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 3.5 H16.5 L20.5 7.5 V20.5 H3.5 Z"/><path d="M7.5 3.5 V9 H15.5 V3.5"/><rect x="7.5" y="13" width="9" height="7.5"/></svg></button>
+    <button id="tbList" title="Prayer List (C)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="5" r="1.7"/><rect x="8" y="3.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="12" r="1.7"/><rect x="8" y="10.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="19" r="1.7"/><rect x="8" y="17.8" width="13" height="2.4" rx="1.2"/></svg><span>List</span></button>
+    <button id="tbScript" title="Guide’s script on screen (S)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3 H20 A2 2 0 0 1 22 5 V15 A2 2 0 0 1 20 17 H11 L6 21.5 V17 H4 A2 2 0 0 1 2 15 V5 A2 2 0 0 1 4 3 Z"/><rect x="6" y="7" width="12" height="1.9" rx=".9" fill="#05305E"/><rect x="6" y="11" width="8" height="1.9" rx=".9" fill="#05305E"/></svg><span>Script</span></button>
+    <button id="tbMap" title="Map (M)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 20 L9 6 L13 13 L16 9 L23 20 Z"/><path d="M9 6 L7.2 9.2 L9 10.4 L10.6 9.2 Z" fill="#05305E" opacity=".55"/></svg><span>Map</span></button>
+    <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><span>View</span></button>
+    <button id="tbEdit" title="Edit the text on screen (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L4.8 15.6 L16.2 4.2 A1.8 1.8 0 0 1 19.8 7.8 L8.4 19.2 Z"/><path d="M14 6.5 L17.5 10"/></svg><span>Edit</span></button>
+    <button id="tbGod" title="Overview: see and move every stop (G)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L17.5 9 L12 16 L6.5 9 Z"/><path d="M4 20 H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Look</span></button>
+    <button id="tbFile" title="Print the script; open, save or reset this design"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 3.5 H16.5 L20.5 7.5 V20.5 H3.5 Z"/><path d="M7.5 3.5 V9 H15.5 V3.5"/><rect x="7.5" y="13" width="9" height="7.5"/></svg><span>File</span></button>
     <button id="tbHide" title="Tuck the toolbar away"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
   </div>
   <div id="barTab" title="Show the toolbar">›</div>
@@ -180,7 +184,7 @@
   <div id="ed"><button id="edPrev" class="nav" title="Previous slide ( [ )">‹</button><b id="edName"></b><button id="edNext" class="nav" title="Next slide ( ] )">›</button>
     <span class="grp txt"><button id="edB" title="Bold on or off: the selected words, or the whole box"><b>B</b></button><button id="edSm" title="Smaller text">A−</button><button id="edBg" title="Bigger text">A+</button></span>
     <span class="grp shd"><button id="edKind" title="Fade down, solid, or fade up">Style</button><button id="edLt">Lighter</button><button id="edDk">Darker</button><button id="edSf" title="Softer edges">Softer</button><button id="edSh" title="Sharper edges">Sharper</button></span>
-    <button id="edAddT" title="Add a text box">+ Text</button><button id="edAddS" title="Add a shaded box behind the text">+ Shade</button><button id="edDel" title="Delete the selected box">Delete</button><button id="edReset" title="Put this slide back the way it came">Reset slide</button><button id="edDone" class="fx" title="Close (E, or the pencil icon)">×</button></div>
+    <button id="edAddT" title="Add a text box">Add text</button><button id="edAddS" title="Add a shaded box behind the text">Add shade</button><button id="edDel" title="Delete the selected box">Delete</button><button id="edReset" title="Put this slide back the way it came">Reset slide</button><button id="edDone" class="fx" title="Close (E, or the pencil icon)">×</button></div>
   <div id="edMove" title="Drag to move this text">✥</div>
   <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
   <div id="godBar"><b id="godName"></b><span>drag: orbit · wheel: zoom · W A S D: move · drag a marker · arrows: turn it</span><button id="godGo" title="Leave the overview and adjust this view (Enter)">Go there</button><button id="godReset">Reset this stop</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
@@ -1288,8 +1292,15 @@ const IC = {
   doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M6 2.5 H14 L19 7.5 V21.5 H6 Z"/><path d="M14 2.5 V7.5 H19"/><path d="M9 12 H16 M9 15.5 H16 M9 19 H13"/></svg>',
   open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2.5 19.5 V5 H9 L11 7.5 H21.5 V19.5 Z"/></svg>',
   save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 3.5 H16.5 L20.5 7.5 V20.5 H3.5 Z"/><path d="M7.5 3.5 V9 H15.5 V3.5"/><rect x="7.5" y="13" width="9" height="7.5"/></svg>',
-  reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 8.5 A8 8 0 1 1 4 12"/><path d="M4.5 3.5 V8.8 H9.8"/></svg>'
+  reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 8.5 A8 8 0 1 1 4 12"/><path d="M4.5 3.5 V8.8 H9.8"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 H20 M9.5 7 V4 H14.5 V7 M6.5 7 L7.5 20.5 H16.5 L17.5 7 M10 11 V17 M14 11 V17"/></svg>',
+  go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H19 M13 6 L19 12 L13 18"/></svg>',
+  text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 V5 H19 V7 M12 5 V19 M9 19 H15"/></svg>',
+  shade: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="5" width="17" height="7" rx="3.5" fill="currentColor"/></svg>'
 };
+// The same small icon sits before the words on the strip buttons, wherever a tool appears.
+[['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'],
+ ['adjReset', 'reset'], ['godReset', 'reset'], ['godGo', 'go']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
   const slides = STEPS.filter(s => s.k === 'slide').length;
