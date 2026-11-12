@@ -1204,17 +1204,24 @@ function godSel(i) { if (!god) return; god.sel = i; const m = god.list[i]; docum
 function setGod(on) {
   on = !!on;
   if (on) { if (filing) setFile(false); if (adjusting) setAdjust(false); if (editing) setEdit(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; }
-    god = Object.assign({}, GOD_HOME, godCam, { sel: -1, drag: null, list: [], fly: null }); godBuild(); const k = curPose().key; godSel(god.list.findIndex(m => m.pose.key === k)); }
+    const from = { pos: cur.pos.clone(), aim: { yaw: cur.yaw, pitch: cur.pitch }, zoom: cur.zoom }, todNow = tod;
+    god = Object.assign({}, GOD_HOME, godCam, { sel: -1, drag: null, list: [], fly: null }); godBuild(); const k = curPose().key; godSel(god.list.findIndex(m => m.pose.key === k));
+    if (!/[?&]still/.test(location.search)) god.fly = godFlight(from, godEye(god), true, todNow); }   // pull up and away from the live shot
   else { if (god) godCam = { tx: god.tx, tz: god.tz, dist: god.dist, az: god.az, el: god.el }; god = null; const s = STEPS[idx]; if (s.k !== 'travel') { s.dp = 0; toPose(s.pose); } }
   godG.visible = on; document.body.classList.toggle('god', on); document.getElementById('tbGod').classList.toggle('act', on);
 }
 function godFrame(dt) {
   if (god.fly) {
-    const f = god.fly, q = f.m.pose; f.t = Math.min(1, f.t + dt / f.dur); const e = ease(f.t);
-    tmpP.copy(f.pos0).lerp(q.pos, e); tmpP.y = Math.max(tmpP.y, height(tmpP.x, tmpP.z) + 2.2); if (f.t >= 1) tmpP.copy(q.pos);
-    setPose(tmpP, lerpAngle(f.yaw0, q.aim.yaw, e), lerp(f.pitch0, q.aim.pitch, e), lerp(1, q.zoom, e));
-    godG.visible = f.t < .4;                             // the markers drop away as we come in
-    if (f.t >= 1) { const step = f.m.step; setGod(false); enter(step, -1); }
+    const f = god.fly, q = f.q; f.t = Math.min(1, f.t + dt / f.dur); const e = ease(f.t), u = f.u = f.back ? 1 - e : e, a = 1 - u;
+    tmpP.set(0, 0, 0).addScaledVector(f.p0, a * a * a).addScaledVector(f.p1, 3 * a * a * u).addScaledVector(f.p2, 3 * a * u * u).addScaledVector(f.p3, u * u * u);
+    const tx = 3 * a * a * (f.p1.x - f.p0.x) + 6 * a * u * (f.p2.x - f.p1.x) + 3 * u * u * (f.p3.x - f.p2.x), ty = 3 * a * a * (f.p1.y - f.p0.y) + 6 * a * u * (f.p2.y - f.p1.y) + 3 * u * u * (f.p3.y - f.p2.y),
+      tz = 3 * a * a * (f.p1.z - f.p0.z) + 6 * a * u * (f.p2.z - f.p1.z) + 3 * u * u * (f.p3.z - f.p2.z);
+    tmpP.y = Math.max(tmpP.y, height(tmpP.x, tmpP.z) + 2.2 + 16 * (1 - sstep(.7, 1, u)));      // never through the mountain; the margin closes as we land
+    if (u >= 1) tmpP.copy(f.p3); else if (u <= 0) tmpP.copy(f.p0);
+    const wi = sstep(0, .3, u), wo = sstep(.72, 1, u), yawT = Math.atan2(-tx, -tz), pitchT = clamp(Math.atan2(ty, Math.hypot(tx, tz)), -1.15, .5);   // look where we are flying
+    setPose(tmpP, lerpAngle(lerpAngle(f.yaw0, yawT, wi), q.aim.yaw, wo), lerp(lerp(f.pitch0, pitchT, wi), q.aim.pitch, wo), lerp(1, q.zoom, wo));
+    godG.visible = u < .4;                               // the markers are only there from high up
+    if (f.t >= 1) { if (f.back) god.fly = null; else { const step = f.m.step; setGod(false); enter(step, -1); } }
     return;
   }
   const g = god, ce = Math.cos(g.el), ty = height(g.tx, g.tz);
@@ -1256,9 +1263,22 @@ addEventListener('mousemove', e => {
 addEventListener('mouseup', () => { if (god) god.drag = null; });
 stage.addEventListener('wheel', e => { if (!god) return; e.preventDefault(); god.dist = clamp(god.dist * (e.deltaY > 0 ? 1.1 : 1 / 1.1), 25, 1600); }, { passive: false });
 function godHome() { if (god && !god.fly) Object.assign(god, GOD_HOME); }
-function godGo() {                                      // swoop down to where that view stands, the light changing to its hour, then the live shot fades up
+function godEye(g) {                                    // where the overview camera sits and looks for a given orbit
+  const ce = Math.cos(g.el), ty = height(g.tx, g.tz), p = new THREE.Vector3(g.tx + Math.sin(g.az) * ce * g.dist, ty + Math.sin(g.el) * g.dist, g.tz + Math.cos(g.az) * ce * g.dist);
+  p.y = Math.max(p.y, height(p.x, p.z) + 4); const dx = g.tx - p.x, dy = ty - p.y, dz = g.tz - p.z;
+  return { pos: p, yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(dy, Math.hypot(dx, dz)) };
+}
+// A swoop between the overview and a view: head for a point behind and above where the view stands, then dip and run in along the way it looks,
+// so the shot arrives straight ahead. back: the same path flown in reverse, pulling up and away.
+function godFlight(q, eye, back, todAt) {
+  const fwd = new THREE.Vector3(-Math.sin(q.aim.yaw), 0, -Math.cos(q.aim.yaw)), p3 = q.pos.clone(), D = clamp(eye.pos.distanceTo(p3) * .24, 34, 110);
+  const p2 = p3.clone().addScaledVector(fwd, -D); p2.y += D * .34;
+  const p1 = eye.pos.clone().lerp(p2, .55); p1.y = lerp(eye.pos.y, p2.y, .3);
+  return { t: 0, u: back ? 1 : 0, dur: 4, q, back, p0: eye.pos.clone(), p1, p2, p3, yaw0: eye.yaw, pitch0: eye.pitch, tod: todAt };
+}
+function godGo() {                                      // the light changes to that prayer's hour on the way in, then the live shot fades up
   const m = god && god.list[god.sel]; if (!m || god.fly) return; const st = STEPS[m.step];
-  god.fly = { t: 0, dur: 3, m, pos0: camera.position.clone(), yaw0: cur.yaw, pitch0: cur.pitch, tod: st.tod != null ? st.tod : 4 };
+  god.fly = godFlight(m.pose, { pos: camera.position.clone(), yaw: cur.yaw, pitch: cur.pitch }, false, st.tod != null ? st.tod : 4); god.fly.m = m;
 }
 function godNext(dir) { const g = god, n = g.list.length; if (!n) return; godSel(((g.sel < 0 ? (dir > 0 ? -1 : 0) : g.sel) + dir + n) % n); const p = g.list[g.sel].pose.pos; g.tx = p.x; g.tz = p.z; }
 function godKey(e) {
@@ -1498,7 +1518,7 @@ function frame(now) {
     }
     tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
   }
-  applyTOD(god ? (god.fly ? lerp(4, god.fly.tod, ease(god.fly.t)) : 4) : tod); animateWind(clock);
+  applyTOD(god ? (god.fly ? lerp(4, god.fly.tod, god.fly.u) : 4) : tod); animateWind(clock);
   sky.position.copy(camera.position); stars.position.copy(camera.position);
   clouds.forEach(c => { const az = SUN_AZ + c.az + clock * 0.0009; c.s.position.set(camera.position.x + Math.cos(c.el) * Math.cos(az) * 6000, camera.position.y + Math.sin(c.el) * 6000, camera.position.z + Math.cos(c.el) * Math.sin(az) * 6000); });
   tmpV.copy(sunDir); if (tmpV.y < .12) tmpV.y = .12;
