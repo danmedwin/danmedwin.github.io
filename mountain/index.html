@@ -184,7 +184,7 @@
     <button id="tbHide" title="Tuck the toolbar away"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
   </div>
   <div id="barTab" title="Show the toolbar">›</div>
-  <div id="adj"><button id="adjPrev" class="nav" title="Previous prayer's view ( [ )">‹</button><b id="adjName"></b><button id="adjNext" class="nav" title="Next prayer's view ( ] )">›</button><span>drag: look · W A S D: move · R F: up, down · wheel: zoom</span><button id="adjPlay" title="Play the move into this view ( T )">▶ Play move</button><button id="adjReset">Reset this view</button><button id="adjDone" class="fx" title="Close (V, or the eye icon)">×</button></div>
+  <div id="adj"><button id="adjPrev" class="nav" title="Previous prayer's view ( [ )">‹</button><b id="adjName"></b><button id="adjNext" class="nav" title="Next prayer's view ( ] )">›</button><span>drag: look · W A S D: move · R F: up, down · wheel: zoom</span><button id="adjPlay" class="tbl" title="Play the move into this view ( T )">Play move</button><button id="adjReset" class="tbl" title="Put this view back to its default">Reset</button><button id="adjDone" class="fx" title="Close (V, or the eye icon)">×</button></div>
   <div id="ed"><button id="edPrev" class="nav" title="Previous slide ( [ )">‹</button><b id="edName"></b><button id="edNext" class="nav" title="Next slide ( ] )">›</button>
     <span class="grp txt"><button id="edB" title="Bold on or off: the selected words, or the whole box"><b>B</b></button><button id="edSm" title="Smaller text">A−</button><button id="edBg" title="Bigger text">A+</button></span>
     <span class="grp shd"><button id="edKind" title="Fade down, solid, or fade up">Style</button><button id="edLt">Lighter</button><button id="edDk">Darker</button><button id="edSf" title="Softer edges">Softer</button><button id="edSh" title="Sharper edges">Sharper</button></span>
@@ -192,8 +192,8 @@
   <div id="edMove" title="Drag to move this text">✥</div>
   <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
   <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" class="tbl" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" class="tbl" title="Fly down to this prayer’s view (Enter)">Go there</button><button id="godReset" class="tbl" title="Put this stop back to its default view">Reset</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
-  <div id="fileBar"><b>Script</b><button id="btnPrint" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" title="Save the guides’ script as a text file">Save as text</button>
-    <b>Design</b><button id="btnOpen" title="Open a saved design file">Open…</button><button id="btnSave" title="Save this design: prayer choices, names, views, slide and script edits">Save…</button><button id="btnReset" title="Put this computer back to the defaults">Reset…</button><button id="fileDone" class="fx" title="Close">×</button></div>
+  <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button>
+    <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button><button id="fileDone" class="fx" title="Close">×</button></div>
   <div id="tools"><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none"></div>
   <div id="panel"></div>
   <div id="fps"></div>
@@ -1349,13 +1349,14 @@ const IC = {
   reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 8.5 A8 8 0 1 1 4 12"/><path d="M4.5 3.5 V8.8 H9.8"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 H20 M9.5 7 V4 H14.5 V7 M6.5 7 L7.5 20.5 H16.5 L17.5 7 M10 11 V17 M14 11 V17"/></svg>',
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5 L12 4 L20.5 11.5 M6 10 V20 H18 V10"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5 L19.5 12 L7 19.5 Z"/></svg>',
   go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H19 M13 6 L19 12 L13 18"/></svg>',
   text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 V5 H19 V7 M12 5 V19 M9 19 H15"/></svg>',
   shade: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="5" width="17" height="7" rx="3.5" fill="currentColor"/></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
 [['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'],
- ['adjReset', 'reset'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
+ ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
   const slides = STEPS.filter(s => s.k === 'slide').length;
