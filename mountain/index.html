@@ -112,7 +112,7 @@
   #adj, #ed, #godBar, #fileBar, #demoBar { display: none; align-items: center; gap: .45em; background: rgba(5,48,94,.9); border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
          border-radius: calc(var(--pt)*10); padding: 0 .45em 0 .7em; color: #fff; font: calc(var(--pt)*15) Calibri, Carlito, sans-serif; white-space: nowrap; }
   .adjusting #bar, .editing #bar, .god #bar, .listOn #bar, .filing #bar { opacity: 1; }
-  #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #fileBar #brNow { background: transparent; color: #fff; min-width: 3.2em; padding: .2em .2em; font-weight: 700; }
+  #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #dock #fileBar button.tbl.lgoff { opacity: .45; text-decoration: line-through; } #fileBar #brNow { background: transparent; color: #fff; min-width: 3.2em; padding: .2em .2em; font-weight: 700; }
   #toast { position: absolute; left: 50%; top: calc(var(--in)*.5); transform: translateX(-50%); padding: .3em 1em; border-radius: 999px; background: rgba(5,48,94,.9); color: #fff; font: 600 calc(var(--pt)*20) Calibri, Carlito, sans-serif; opacity: 0; transition: opacity .4s; pointer-events: none; z-index: 6; } #toast.on { opacity: 1; } #fileBar b:first-child { margin-left: 0; }
   #dock .bi { display: inline-flex; align-items: center; gap: .35em; } #dock .bi svg { width: 1.15em; height: 1.15em; flex: none; pointer-events: none; }
   #dock button.tbl { flex-direction: column; gap: calc(var(--pt)*2); background: transparent; color: #fff; padding: calc(var(--pt)*3) calc(var(--pt)*7) calc(var(--pt)*2); border-radius: calc(var(--pt)*7);
@@ -230,7 +230,8 @@
   <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button>
     <b>Outline</b><button id="btnOutPdf" class="tbl" title="The service outline for the ticked prayers: print it, or choose Save as PDF in the print window">PDF</button><button id="btnOutXls" class="tbl" title="Save the service outline as an Excel file">Excel</button>
     <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button>
-    <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to normal brightness">100%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button><button id="fileDone" class="fx" title="Close">×</button></div>
+    <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to normal brightness">100%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button>
+    <b>Text</b><button id="lgHe" class="tbl" title="Show or hide the Hebrew on the prayer slides (L steps through the choices)">Hebrew</button><button id="lgTl" class="tbl" title="Show or hide the transliteration; hidden, the translation moves up beside the Hebrew (L)">Translit</button><button id="lgTr" class="tbl" title="Show or hide the translation at the bottom (L)">Translation</button><button id="fileDone" class="fx" title="Close">×</button></div>
   <div id="demoBar"><b>Demo</b><button id="dmPlay" class="tbl" title="Pause or play (Space)">Pause</button><button id="dmRestart" class="tbl" title="Back to the start">Restart</button><span id="dmWhere"></span><button id="dmFull" class="tbl" title="Full screen on or off (F)">Full</button><button id="dmExit" class="tbl" title="Leave the demo and lead it yourself (Esc)">Exit demo</button></div>
   <div id="toast"></div>
   <div id="tools"><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none"></div>
@@ -881,6 +882,7 @@ const guideBox = {};                                                 // one box 
 [DEF.guide, saved.guide].forEach(g => { for (const k in (g || {})) guideBox[k] = Object.assign({}, guideBox[k], g[k]); });
 const textEd = Object.assign({}, DEF.text, saved.text);              // slides changed with the text editor: { "s-shma-1": html }
 const notes = Object.assign({}, DEF.notes, saved.notes);              // notes for each prayer: { shma: "sung, seated" }
+const LANG0 = { he: true, tl: true, tr: true }, langs = Object.assign({}, LANG0, DEF.langs, saved.langs);   // which languages the prayer slides show (More > Text, or L)
 const melody = Object.assign({}, DEF.mel, saved.mel);                 // the melody chosen for a prayer that has more than one (MELODIES in build.py): { mahtovu: "morning" }
 const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }. In the Prayer List and the Sheet only
 const guides = Object.assign({}, DEF.guides, saved.guides);           // who reads the guide's script before each prayer: { modeh: "Sam" }. On the script, on screen and printed
@@ -888,10 +890,10 @@ const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nu
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = +saved.bright || 1;   // bright: how much the scene is lifted for this room's projector
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
-const settings = () => ({ name: designName, sel, mel: melody, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, mel: melody, langs, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), langs: changed(langs, Object.assign({}, LANG0, DEF.langs)), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
   guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff, bright: bright !== 1 ? bright : undefined })); } catch (e) {} };
 // Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
 const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
@@ -1107,7 +1109,64 @@ function applyText() {                                   // put every changed sl
     if (!(sl.id in ORIG)) ORIG[sl.id] = sl.innerHTML;
     if (sl.id in textEd) { sl.innerHTML = cleanHTML(textEd[sl.id]); over[sl.id] = 1; } else if (over[sl.id]) { sl.innerHTML = ORIG[sl.id]; delete over[sl.id]; }
   });
+  langLayout();
 }
+
+/* ---------- languages: show or hide the Hebrew, the transliteration and the translation (More > Text, or L) ----------
+   Read from each slide as it is (edited slides too), and only on prayer slides with a Hebrew column beside other text: titles, readings, song
+   lyrics and credits are left alone. What is left sits side by side. Transliteration hidden: the translation moves up beside the Hebrew, in the
+   left column. Hebrew hidden: it moves up beside the transliteration, in the right column. Both hidden: it takes the left column. Translation
+   hidden: it goes. Stacked slides (Sh'ma) only hide. While text is being edited everything shows as saved, so none of this gets into an edit. */
+const langOrig = new WeakMap(), langHTML = new WeakMap(), HEB = /[֐-׿]/;
+const styleOf = b => langOrig.has(b) ? langOrig.get(b) : (b.getAttribute('style') || '');
+const inchesIn = (b, prop) => { const m = new RegExp('(?:^|;)\\s*' + prop + ':\\s*calc\\(var\\(--in\\)\\s*\\*\\s*(-?[\\d.]+)\\)').exec(styleOf(b)); return m ? +m[1] : null; };
+const ptIn = b => { const m = /font-size:\s*calc\(var\(--pt\)\s*\*\s*([\d.]+)\)/.exec(styleOf(b)); return m ? +m[1] : 0; };
+const centred = b => /text-align:\s*center/.test(styleOf(b));
+function langRoles(sl) {
+  const boxes = [...sl.children].filter(b => b.classList.contains('box') && !b.classList.contains('h-en') && !b.classList.contains('h-he') && !b.classList.contains('dots') && b.textContent.trim());
+  const he = boxes.filter(b => b.classList.contains('he') && inchesIn(b, 'top') != null && HEB.test(b.textContent));
+  if (!he.length) return null;
+  const heTops = he.map(b => inchesIn(b, 'top')), stacked = he.some(centred);
+  const tl = boxes.filter(b => !b.classList.contains('he') && !HEB.test(b.textContent) && ptIn(b) >= 34 && inchesIn(b, 'top') != null &&
+    (heTops.some(t => Math.abs(t - inchesIn(b, 'top')) < .2) || (stacked && centred(b))));      // beside a Hebrew column (or, stacked, centred like it)
+  const tr = boxes.filter(b => !b.classList.contains('he') && inchesIn(b, 'bottom') != null && ptIn(b) > 22 && ptIn(b) < 34);   // the translation at the bottom (credits are smaller)
+  return tl.length || tr.length ? { he, tl, tr, stacked } : null;
+}
+function langLayout() {
+  const inch = inchPx(); if (!inch) return;
+  document.querySelectorAll('#slides .slide').forEach(sl => {
+    const r = langRoles(sl); if (!r) return;
+    [...r.he, ...r.tl, ...r.tr].forEach(b => { if (langHTML.has(b)) { b.innerHTML = langHTML.get(b); langHTML.delete(b); } if (langOrig.has(b)) b.setAttribute('style', langOrig.get(b)); });
+    if (editing) return;
+    const keep = b => { if (!langOrig.has(b)) langOrig.set(b, b.getAttribute('style') || ''); }, hide = b => { keep(b); b.style.display = 'none'; };
+    if (!langs.he) r.he.forEach(hide); if (!langs.tl) r.tl.forEach(hide); if (!langs.tr) r.tr.forEach(hide);
+    if (!langs.tr || (langs.he && langs.tl) || r.stacked || !r.tr.length) return;
+    let x0 = .45, x1 = 19.55;                                                  // the free column the translation moves into
+    if (langs.he) x1 = Math.min(...r.he.map(b => b.offsetLeft / inch)) - .5;
+    else if (langs.tl && r.tl.length) x0 = Math.max(...r.tl.map(b => (b.offsetLeft + b.offsetWidth) / inch)) + .6;
+    if (x1 - x0 < 5) return;                                                   // no room beside it: the translation stays at the bottom
+    let y = Math.min(...[...r.he, ...r.tl].map(b => inchesIn(b, 'top')).filter(v => v != null));
+    r.tr.forEach(b => {
+      keep(b); langHTML.set(b, b.innerHTML); b.innerHTML = b.innerHTML.replace(/\s*<br\s*\/?>\s*/gi, ' ');   // its own line breaks were for the wide bottom line
+      Object.assign(b.style, { top: 'calc(var(--in)*' + y + ')', bottom: 'auto', left: 'calc(var(--in)*' + x0 + ')', right: 'auto', width: 'calc(var(--in)*' + (x1 - x0).toFixed(2) + ')', whiteSpace: 'normal', textAlign: 'left' });
+      let pt = 44; const fit = () => { b.style.fontSize = 'calc(var(--pt)*' + pt + ')'; b.style.lineHeight = 'calc(var(--pt)*' + Math.round(pt * 1.36) + ')'; };
+      fit(); while (pt > 24 && (b.offsetTop + b.offsetHeight) / inch > 10.3) { pt -= 2; fit(); }   // as big as fits above the toolbar, 44 pt at most
+      y = (b.offsetTop + b.offsetHeight) / inch + .3;
+    });
+  });
+}
+const LANG_NAMES = { he: 'Hebrew', tl: 'transliteration', tr: 'translation' }, LANG_STEPS = [[1, 1, 1], [1, 0, 1], [1, 1, 0], [0, 1, 1]];   // L steps through these
+function langDraw() { [['lgHe', 'he'], ['lgTl', 'tl'], ['lgTr', 'tr']].forEach(([id, k]) => { const b = document.getElementById(id); if (b) { b.classList.toggle('act', !!langs[k]); b.classList.toggle('lgoff', !langs[k]); } }); }
+function setLangs(next) {
+  if (!next.he && !next.tl && !next.tr) return toastMsg('One of them has to stay on');
+  Object.assign(langs, next); langDraw(); langLayout(); save();
+  toastMsg('Text: ' + ['he', 'tl', 'tr'].filter(k => langs[k]).map(k => LANG_NAMES[k]).join(' · '));
+}
+const toggleLang = k => setLangs(Object.assign({}, langs, { [k]: !langs[k] }));
+function cycleLangs() { const i = LANG_STEPS.findIndex(c => !!c[0] === !!langs.he && !!c[1] === !!langs.tl && !!c[2] === !!langs.tr), c = LANG_STEPS[(i + 1) % LANG_STEPS.length]; setLangs({ he: !!c[0], tl: !!c[1], tr: !!c[2] }); }
+function toastMsg(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastMsg.timer); toastMsg.timer = setTimeout(() => t.classList.remove('on'), 1500); }
+langDraw();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(langLayout);   // measure again once the fonts are in
 let editing = false, edSel = null, edDrag = null;
 const edBar = document.getElementById('ed'), edMove = document.getElementById('edMove'), slidesBox = document.getElementById('slides');
 const curSlide = () => { const s = STEPS[idx]; return s.k === 'slide' ? document.getElementById(s.id) : null; };
@@ -1116,7 +1175,7 @@ const getIn = (n, prop) => { const m = /\*\s*(-?[\d.]+)\s*\)/.exec(n.style[prop]
 const setIn = (n, prop, v) => { n.style[prop] = 'calc(var(--in)*' + (Math.round(v * 100) / 100) + ')'; };
 function setEdit(on) {
   if (on) { if (filing) setFile(false); if (adjusting) setAdjust(false); if (god) setGod(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } }
-  editing = on; document.body.classList.toggle('editing', on); document.getElementById('tbEdit').classList.toggle('act', on);
+  editing = on; document.body.classList.toggle('editing', on); document.getElementById('tbEdit').classList.toggle('act', on); langLayout();   // editing shows every language, as saved
   if (on) edRefresh(); else { edPick(null); slidesBox.querySelectorAll('[contenteditable]').forEach(b => { b.removeAttribute('contenteditable'); b.removeAttribute('spellcheck'); }); }
 }
 function edRefresh() {                                   // make the slide now on screen editable
@@ -1604,10 +1663,13 @@ const IC = {
   go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H19 M13 6 L19 12 L13 18"/></svg>',
   text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 V5 H19 V7 M12 5 V19 M9 19 H15"/></svg>',
   shade: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="5" width="17" height="7" rx="3.5" fill="currentColor"/></svg>',
-  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5 H21 M3 14.8 H21 M9 4 V20"/></svg>'
+  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5 H21 M3 14.8 H21 M9 4 V20"/></svg>',
+  he: '<svg viewBox="0 0 24 24"><text x="12" y="19" text-anchor="middle" font-family="David Libre, Arial Hebrew, serif" font-weight="700" font-size="20" fill="currentColor">אב</text></svg>',
+  tl: '<svg viewBox="0 0 24 24"><text x="12" y="18" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="17" fill="currentColor">Aa</text></svg>',
+  tr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7 H20 M4 12 H20 M4 17 H14"/></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
-[['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOutPdf', 'print'], ['btnOutXls', 'grid'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
+[['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOutPdf', 'print'], ['btnOutXls', 'grid'], ['lgHe', 'he'], ['lgTl', 'tl'], ['lgTr', 'tr'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
  ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full'], ['brDown', 'dim'], ['brUp', 'bright']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 const listCount = () => 'Untick a prayer to skip it; untick a whole stop and we walk past it. The gold arrow on a row goes straight to that prayer. ' + (ROUTE.length) + ' stops, ' + STEPS.filter(s => s.k === 'slide').length + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '');
@@ -1670,7 +1732,7 @@ panel.addEventListener('change', e => {
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
-  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in melody) delete melody[k]; Object.assign(melody, d.mel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in guides) delete guides[k]; Object.assign(guides, d.guides); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); Object.assign(langs, LANG0, d.langs); langDraw(); for (const k in melody) delete melody[k]; Object.assign(melody, d.mel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in guides) delete guides[k]; Object.assign(guides, d.guides); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
   showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh(); if (sheetOn) sheetPull();
 }
@@ -1684,7 +1746,7 @@ const dlg = html => { document.getElementById('dlg').innerHTML = html ? '<div cl
 let typedName = '', filing = false;
 const toolClick = e => {
   const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
-  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnOutPdf') printOutline(); else if (id === 'btnOutXls') saveOutline(); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(1); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
+  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnOutPdf') printOutline(); else if (id === 'btnOutXls') saveOutline(); else if (id === 'lgHe') toggleLang('he'); else if (id === 'lgTl') toggleLang('tl'); else if (id === 'lgTr') toggleLang('tr'); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(1); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
   else if (id === 'btnOpen') document.getElementById('fileOpen').click();
   else if (id === 'btnSave') { typedName = designName;
     dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
@@ -1725,6 +1787,11 @@ stage.classList.toggle('barOff', barOff); document.getElementById('tbScript').cl
 const SPEED = 4.6;                                // world units per second while travelling
 let autoNext = false;                             // (arrivals wait for a click; kept so an automatic mode can be added later)
 let idx = 0, travelP = 0, travelling = false, travelDur = 12, todFrom = 0, tod = 0, todTarget = 0, glide = null;
+// A move a slide makes once, going forward, after its text is up: { slide id: kind }.
+// "bow": the knees bend and the view bows, then stands straight again (Aleinu, "Vaanachnu kor'im umishtachavim").
+const SLIDE_MOVES = { 's-aleinu-2': 'bow' }, BOW_SECS = 4.4;
+let bow = null;
+const startMove = s => { bow = s.k === 'slide' && SLIDE_MOVES[s.id] === 'bow' && !adjusting && !editing && !god ? { t: 0, s } : null; };
 const titleEl = document.getElementById('title'), scrimEl = document.getElementById('scrim');
 function showText(id, stop) {
   document.querySelectorAll('.slide.on').forEach(e => e.classList.remove('on'));
@@ -1739,16 +1806,16 @@ function showText(id, stop) {
 function enter(i, dir) {
   idx = clamp(i, 0, STEPS.length - 1); const s = STEPS[idx];
   if (s.k === 'turn' && !showScript) return enter(idx + (dir > 0 ? 1 : -1), dir);   // no script on screen, no pause: straight on to the text
-  glide = null; autoNext = false; let post = null;
+  glide = null; bow = null; autoNext = false; let post = null;
   titleEl.classList.toggle('on', s.k === 'hold'); document.getElementById('hint').classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
   if (s.k === 'slide' || s.k === 'turn') {
     // text fades out, the camera moves to this prayer's view, then the new text fades in
     const pose = s.pose; s.dp = 0; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
     const moved = pose.pos.distanceTo(cur.pos) > .5 || Math.abs(lerpAngle(cur.yaw, pose.aim.yaw, 1) - cur.yaw) > .02 || Math.abs(pose.aim.pitch - cur.pitch) > .02 || Math.abs(pose.zoom - cur.zoom) > .01;
-    const go = dir > 0 && moved, after = s.k === 'slide' ? () => { showText(s.id, s.stop); showGuide(s); } : null;   // a turn, like an arrival, waits for a click so the guide can speak
+    const go = dir > 0 && moved, after = s.k === 'slide' ? () => { showText(s.id, s.stop); showGuide(s); if (dir > 0) startMove(s); } : null;   // a turn, like an arrival, waits for a click so the guide can speak
     showText(s.k === 'slide' && !go ? s.id : null, s.stop);
     if (go) glide = { pos0: cur.pos.clone(), y0: cur.yaw, p0: cur.pitch, z0: cur.zoom, to: pose, t: 0, then: after, dur: Math.abs(pose.aim.pitch - cur.pitch) > .5 || pose.pos.distanceTo(cur.pos) > 14 ? 5 : 3.6 };
-    else { toPose(pose); if (dir <= 0 && s.k === 'slide') tod = s.tod; if (s.k === 'turn') post = after; }
+    else { toPose(pose); if (dir <= 0 && s.k === 'slide') tod = s.tod; if (s.k === 'turn') post = after; if (dir > 0) startMove(s); }
   } else if (s.k === 'hold') {
     showText(null); todTarget = tod = STOPS[s.stop].tod[0]; toPose(s.pose); setMap(s.mi, s.mi, 0, true);
   } else {
@@ -1836,6 +1903,7 @@ addEventListener('keydown', e => {
   else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
   else if (e.key === 'f' || e.key === 'F') toggleFull();
   else if (e.key === 'b' || e.key === 'B') setBright(bright + (e.shiftKey ? -.1 : .1));
+  else if ((e.key === 'l' || e.key === 'L') && !editing) cycleLangs();
   else if (e.key === 'p' || e.key === 'P') { fpsEl.style.display = fpsEl.style.display === 'block' ? 'none' : 'block'; }
   else if (e.key === 's' || e.key === 'S') setScript(!showScript);
   else if (e.key === 'm' || e.key === 'M') toggleMap();
@@ -1857,6 +1925,7 @@ function layout() {
   document.documentElement.style.setProperty('--in', (w / 20) + 'px');
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.setSize(w, h, false);
   camera.aspect = ASPECT; camera.updateProjectionMatrix();
+  langLayout();
 }
 addEventListener('resize', layout); layout();
 
@@ -1882,6 +1951,12 @@ function frame(now) {
       const a = viewAdj[s.pose.key] || {}, pa = pathAim(u, -2), w = sstep(0, .12, s.dp);
       tmpP.copy(curve.getPointAt(u)).add(s.pose.d);
       setPose(tmpP, lerpAngle(s.pose.aim.yaw, pa.yaw + (a.y || 0), w), lerp(s.pose.aim.pitch, pa.pitch + (a.p || 0), w), s.pose.zoom);
+    }
+    else if (bow && bow.s === s && !adjusting && !editing) {                 // a slight bow: knees bend, the view dips forward, holds, and stands up again
+      bow.t += dt; const t = bow.t, q = s.pose;
+      const knee = sstep(0, .9, t) * (1 - sstep(2.8, BOW_SECS, t)), dip = sstep(.5, 1.9, t) * (1 - sstep(2.6, BOW_SECS - .2, t));
+      tmpP.copy(q.pos); tmpP.y -= .45 * knee; setPose(tmpP, q.aim.yaw, q.aim.pitch - 11 * DEG * dip, q.zoom);
+      if (t >= BOW_SECS) { bow = null; toPose(q); }
     }
     tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
   }
