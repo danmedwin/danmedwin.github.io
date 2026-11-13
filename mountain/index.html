@@ -1585,13 +1585,9 @@ function setMelody(id, key) {                            // chosen in the Prayer
 }
 function applyChoice() { const sh = panel.querySelector('.sheet'), top = sh ? sh.scrollTop : 0; save(); buildSteps(); enter(0, -1); drawPanel(); const sh2 = panel.querySelector('.sheet'); if (sh2) sh2.scrollTop = top; if (god) { godBuild(); godSel(0); } if (editing) edRefresh(); }
 panel.addEventListener('click', e => e.stopPropagation());
-// The arrow on a prayer's row: close the list and go there. The first prayer at a stop arrives at the stop, as a click on the mini-map does,
-// so the guide can speak; a later prayer opens on its own first slide (or, at the summit with the script on screen, its turn).
+// The arrow on a prayer's row: close the list and open that prayer's first slide, text up, in its own view.
 function jumpToPrayer(id) {
-  let n = STEPS.findIndex(s => (s.k === 'slide' || s.k === 'turn') && s.prayer.id === id); if (n < 0) return;
-  const s = STEPS[n];
-  if (ROUTE[s.mi].prayers[0].id === id) n = s.mi === 0 ? 0 : STEPS.findIndex(t => t.k === 'travel' && t.mi === s.mi);
-  else if (s.k === 'turn' && !showScript) n++;           // no script on screen: no turn, straight to the text
+  const n = STEPS.findIndex(s => s.k === 'slide' && s.prayer.id === id); if (n < 0) return;
   togglePanel(false); enter(n, -1);
 }
 panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } });
