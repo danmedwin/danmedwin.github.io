@@ -112,7 +112,8 @@
   #adj, #ed, #godBar, #fileBar, #demoBar { display: none; align-items: center; gap: .45em; background: rgba(5,48,94,.9); border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
          border-radius: calc(var(--pt)*10); padding: 0 .45em 0 .7em; color: #fff; font: calc(var(--pt)*15) Calibri, Carlito, sans-serif; white-space: nowrap; }
   .adjusting #bar, .editing #bar, .god #bar, .listOn #bar, .filing #bar { opacity: 1; }
-  #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #fileBar b:first-child { margin-left: 0; }
+  #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #fileBar #brNow { background: transparent; color: #fff; min-width: 3.2em; padding: .2em .2em; font-weight: 700; }
+  #toast { position: absolute; left: 50%; top: calc(var(--in)*.5); transform: translateX(-50%); padding: .3em 1em; border-radius: 999px; background: rgba(5,48,94,.9); color: #fff; font: 600 calc(var(--pt)*20) Calibri, Carlito, sans-serif; opacity: 0; transition: opacity .4s; pointer-events: none; z-index: 6; } #toast.on { opacity: 1; } #fileBar b:first-child { margin-left: 0; }
   #dock .bi { display: inline-flex; align-items: center; gap: .35em; } #dock .bi svg { width: 1.15em; height: 1.15em; flex: none; pointer-events: none; }
   #dock button.tbl { flex-direction: column; gap: calc(var(--pt)*2); background: transparent; color: #fff; padding: calc(var(--pt)*3) calc(var(--pt)*7) calc(var(--pt)*2); border-radius: calc(var(--pt)*7);
                      font: 600 calc(var(--pt)*9.5)/1 Calibri, Carlito, sans-serif; letter-spacing: .02em; }
@@ -193,7 +194,7 @@
 <div id="stage">
   <div id="scrim"></div>
   <div id="title"><div class="t1"></div><div class="t2"></div></div>
-  <div id="hint">Click or → to begin · <b>C</b> list · <b>M</b> map (click a stop to jump) · <b>S</b> script · <b>E</b> edit text · <b>V</b> adjust view · <b>G</b> look · <b>F</b> full screen</div>
+  <div id="hint">Click or → to begin · <b>C</b> list · <b>M</b> map (click a stop to jump) · <b>S</b> script · <b>E</b> edit text · <b>V</b> adjust view · <b>G</b> look · <b>F</b> full screen · <b>B</b> brighter</div>
   <div id="slides"></div>
   <div id="map"><svg viewBox="0 0 400 190" id="mapsvg"></svg><div class="cap" id="mapcap"></div><div class="x" id="mapX" title="Hide the map (M)">×</div></div>
   <div id="guide"><h4></h4><ul></ul><div class="gx" id="gClose" title="Hide this box; the walk carries on">×</div><div class="tools"><span id="gEdit" title="Edit these words and the reader's name">✎</span><span id="gUndo" title="Back to the original words">↺</span><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
@@ -204,7 +205,7 @@
     <button id="tbEdit" title="Edit the text on screen (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L4.8 15.6 L16.2 4.2 A1.8 1.8 0 0 1 19.8 7.8 L8.4 19.2 Z"/><path d="M14 6.5 L17.5 10"/></svg><span>Edit</span></button>
     <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><span>View</span></button>
     <button id="tbGod" title="Overview: see and move every stop (G)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L17.5 9 L12 16 L6.5 9 Z"/><path d="M4 20 H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Look</span></button>
-    <button id="tbFile" title="Print the script; open, save or reset this design"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 3.5 H16.5 L20.5 7.5 V20.5 H3.5 Z"/><path d="M7.5 3.5 V9 H15.5 V3.5"/><rect x="7.5" y="13" width="9" height="7.5"/></svg><span>File</span></button>
+    <button id="tbFile" title="More: print the script; open, save or reset a design; picture brightness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6.5 H13 M17 6.5 H20 M4 12 H7 M11 12 H20 M4 17.5 H14 M18 17.5 H20"/><circle cx="15" cy="6.5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="16" cy="17.5" r="2"/></svg><span>More</span></button>
     <button id="tbFull" title="Full screen on or off (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15"/></svg><span>Full</span></button>
     <button id="tbHide" title="Tuck the toolbar away"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
   </div>
@@ -218,8 +219,10 @@
   <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
   <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" class="tbl" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" class="tbl" title="Fly down to this prayer’s view (Enter)">Go there</button><button id="godReset" class="tbl" title="Put this stop back to its default view">Reset</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
   <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button>
+    <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to normal brightness">100%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button>
     <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button><button id="fileDone" class="fx" title="Close">×</button></div>
   <div id="demoBar"><b>Demo</b><button id="dmPlay" class="tbl" title="Pause or play (Space)">Pause</button><button id="dmRestart" class="tbl" title="Back to the start">Restart</button><span id="dmWhere"></span><button id="dmFull" class="tbl" title="Full screen on or off (F)">Full</button><button id="dmExit" class="tbl" title="Leave the demo and lead it yourself (Esc)">Exit demo</button></div>
+  <div id="toast"></div>
   <div id="tools"><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none"></div>
   <div id="panel"></div>
   <div id="fps"></div>
@@ -866,14 +869,14 @@ const textEd = Object.assign({}, DEF.text, saved.text);              // slides c
 const notes = Object.assign({}, DEF.notes, saved.notes);              // melody or notes for each prayer: { shma: "sung, seated" }
 const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
-let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
+let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = +saved.bright || 1;   // bright: how much the scene is lifted for this room's projector
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
 const settings = () => ({ name: designName, sel, names: sheetOn ? {} : names, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
 const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(sheetOn ? localNames : names, DEF.names), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
-  guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff })); } catch (e) {} };
+  guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff, bright: bright !== 1 ? bright : undefined })); } catch (e) {} };
 // Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
 const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
 const isOn = p => !hiddenP[p.id] && ((p.id in sel) ? !!sel[p.id] : !p.off);
@@ -1485,13 +1488,15 @@ const IC = {
   pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.5" height="15" rx="1"/><rect x="13.5" y="4.5" width="4.5" height="15" rx="1"/></svg>',
   exit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4 H5 V20 H10 M14 8 L18.5 12 L14 16 M9 12 H18"/></svg>',
   full: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15"/></svg>',
+  dim: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 5 V6.5 M12 17.5 V19 M5 12 H6.5 M17.5 12 H19 M7 7 L8 8 M16 16 L17 17 M17 7 L16 8 M8 16 L7 17"/></svg>',
+  bright: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.6" fill="currentColor"/><path d="M12 2 V4.5 M12 19.5 V22 M2 12 H4.5 M19.5 12 H22 M4.9 4.9 L6.7 6.7 M17.3 17.3 L19.1 19.1 M19.1 4.9 L17.3 6.7 M6.7 17.3 L4.9 19.1"/></svg>',
   go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H19 M13 6 L19 12 L13 18"/></svg>',
   text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 V5 H19 V7 M12 5 V19 M9 19 H15"/></svg>',
   shade: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="5" width="17" height="7" rx="3.5" fill="currentColor"/></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
 [['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
- ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
+ ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full'], ['brDown', 'dim'], ['brUp', 'bright']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
   const slides = STEPS.filter(s => s.k === 'slide').length, q = v => esc(v || '').replace(/"/g, '&quot;');
@@ -1532,7 +1537,7 @@ const dlg = html => { document.getElementById('dlg').innerHTML = html ? '<div cl
 let typedName = '', filing = false;
 const toolClick = e => {
   const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
-  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
+  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(1); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
   else if (id === 'btnOpen') document.getElementById('fileOpen').click();
   else if (id === 'btnSave') { typedName = designName;
     dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
@@ -1614,6 +1619,14 @@ function enter(i, dir) {
 }
 function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
 function prev() { if (idx > 0) enter(idx - 1, -1); }
+// Picture brightness, for a dim projector: lifts the scene only (the text is already white). Kept on this computer, not in a design.
+let toastTimer = 0;
+function setBright(v, quiet) {
+  bright = Math.round(clamp(v, .5, 3) * 10) / 10; renderer.domElement.style.filter = bright === 1 ? '' : 'brightness(' + bright + ')';
+  const pct = Math.round(bright * 100) + '%'; document.getElementById('brNow').textContent = pct;
+  if (!quiet) { save(); const t = document.getElementById('toast'); t.textContent = 'Brightness ' + pct; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 1300); }
+}
+setBright(bright, true);
 // Full screen: the F key, the Full icon on the toolbar and the one on the Demo strip. It has to start from a tap or a key; a page cannot do it by itself.
 const fullEl = () => document.fullscreenElement || document.webkitFullscreenElement, canFull = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen) && (document.fullscreenEnabled !== false);
 function toggleFull() {
@@ -1675,6 +1688,7 @@ addEventListener('keydown', e => {
   if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
   else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
   else if (e.key === 'f' || e.key === 'F') toggleFull();
+  else if (e.key === 'b' || e.key === 'B') setBright(bright + (e.shiftKey ? -.1 : .1));
   else if (e.key === 'p' || e.key === 'P') { fpsEl.style.display = fpsEl.style.display === 'block' ? 'none' : 'block'; }
   else if (e.key === 's' || e.key === 'S') setScript(!showScript);
   else if (e.key === 'm' || e.key === 'M') toggleMap();
