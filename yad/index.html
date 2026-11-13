@@ -267,7 +267,7 @@ const tagsOf = n => ({ c: TAGS[n][0].split(' '), t: TAGS[n][1].split(' ') });
 // where "save" hands the choice to the app as ?pick=N.
 const APP_URL = "https://script.google.com/a/macros/davisstudent.org/s/AKfycbyhl7pSa6m2yS_nt_M6wrUP5KTrL3uSeqDBiZb5McWH4Do8yCcLYeCSxbt7RDwyi1ux/exec";
 // Public gallery only: an open (no sign-in) endpoint that returns Settings!B4, the deadline.
-const INFO_URL = "";
+const INFO_URL = "https://script.google.com/macros/s/AKfycbxaHRGQSqi2Pd8I0riHBJvfoemGTXRBf2BBVIR5NrT4sidKQmBe9RFF3iDLBXHOQFu6/exec";
 let STATE = {"public": true, "open": true, "past": false, "deadline": "Friday, January 1 at 11:59 PM", "signedIn": "", "pick": null};
 const PUBLIC = !!STATE.public;
 let chosen = (STATE.preselect >= 1 && STATE.preselect <= DESIGNS.length && STATE.open) ? STATE.preselect
