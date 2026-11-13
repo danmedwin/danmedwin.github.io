@@ -1,0 +1,10 @@
+{
+  "name": "Mountain Tefillah",
+  "short_name": "Mountain",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#05305E",
+  "theme_color": "#05305E"
+}

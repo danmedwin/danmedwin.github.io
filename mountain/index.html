@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<!-- Opened from a home-screen icon (Share > Add to Home Screen), the page runs with no address bar or browser buttons. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mountain Tefillah">
+<meta name="theme-color" content="#05305E">
+<link rel="manifest" href="manifest.json">
 <title>Mountain Tefillah (Traditional)</title>
 <style>
   /* Fonts travel with the page (vendor/fonts), so nothing is fetched from the web. */
@@ -102,7 +109,7 @@
   #dock .bi { display: inline-flex; align-items: center; gap: .35em; } #dock .bi svg { width: 1.15em; height: 1.15em; flex: none; pointer-events: none; }
   #dock button.tbl { flex-direction: column; gap: calc(var(--pt)*2); background: transparent; color: #fff; padding: calc(var(--pt)*3) calc(var(--pt)*7) calc(var(--pt)*2); border-radius: calc(var(--pt)*7);
                      font: 600 calc(var(--pt)*9.5)/1 Calibri, Carlito, sans-serif; letter-spacing: .02em; }
-  #dock button.tbl svg { width: calc(var(--pt)*20); height: calc(var(--pt)*20); } #dock button.tbl:hover { background: rgba(255,255,255,.22); }
+  #dock button.tbl svg { width: calc(var(--pt)*20); height: calc(var(--pt)*20); } #dock button.tbl:hover { background: rgba(255,255,255,.22); } #dock button.tbl.act { color: #FFC843; }
   #dock button.fx { background: transparent; color: #fff; font-size: 1.6em; font-weight: 700; line-height: 1; padding: 0 .25em; opacity: .75; } #dock button.fx:hover { opacity: 1; color: #FFC843; }
   .adjusting #adj, .editing #ed, .god #godBar, .filing #fileBar, .demo #demoBar { display: flex; }
   .demo #bar, .demo #barTab { display: none !important; } #demoBar b { color: #FFC843; margin-right: .3em; } #dmWhere { opacity: .85; margin: 0 .5em; min-width: 13em; } .adjusting #stage, .god #stage { cursor: grab; }
@@ -182,6 +189,7 @@
     <button id="tbView" title="Adjust this view (V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12 C5 6.5 8.5 4.5 12 4.5 S19 6.5 22 12 C19 17.5 15.5 19.5 12 19.5 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><span>View</span></button>
     <button id="tbGod" title="Overview: see and move every stop (G)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L17.5 9 L12 16 L6.5 9 Z"/><path d="M4 20 H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Look</span></button>
     <button id="tbFile" title="Print the script; open, save or reset this design"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 3.5 H16.5 L20.5 7.5 V20.5 H3.5 Z"/><path d="M7.5 3.5 V9 H15.5 V3.5"/><rect x="7.5" y="13" width="9" height="7.5"/></svg><span>File</span></button>
+    <button id="tbFull" title="Full screen on or off (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15"/></svg><span>Full</span></button>
     <button id="tbHide" title="Tuck the toolbar away"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
   </div>
   <div id="barTab" title="Show the toolbar">›</div>
@@ -195,7 +203,7 @@
   <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" class="tbl" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" class="tbl" title="Fly down to this prayer’s view (Enter)">Go there</button><button id="godReset" class="tbl" title="Put this stop back to its default view">Reset</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
   <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button>
     <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button><button id="fileDone" class="fx" title="Close">×</button></div>
-  <div id="demoBar"><b>Demo</b><button id="dmPlay" class="tbl" title="Pause or play (Space)">Pause</button><button id="dmRestart" class="tbl" title="Back to the start">Restart</button><span id="dmWhere"></span><button id="dmExit" class="tbl" title="Leave the demo and lead it yourself (Esc)">Exit demo</button></div>
+  <div id="demoBar"><b>Demo</b><button id="dmPlay" class="tbl" title="Pause or play (Space)">Pause</button><button id="dmRestart" class="tbl" title="Back to the start">Restart</button><span id="dmWhere"></span><button id="dmFull" class="tbl" title="Full screen on or off (F)">Full</button><button id="dmExit" class="tbl" title="Leave the demo and lead it yourself (Esc)">Exit demo</button></div>
   <div id="tools"><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none"></div>
   <div id="panel"></div>
   <div id="fps"></div>
@@ -1378,13 +1386,14 @@ const IC = {
   sharper: '<svg viewBox="0 0 24 24"><rect x="4.5" y="5.5" width="15" height="13" fill="currentColor"/></svg>',
   pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.5" height="15" rx="1"/><rect x="13.5" y="4.5" width="4.5" height="15" rx="1"/></svg>',
   exit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4 H5 V20 H10 M14 8 L18.5 12 L14 16 M9 12 H18"/></svg>',
+  full: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15"/></svg>',
   go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H19 M13 6 L19 12 L13 18"/></svg>',
   text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 V5 H19 V7 M12 5 V19 M9 19 H15"/></svg>',
   shade: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="5" width="17" height="7" rx="3.5" fill="currentColor"/></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
 [['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
- ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
+ ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
   const slides = STEPS.filter(s => s.k === 'slide').length;
@@ -1456,7 +1465,7 @@ function togglePanel(on) { if (on == null) on = !panel.classList.contains('on');
 function setBar(off) { barOff = off; stage.classList.toggle('barOff', off); save(); }
 document.getElementById('bar').addEventListener('click', e => {
   e.stopPropagation(); const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'tbList') togglePanel(); else if (b.id === 'tbScript') setScript(!showScript); else if (b.id === 'tbMap') toggleMap(); else if (b.id === 'tbView') setAdjust(!adjusting); else if (b.id === 'tbEdit') setEdit(!editing); else if (b.id === 'tbGod') { if (god) godClose(); else setGod(true); } else if (b.id === 'tbFile') setFile(!filing); else if (b.id === 'tbHide') setBar(true);
+  if (b.id === 'tbList') togglePanel(); else if (b.id === 'tbScript') setScript(!showScript); else if (b.id === 'tbMap') toggleMap(); else if (b.id === 'tbView') setAdjust(!adjusting); else if (b.id === 'tbEdit') setEdit(!editing); else if (b.id === 'tbGod') { if (god) godClose(); else setGod(true); } else if (b.id === 'tbFile') setFile(!filing); else if (b.id === 'tbFull') toggleFull(); else if (b.id === 'tbHide') setBar(true);
 });
 document.getElementById('barTab').addEventListener('click', e => { e.stopPropagation(); setBar(false); });
 stage.classList.toggle('barOff', barOff); document.getElementById('tbScript').classList.toggle('act', showScript);
@@ -1505,6 +1514,17 @@ function enter(i, dir) {
 }
 function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
 function prev() { if (idx > 0) enter(idx - 1, -1); }
+// Full screen: the F key, the Full icon on the toolbar and the one on the Demo strip. It has to start from a tap or a key; a page cannot do it by itself.
+const fullEl = () => document.fullscreenElement || document.webkitFullscreenElement, canFull = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen) && (document.fullscreenEnabled !== false);
+function toggleFull() {
+  const d = document, r = d.documentElement;
+  try { if (fullEl()) (d.exitFullscreen || d.webkitExitFullscreen).call(d); else { const p = (r.requestFullscreen || r.webkitRequestFullscreen).call(r); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
+}
+(function () {
+  const btns = ['tbFull', 'dmFull'].map(id => document.getElementById(id)), show = () => btns.forEach(b => b.classList.toggle('act', !!fullEl()));
+  if (!canFull) btns.forEach(b => { b.style.display = 'none'; });       // an iPhone's browser has no full screen for pages: use Add to Home Screen there
+  document.addEventListener('fullscreenchange', show); document.addEventListener('webkitfullscreenchange', show);
+})();
 
 /* ---------- demo: the whole service plays by itself (open the page with #demo on the end of the address) ---------- */
 let demo = null;                                        // { paused, wait: seconds spent on this step, done }
@@ -1535,7 +1555,7 @@ function demoPlay() { if (!demo) return; if (demo.done) return demoRestart(); de
 function demoRestart() { if (!demo) return; demo.paused = demo.done = false; enter(0, -1); }
 document.getElementById('demoBar').addEventListener('click', e => {
   e.stopPropagation(); const b = e.target.closest('button'), id = b && b.id;
-  if (id === 'dmPlay') demoPlay(); else if (id === 'dmRestart') demoRestart(); else if (id === 'dmExit') setDemo(false);
+  if (id === 'dmPlay') demoPlay(); else if (id === 'dmRestart') demoRestart(); else if (id === 'dmExit') setDemo(false); else if (id === 'dmFull') toggleFull();
 });
 addEventListener('keydown', e => {
   if (demo && !panel.classList.contains('on')) {          // demo: Space pauses and plays, Esc leaves; the arrows still step by hand
@@ -1554,7 +1574,7 @@ addEventListener('keydown', e => {
   if (adjusting && adjustKey(e)) return;
   if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
   else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
-  else if (e.key === 'f' || e.key === 'F') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }
+  else if (e.key === 'f' || e.key === 'F') toggleFull();
   else if (e.key === 'p' || e.key === 'P') { fpsEl.style.display = fpsEl.style.display === 'block' ? 'none' : 'block'; }
   else if (e.key === 's' || e.key === 'S') setScript(!showScript);
   else if (e.key === 'm' || e.key === 'M') toggleMap();
