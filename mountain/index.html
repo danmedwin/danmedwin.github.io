@@ -151,6 +151,7 @@
   #panel .srow { display: grid; grid-template-columns: minmax(13.5em, 1.3fr) minmax(6.5em, .75fr) minmax(6.5em, .75fr) minmax(9.5em, .95fr) minmax(8em, 1.4fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
   #panel .shead { position: sticky; top: 0; z-index: 1; background: #0a3a6e; font-weight: 700; color: #FFC843; font-size: .85em; letter-spacing: .03em; padding: .4em .8em; }
   #panel .sstop { background: rgba(116,210,231,.1); } #panel .sstop .nm { font-weight: 700; color: #74D2E7; grid-column: 1 / -1; }
+  #panel .sstop.walk .nm { grid-column: auto; } #panel .sstop .wkn { grid-column: 3 / -1; font-size: .8em; font-style: italic; color: rgba(255,255,255,.55); }
   #panel .srow.off .nm, #panel .srow.off input[type=text], #panel .srow.off select { opacity: .45; }
   #panel .srow .nm { display: flex; align-items: center; padding: .12em 0; cursor: default; } #panel .srow .nm.pr { padding-left: 1.5em; }
   #panel .srow .nm input[type=checkbox] { font-size: inherit; width: 1.15em; height: 1.15em; flex: none; cursor: pointer; }   /* sized from the list's own text */
@@ -926,6 +927,8 @@ const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nu
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = +saved.bright || 1;   // bright: how much the scene is lifted for this room's projector
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
+// Names typed on a walk's box before walks had a Guide field of their own: carried over as that walk's Guide ("walk:tents").
+for (const k in readers) if (k.indexOf('stop:') === 0 && !(('walk:' + k.slice(5)) in guides)) guides['walk:' + k.slice(5)] = readers[k];
 const settings = () => ({ name: designName, sel, mel: melody, langs, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
@@ -990,6 +993,9 @@ const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if 
 const hasTurn = (r, p) => r.prayers[0] !== p && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
 // A prayer with a note of its own under "pops" in the script: the note comes up beside the prayer's text, pop-up style, not during the walk.
 const hasPop = p => linesOf((SCRIPT.pops || {})[p.id]).length > 0;
+// A walk with a reading of its own that leads into no prayer's box (every prayer at the stop has its own pop-up note or summit turn: the tents,
+// the overlook). Its guide gets a field of its own on the stop's row in the Prayer List, kept as guides["walk:<stop>"] and as a row in the Sheet.
+const walkOwn = o => linesOf((SCRIPT.stops || {})[o.stop]).length > 0 && o.prayers.every((p, i) => hasPop(p) || (i > 0 && linesOf((SCRIPT.turns || {})[p.id]).length > 0));
 // The prayers a script box leads into: its own prayer for a pop-up or a summit turn; for the welcome or a walk, that stop's prayers that have no box of their own.
 const boxPrayers = s => s.k === 'turn' || s.k === 'slide' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p) && !hasPop(p));
 function whoFor(s) {
@@ -1008,7 +1014,7 @@ function guideFor(s) {
 // Words and reader for one script moment, after any rewording done on screen. key: "start", "stop:tents", "pop:modeh", "turn:gvurot", "end".
 // The name on a box is the Guide of the prayers it leads into (Prayer List, Sheet column F), so all three always agree. Only a box that leads
 // into no prayer of its own (a walk whose prayers all have pop-up notes) keeps a name of its own, in "readers".
-const linesAt = (key, lines) => scriptEd[key] || lines, whoAt = (s, key) => boxPrayers(s).length ? whoFor(s) : (readers[key] || '');
+const linesAt = (key, lines) => scriptEd[key] || lines, whoAt = (s, key) => boxPrayers(s).length ? whoFor(s) : ((s.k === 'travel' ? guides['walk:' + s.to] : '') || readers[key] || '');
 const guideKey = s => s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : (s.k === 'slide' ? 'pop:' : 'turn:') + s.prayer.id;
 let guideStep = null;
 function showGuide(s) {
@@ -1034,6 +1040,9 @@ function guideTyped() {                                 // keep what was typed: 
   if (ps.length) {                                       // the name is those prayers' Guide: write it there (and to the Sheet) if it changed
     if (who !== whoFor(s)) ps.forEach(p => { if (who) guides[p.id] = who; else delete guides[p.id]; if (sheetOn) sheetQueue(p.id, 'F', who); });
     delete readers[key];
+    if (panel.classList.contains('on')) panel.querySelectorAll(FIELDS).forEach(i => { if (i !== document.activeElement) i.value = fieldVal(i); });
+  } else if (s.k === 'travel') {                         // a walk of its own (the tents, the overlook): the name is that walk's Guide
+    const k = 'walk:' + s.to; if (who) guides[k] = who; else delete guides[k]; if (sheetOn) sheetQueue(k, 'F', who); delete readers[key];
     if (panel.classList.contains('on')) panel.querySelectorAll(FIELDS).forEach(i => { if (i !== document.activeElement) i.value = fieldVal(i); });
   } else if (who) readers[key] = who; else delete readers[key];
   document.getElementById('gUndo').style.display = key in scriptEd || key in readers ? '' : 'none'; save();
@@ -1530,8 +1539,11 @@ function downloadScript() {
 const OUT_COLS = [['#', 4], ['Stop', 16], ['Prayer', 24], ['Melody', 30], ['Guide', 16], ['Leader', 16], ['Notes', 40], ['Slides', 7]];
 function outlineRows() {
   const rows = []; let n = 0;
-  ROUTE.forEach(r => r.prayers.forEach(p => rows.push([++n, STOPS[r.stop].place.charAt(0).toUpperCase() + STOPS[r.stop].place.slice(1), p.name, p.mel ? melOf(p).t : '',
-    (guides[p.id] || '').trim(), (names[p.id] || '').trim(), (notes[p.id] || '').trim(), slidesOf(p).length])));
+  ROUTE.forEach(r => { const o = ORDER.find(x => x.stop === r.stop), place = STOPS[r.stop].place.charAt(0).toUpperCase() + STOPS[r.stop].place.slice(1);
+    if (o && walkOwn(o)) rows.push(['', place, 'The walk here (its own reading)', '', (guides['walk:' + r.stop] || '').trim(), '', '', '']);   // a walk with a guide of its own
+    r.prayers.forEach(p => rows.push([++n, STOPS[r.stop].place.charAt(0).toUpperCase() + STOPS[r.stop].place.slice(1), p.name, p.mel ? melOf(p).t : '',
+    (guides[p.id] || '').trim(), (names[p.id] || '').trim(), (notes[p.id] || '').trim(), slidesOf(p).length]));
+  });
   return rows;
 }
 function outlineMeta() {
@@ -1592,7 +1604,7 @@ function saveOutline() {
    melody. Unlike names, a melody read from the Sheet is kept on this computer, so the service does not change if the sign-in runs out. */
 const SHEET = WEEKLY.sheet && WEEKLY.sheet.clientId && WEEKLY.sheet.id && /^https?:$/.test(location.protocol) ? WEEKLY.sheet : null;
 let sheetTok = null, sheetOn = false, sheetMsg = '', sheetWhen = '', sheetTimer = 0, localNames = {}, localGuides = {}, localNotes = {}, sheetRuled = false; const sheetWait = {};
-const sheetPrayers = () => ORDER.filter(o => !HIDDEN_STOPS[o.stop]).reduce((a, o) => a.concat(o.prayers), []);
+const sheetPrayers = () => ORDER.filter(o => !HIDDEN_STOPS[o.stop]).reduce((a, o) => a.concat(walkOwn(o) ? [{ id: 'walk:' + o.stop, name: 'Walk to ' + STOPS[o.stop].place }] : [], o.prayers), []);   // with a row for each walk of its own
 const melLabel = id => { const p = sheetPrayers().find(x => x.id === id); return p && p.mel ? melOf(p).t : ''; };
 const melNorm = v => String(v || '').trim().toLowerCase().replace(/[’‘`]/g, "'");
 async function sheetRules() {                           // a drop-down in the Melody column for each prayer that has a choice; best effort
@@ -1738,7 +1750,9 @@ function drawPanel() {
     '<div class="sheet"><div class="srow shead"><span>Prayer</span><span title="Reads the guide’s script before this prayer; shown on the script on screen and in print">Guide</span><span title="Leads the prayer itself">Leader</span><span>Melody</span><span>Notes</span></div>' +
     ORDER.filter(o => !HIDDEN_STOPS[o.stop]).map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
       // only the checkbox itself ticks or unticks: the names are plain text, so a stray click on a row changes nothing
-      return '<div class="srow sstop"><div class="nm"><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + ' title="Tick or untick the whole stop">' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</div></div>' +
+      const wk = walkOwn(o) ? 'walk:' + o.stop : '';           // a walk with its own reading: its guide's name goes on the stop's row
+      return '<div class="srow sstop' + (wk ? ' walk' : '') + '"><div class="nm"><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + ' title="Tick or untick the whole stop">' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</div>' +
+        (wk ? '<input type="text" data-g="' + wk + '" maxlength="40" placeholder="reads the walk" title="Who reads the script on the way to ' + q(st.place) + '" value="' + q(guides[wk]) + '"><span class="wkn">the walk here has its own reading</span>' : '') + '</div>' +
         o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><div class="nm pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + ' title="Tick or untick ' + q(p.name) + '"><span>' + esc(p.name) + '</span>' +
           (isOn(p) ? '<button class="go" data-go="' + p.id + '" title="Go to ' + q(p.name) + '">' + IC.go + '</button>' : '') + '</div>' +
           '<input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">' +
