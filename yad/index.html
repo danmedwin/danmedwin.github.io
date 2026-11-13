@@ -85,7 +85,25 @@
   .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff;
     border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(0,0,0,.06); padding: 12px 16px; }
   .bar .wrap { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-  #msg { flex: 1 1 260px; }
+  #msg { flex: 1 1 220px; }
+  .selbox { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+  .sel { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border: 2px solid var(--teal);
+    border-radius: 10px; background: #fff; }
+  .sel img { width: 150px; height: auto; display: block; }
+  .sel span { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  @media (max-width: 700px) {
+    .bar { padding: 8px 12px; }
+    .bar .wrap { gap: 6px; }
+    #msg { flex-basis: 100%; font-size: 14px; }
+    .selbox { flex-wrap: nowrap; width: 100%; justify-content: space-between; gap: 8px; }
+    .sel { flex: 0 1 auto; min-width: 0; overflow: hidden; padding: 3px 8px 3px 3px; }
+    .sel img { flex: 0 1 88px; min-width: 50px; }
+    .sel span { overflow: hidden; text-overflow: ellipsis; }
+    #save { flex: none; }
+    .sel img { width: 88px; }
+    .sel span { font-size: 14px; }
+    #save { padding: 11px 14px; white-space: nowrap; }
+  }
   #msg.err { color: var(--err); font-weight: 600; }
   #save { background: var(--navy); color: #fff; border: 0; border-radius: 8px;
     padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; }
@@ -178,7 +196,10 @@
 
 <div class="bar"><div class="wrap">
   <div id="msg" aria-live="polite"></div>
-  <button id="save" type="button">Save my choice</button>
+  <div class="selbox">
+    <div id="selBox" class="sel" hidden><img id="selImg" alt=""><span id="selName"></span></div>
+    <button id="save" type="button">Save my choice</button>
+  </div>
 </div></div>
 
 <dialog id="lb" aria-labelledby="lbTitle">
@@ -353,7 +374,7 @@ function render() {
   if (PUBLIC) h = 'Look through the designs, zoom in, and choose one. When you save, you’ll sign in with your ' +
       'Davis school Google account. Already chose? Saving again shows your choice and lets you change it.';
   else if (!STATE.signedIn) h = '<b>Please sign in</b> with your Davis school Google account, then reload this page.';
-  else if (p && p.by === 'random') h = 'A yad was chosen for you: <b>' + esc(DESIGNS[p.design - 1]) + '</b> (#' + p.design + ').';
+  else if (p && p.random) h = 'A yad was chosen for you: <b>' + esc(DESIGNS[p.design - 1]) + '</b> (#' + p.design + ').';
   else if (p) h = 'Your saved choice: <b>' + esc(DESIGNS[p.design - 1]) + '</b> (#' + p.design + ')' +
       (p.updated ? ', saved ' + esc(p.updated) : '') + '.' + (open ? ' You can still change it.' : '');
   else h = open ? 'You haven’t chosen yet.' : 'You didn’t choose a yad before choices closed.';
@@ -375,12 +396,17 @@ function render() {
   ['first', 'last'].forEach(id => $(id).disabled = !canEdit());
   $('random').disabled = !canEdit() || !visible().length;
 
+  $('selBox').hidden = !chosen;
+  if (chosen) {
+    $('selImg').src = IMG[chosen - 1]; $('selImg').alt = DESIGNS[chosen - 1] + ' yad';
+    $('selName').textContent = DESIGNS[chosen - 1] + ' #' + chosen;
+  }
   const m = $('msg');
   if (PUBLIC) {
     $('save').disabled = !chosen;
     $('save').textContent = 'Sign in to save';
     m.className = '';
-    m.innerHTML = chosen ? 'Selected: <b>' + esc(DESIGNS[chosen - 1]) + '</b>' : 'Tap a yad to choose it.';
+    m.textContent = chosen ? 'Your selection:' : 'Tap a yad to choose it.';
     return;
   }
   const f = $('first').value.trim(), l = $('last').value.trim();
@@ -393,7 +419,7 @@ function render() {
     else if (!chosen) m.textContent = 'Tap a yad to choose it.';
     else if (!f || !l) m.textContent = 'Type your first and last name.';
     else if (unchanged) m.textContent = '✓ Saved: ' + DESIGNS[chosen - 1] + '.';
-    else m.innerHTML = 'Selected: <b>' + esc(DESIGNS[chosen - 1]) + '</b> (not saved yet)';
+    else m.textContent = 'Selected, not saved yet:';
   }
 }
 
@@ -415,7 +441,7 @@ $('save').addEventListener('click', () => {
 });
 
 // ---- teacher tools (the server checks it's really the owner)
-let tData = null, tArmed = false;
+let tData = null, tArmed = false, tMailOn = true;
 function tRender(note) {
   const d = tData, b = $('tBody');
   if (!d) { b.innerHTML = ''; return; }
@@ -431,7 +457,7 @@ function tRender(note) {
         d.missing.map(x => '<li>' + esc(x.last + ', ' + x.first) + '</li>').join('') + '</ul>' +
         (d.open ? '<p class="hint">Choices are still open. Assigning now gives these students a yad, ' +
                   'and they can still change it before the deadline.</p>' : '') +
-        '<p><label><input type="checkbox" id="tMail" checked> Email each of them their yad</label></p>' +
+        '<p><label><input type="checkbox" id="tMail"' + (tMailOn ? ' checked' : '') + '> Email each of them their yad</label></p>' +
         '<p><button id="tAssign" class="go' + (tArmed ? ' confirm' : '') + '" type="button">' +
         (tArmed ? 'Yes, assign ' + d.missing.length + ' random yads' : 'Assign random yads to these ' + d.missing.length) +
         '</button>' + (tArmed ? ' <button id="tCancel" class="linkbtn" type="button">Cancel</button>' : '') + '</p>';
@@ -453,6 +479,7 @@ function tRender(note) {
     : '<p>No one has changed their choice yet.</p>';
   b.innerHTML = h;
   if ($('tAssign')) $('tAssign').addEventListener('click', tAssign);
+  if ($('tMail')) $('tMail').addEventListener('change', e => { tMailOn = e.target.checked; });
   if ($('tCancel')) $('tCancel').addEventListener('click', () => { tArmed = false; tRender(); });
 }
 function tLoad() {
@@ -465,7 +492,7 @@ function tLoad() {
 }
 function tAssign() {
   if (!tArmed) { tArmed = true; tRender(); return; }
-  const mail = $('tMail') && $('tMail').checked;
+  const mail = tMailOn;
   $('tAssign').disabled = true; $('tAssign').textContent = 'Assigning…';
   google.script.run
     .withSuccessHandler(r => {
