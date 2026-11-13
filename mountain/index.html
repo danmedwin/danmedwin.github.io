@@ -140,7 +140,13 @@
            font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; font-size: calc(var(--pt)*19); z-index: 5; }
   #panel.on { display: flex; }
   #panel h2 { margin: 0; font-size: calc(var(--pt)*30); } #panel .sub { opacity: .8; margin: .2em 0 .8em; }
-  #panel .cols { flex: 1; overflow: auto; columns: 4; column-gap: 2.2em; }
+  #panel .sheet { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid rgba(255,255,255,.22); border-radius: .5em; }
+  #panel .srow { display: grid; grid-template-columns: minmax(13em, 1.15fr) minmax(8em, 1fr) minmax(12em, 2.3fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
+  #panel .shead { position: sticky; top: 0; z-index: 1; background: #0a3a6e; font-weight: 700; color: #FFC843; font-size: .85em; letter-spacing: .03em; padding: .4em .8em; }
+  #panel .sstop { background: rgba(116,210,231,.1); } #panel .sstop label { font-weight: 700; color: #74D2E7; grid-column: 1 / -1; }
+  #panel .srow.off label, #panel .srow.off input[type=text] { opacity: .45; }
+  #panel .srow input[type=text] { width: 100%; box-sizing: border-box; font: inherit; font-size: .9em; color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); border-radius: .3em; padding: .12em .5em; }
+  #panel .srow input[type=text]::placeholder { color: rgba(255,255,255,.3); font-style: italic; } #panel .srow input[type=text]:focus { outline: none; border-color: #FFC843; background: rgba(255,255,255,.16); }
   #panel .stop { break-inside: avoid; margin: 0 0 .9em; } #panel .stop > label { font-weight: 700; color: #74D2E7; }
   #panel .prow { display: flex; align-items: center; gap: .5em; break-inside: avoid; } #panel .prow label { flex: none; }
   #panel input.who { flex: 1; min-width: 3em; max-width: 9em; margin-left: auto; font: inherit; font-size: .82em; color: #fff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); border-radius: .35em; padding: .05em .4em; }
@@ -169,7 +175,7 @@
     html, body { height: auto; overflow: visible; background: #fff; display: block; } #stage { display: none !important; }
     #print { display: block; color: #000; font: 13pt/1.4 Calibri, Carlito, Arial, sans-serif; padding: 0 .2in; }
     #print h1 { font-size: 20pt; margin: 0 0 .1in; } #print h2 { font-size: 14pt; margin: .22in 0 .04in; break-after: avoid; } #print h3 { font-size: 12pt; margin: .12in 0 0; font-style: italic; font-weight: 400; }
-    #print ul { margin: .04in 0; } #print li { margin: .05in 0; } #print section { break-inside: avoid; } #print .who { float: right; font-weight: 400; border-bottom: 1px solid #000; min-width: 2in; } #print .who.named { border: 0; min-width: 0; font-size: 10.5pt; font-style: italic; max-width: 3.6in; text-align: right; }
+    #print .nt { margin: .04in 0 .02in; font-size: 11pt; } #print ul { margin: .04in 0; } #print li { margin: .05in 0; } #print section { break-inside: avoid; } #print .who { float: right; font-weight: 400; border-bottom: 1px solid #000; min-width: 2in; } #print .who.named { border: 0; min-width: 0; font-size: 10.5pt; font-style: italic; max-width: 3.6in; text-align: right; }
   }
   .still .slide, .still #scrim, .still #map, .still #title, .still #guide { transition: none; }
   #fps { position: absolute; right: 8px; top: 6px; color: #fff; font: 12px monospace; opacity: .8; display: none; }
@@ -850,17 +856,20 @@ const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y
 const guideBox = {};                                                 // one box per script moment: "start", "stop:tents", "turn:gvurot"...
 [DEF.guide, saved.guide].forEach(g => { for (const k in (g || {})) guideBox[k] = Object.assign({}, guideBox[k], g[k]); });
 const textEd = Object.assign({}, DEF.text, saved.text);              // slides changed with the text editor: { "s-shma-1": html }
+const notes = Object.assign({}, DEF.notes, saved.notes);              // melody or notes for each prayer: { shma: "sung, seated" }
 const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
-const settings = () => ({ name: designName, sel, names, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, names, notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(names, DEF.names), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(names, DEF.names), notes: changed(notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
   guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff })); } catch (e) {} };
-const isOn = p => (p.id in sel) ? !!sel[p.id] : !p.off;
+// Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
+const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
+const isOn = p => !hiddenP[p.id] && ((p.id in sel) ? !!sel[p.id] : !p.off);
 const made = {}, slideId = id => id.charAt(0) === '@' ? (made[id] || (made[id] = WEEKLY_SLIDES[id]())) : id;
 let STEPS = [];
 // A view = where the trail puts us, plus this view's saved changes: look direction, zoom, and a few steps off the trail.
@@ -1350,7 +1359,7 @@ document.getElementById('godBar').addEventListener('click', e => {
 function scriptSections() {                                // the whole script for the prayers that are ticked
   const out = [{ head: 'Start: before the first click', who: whoAt('start', whoFor(STEPS[0])), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
-    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), who: whoAt('stop:' + s.to, whoFor(s)), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
+    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt('stop:' + s.to, whoFor(s)), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (names[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (names[p.id] || '').trim(), lines: linesAt('turn:' + p.id, linesOf((SCRIPT.turns || {})[p.id])) }));
   });
@@ -1359,11 +1368,11 @@ function scriptSections() {                                // the whole script f
 }
 function printScript() {
   document.getElementById('print').innerHTML = '<h1>' + esc(WEEKLY.title) + ': guides’ script</h1><p>A guide speaks while we walk. The prayer text comes up on the next click after the guide is done.</p>' +
-    scriptSections().map(x => '<section><h2>' + esc(x.head) + (x.who ? '<span class="who named">' + esc(x.who) + '</span>' : '<span class="who">&nbsp;</span>') + '</h2>' + (x.sub ? '<h3>' + esc(x.sub) + '</h3>' : '') + '<ul>' + x.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></section>').join('');
+    scriptSections().map(x => '<section><h2>' + esc(x.head) + (x.who ? '<span class="who named">' + esc(x.who) + '</span>' : '<span class="who">&nbsp;</span>') + '</h2>' + (x.sub ? '<h3>' + esc(x.sub) + '</h3>' : '') + (x.notes && x.notes.length ? '<p class="nt">' + x.notes.map(esc).join('<br>') + '</p>' : '') + '<ul>' + x.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></section>').join('');
   window.print();
 }
 function downloadScript() {
-  const txt = WEEKLY.title + ': guides’ script\r\n\r\n' + scriptSections().map(x => x.head.toUpperCase() + (x.sub ? '\r\n(' + x.sub + ')' : '') + (x.who ? '\r\nGuide: ' + x.who : '') + '\r\n' + x.lines.map(l => '  - ' + l).join('\r\n')).join('\r\n\r\n') + '\r\n';
+  const txt = WEEKLY.title + ': guides’ script\r\n\r\n' + scriptSections().map(x => x.head.toUpperCase() + (x.sub ? '\r\n(' + x.sub + ')' : '') + (x.who ? '\r\nGuide: ' + x.who : '') + (x.notes && x.notes.length ? '\r\n' + x.notes.map(n => 'Note: ' + n).join('\r\n') : '') + '\r\n' + x.lines.map(l => '  - ' + l).join('\r\n')).join('\r\n\r\n') + '\r\n';
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/plain' })); a.download = 'Mountain Tefillah script.txt'; document.body.appendChild(a); a.click(); a.remove();
 }
 
@@ -1399,20 +1408,22 @@ const IC = {
  ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
-  const slides = STEPS.filter(s => s.k === 'slide').length;
-  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks. Choices are remembered on this computer.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div><div class="cols">' +
-    ORDER.map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
-      return '<div class="stop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + (st.note ? ' <span class="under">(' + st.note + ')</span>' : '') + '</label>' +
-        o.prayers.map(p => '<div class="prow"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label><input type="text" class="who" data-n="' + p.id + '" maxlength="40" placeholder="name" title="Who leads ' + esc(p.name).replace(/"/g, '&quot;') + '" value="' + esc(names[p.id] || '').replace(/"/g, '&quot;') + '"></div>').join('') +
-        (o.stop === 'tents' ? '<div class="later">Nisim B’chol Yom side loop: coming later</div>' : '') + '</div>'; }).join('') +
+  const slides = STEPS.filter(s => s.k === 'slide').length, q = v => esc(v || '').replace(/"/g, '&quot;');
+  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div>' +
+    '<div class="sheet"><div class="srow shead"><span>Prayer</span><span>Leader</span><span>Melody or notes</span></div>' +
+    ORDER.filter(o => !HIDDEN_STOPS[o.stop]).map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
+      return '<div class="srow sstop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</label></div>' +
+        o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label>' +
+          '<input type="text" data-n="' + p.id + '" maxlength="40" placeholder="name" title="Who leads ' + q(p.name) + '" value="' + q(names[p.id]) + '">' +
+          '<input type="text" data-m="' + p.id + '" maxlength="140" placeholder="melody or notes" title="Melody or notes for ' + q(p.name) + '" value="' + q(notes[p.id]) + '"></div>').join(''); }).join('') +
     '</div>';
   panel.querySelectorAll('input[data-part]').forEach(i => { i.indeterminate = true; });
 }
-function applyChoice() { save(); buildSteps(); enter(0, -1); drawPanel(); if (god) { godBuild(); godSel(0); } if (editing) edRefresh(); }
+function applyChoice() { const sh = panel.querySelector('.sheet'), top = sh ? sh.scrollTop : 0; save(); buildSteps(); enter(0, -1); drawPanel(); const sh2 = panel.querySelector('.sheet'); if (sh2) sh2.scrollTop = top; if (god) { godBuild(); godSel(0); } if (editing) edRefresh(); }
 panel.addEventListener('click', e => e.stopPropagation());
 panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
-  const t = e.target; if (!t.dataset.n) return;
-  if (t.value.trim()) names[t.dataset.n] = t.value; else delete names[t.dataset.n]; save(); showGuide(STEPS[idx]);
+  const t = e.target, k = t.dataset.n || t.dataset.m; if (!k) return; const into = t.dataset.n ? names : notes;
+  if (t.value.trim()) into[k] = t.value; else delete into[k]; save(); if (t.dataset.n) showGuide(STEPS[idx]);
 });
 panel.addEventListener('change', e => {
   const t = e.target;
@@ -1421,7 +1432,7 @@ panel.addEventListener('change', e => {
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
-  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
   showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh();
 }
