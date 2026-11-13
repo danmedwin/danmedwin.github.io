@@ -95,7 +95,7 @@
   /* The toolbar and whatever it has opened sit together in the dock: view, text and overview controls slide out beside it. */
   #dock { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.12); display: flex; align-items: stretch; gap: calc(var(--pt)*4); z-index: 4; }
   #dock #bar { position: static; }
-  #adj, #ed, #godBar, #fileBar { display: none; align-items: center; gap: .45em; background: rgba(5,48,94,.9); border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
+  #adj, #ed, #godBar, #fileBar, #demoBar { display: none; align-items: center; gap: .45em; background: rgba(5,48,94,.9); border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
          border-radius: calc(var(--pt)*10); padding: 0 .45em 0 .7em; color: #fff; font: calc(var(--pt)*15) Calibri, Carlito, sans-serif; white-space: nowrap; }
   .adjusting #bar, .editing #bar, .god #bar, .listOn #bar, .filing #bar { opacity: 1; }
   #fileBar b { color: #FFC843; margin: 0 .1em 0 .5em; } #fileBar b:first-child { margin-left: 0; }
@@ -104,7 +104,8 @@
                      font: 600 calc(var(--pt)*9.5)/1 Calibri, Carlito, sans-serif; letter-spacing: .02em; }
   #dock button.tbl svg { width: calc(var(--pt)*20); height: calc(var(--pt)*20); } #dock button.tbl:hover { background: rgba(255,255,255,.22); }
   #dock button.fx { background: transparent; color: #fff; font-size: 1.6em; font-weight: 700; line-height: 1; padding: 0 .25em; opacity: .75; } #dock button.fx:hover { opacity: 1; color: #FFC843; }
-  .adjusting #adj, .editing #ed, .god #godBar, .filing #fileBar { display: flex; } .adjusting #stage, .god #stage { cursor: grab; }
+  .adjusting #adj, .editing #ed, .god #godBar, .filing #fileBar, .demo #demoBar { display: flex; }
+  .demo #bar, .demo #barTab { display: none !important; } #demoBar b { color: #FFC843; margin-right: .3em; } #dmWhere { opacity: .85; margin: 0 .5em; min-width: 13em; } .adjusting #stage, .god #stage { cursor: grab; }
   #ed.top { bottom: auto; top: calc(var(--in)*.2); } #ed, #godBar { gap: .45em; }
   #ed .nav, #godBar .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #edName, #godName { min-width: 7em; text-align: center; color: #FFC843; }
   #ed .grp { display: flex; gap: .15em; } #ed { gap: .15em; } #ed .nav { margin: 0 .25em; } #ed .shd, #ed.onShade .txt { display: none; } #ed.onShade .shd { display: flex; }
@@ -120,7 +121,7 @@
   .editing .slide.on .sel { outline: 2px solid #FFC843 !important; }
   .editing #guide, .editing #map, .god #guide, .god #map, .god #title, .god #scrim, .god #slides, .god #adj { display: none !important; }
   #adj .nav { background: #FFC843; border-radius: 50%; width: 1.6em; height: 1.6em; padding: 0; font-size: 1.25em; line-height: 1; } #adjName { min-width: 9em; text-align: center; color: #FFC843; }
-  #adj button, #ed button, #godBar button, #fileBar button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
+  #adj button, #ed button, #godBar button, #fileBar button, #demoBar button { font: inherit; font-weight: 600; color: #05305E; background: #fff; border: 0; border-radius: .45em; padding: .2em .7em; cursor: pointer; }
 
   /* ---------- control panel (for the person at the computer) ---------- */
   #panel { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.9); width: calc(100% - var(--in)*.24); max-height: calc(100% - var(--in)*1.05); display: none; flex-direction: column;
@@ -194,6 +195,7 @@
   <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" class="tbl" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" class="tbl" title="Fly down to this prayer’s view (Enter)">Go there</button><button id="godReset" class="tbl" title="Put this stop back to its default view">Reset</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
   <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button>
     <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button><button id="fileDone" class="fx" title="Close">×</button></div>
+  <div id="demoBar"><b>Demo</b><button id="dmPlay" class="tbl" title="Pause or play (Space)">Pause</button><button id="dmRestart" class="tbl" title="Back to the start">Restart</button><span id="dmWhere"></span><button id="dmExit" class="tbl" title="Leave the demo and lead it yourself (Esc)">Exit demo</button></div>
   <div id="tools"><div id="dlg"></div><input type="file" id="fileOpen" accept=".js,.json,.txt" style="display:none"></div>
   <div id="panel"></div>
   <div id="fps"></div>
@@ -975,7 +977,7 @@ function placeGuide() {
     const b = boxOf(guideMode, true); b.fs = e.target.id === 'gSmaller' ? Math.max(16, b.fs - 2) : Math.min(48, b.fs + 2); placeGuide(); save();
   });
 })();
-(function () { const dock = document.createElement('div'); dock.id = 'dock'; stage.insertBefore(dock, document.getElementById('bar')); ['bar', 'adj', 'ed', 'godBar', 'fileBar'].forEach(id => dock.appendChild(document.getElementById(id))); })();
+(function () { const dock = document.createElement('div'); dock.id = 'dock'; stage.insertBefore(dock, document.getElementById('bar')); ['bar', 'adj', 'ed', 'godBar', 'fileBar', 'demoBar'].forEach(id => dock.appendChild(document.getElementById(id))); })();
 function setScript(on) { showScript = on; document.getElementById('tbScript').classList.toggle('act', on); const o = document.getElementById('optScript'); if (o) o.checked = on; save(); showGuide(STEPS[idx]); }
 
 /* ---------- adjusting a view: V, then drag the scene or use the arrow keys ---------- */
@@ -1374,13 +1376,15 @@ const IC = {
   darker: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="currentColor"/></svg>',
   softer: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" opacity=".25"/><circle cx="12" cy="12" r="7.5" opacity=".4"/><circle cx="12" cy="12" r="5"/></svg>',
   sharper: '<svg viewBox="0 0 24 24"><rect x="4.5" y="5.5" width="15" height="13" fill="currentColor"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.5" height="15" rx="1"/><rect x="13.5" y="4.5" width="4.5" height="15" rx="1"/></svg>',
+  exit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4 H5 V20 H10 M14 8 L18.5 12 L14 16 M9 12 H18"/></svg>',
   go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H19 M13 6 L19 12 L13 18"/></svg>',
   text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 V5 H19 V7 M12 5 V19 M9 19 H15"/></svg>',
   shade: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="5" width="17" height="7" rx="3.5" fill="currentColor"/></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
 [['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
- ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
+ ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
   const slides = STEPS.filter(s => s.k === 'slide').length;
@@ -1496,11 +1500,48 @@ function enter(i, dir) {
   }
   showGuide(s); if (adjusting) document.getElementById('adjName').textContent = curPose().label; if (editing) edRefresh();
   if (post) post();
-  try { history.replaceState(null, '', '#' + idx); } catch (e) {}
+  if (demo) { demo.wait = 0; demoDraw(); }
+  try { history.replaceState(null, '', demo ? '#demo' : '#' + idx); } catch (e) {}
 }
 function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
 function prev() { if (idx > 0) enter(idx - 1, -1); }
+
+/* ---------- demo: the whole service plays by itself (open the page with #demo on the end of the address) ---------- */
+let demo = null;                                        // { paused, wait: seconds spent on this step, done }
+function demoDwell(s) {                                 // long enough to take in the scene and the text, not to read every word
+  if (s.k === 'hold') return 7; if (s.k === 'travel') return 2.5; if (s.k === 'turn') return 7;
+  if (s.drift) return 18;                                // the bridge: part of the crossing, then on
+  const n = (document.getElementById(s.id) || {}).textContent || '';
+  return clamp(4.5 + n.length / 85, 5.5, 11) + (guideEl.classList.contains('on') ? 2.5 : 0);
+}
+function demoTick(dt) {
+  if (!demo || demo.paused || god || adjusting || editing || filing || panel.classList.contains('on')) return;
+  const s = STEPS[idx]; if ((s.k === 'travel' && travelling) || glide) { demo.wait = 0; return; }   // the clock starts once we have arrived and the text is up
+  demo.wait += dt; if (demo.wait < demoDwell(s)) return; demo.wait = 0;
+  if (idx < STEPS.length - 1) next(); else { demo.paused = demo.done = true; demoDraw(); }
+}
+function demoDraw() {
+  const b = document.getElementById('dmPlay'), go = demo && demo.paused; b.innerHTML = IC[go ? 'play' : 'pause'] + (demo && demo.done ? 'Replay' : go ? 'Play' : 'Pause');
+  const s = STEPS[idx], slides = STEPS.filter(t => t.k === 'slide'), at = slides.indexOf(s);
+  document.getElementById('dmWhere').textContent = demo && demo.done ? 'The end' : s.k === 'slide' ? s.prayer.name + ' · ' + (at + 1) + ' of ' + slides.length : s.k === 'travel' ? 'Walking to ' + STOPS[s.to].place : s.k === 'turn' ? 'Before ' + s.prayer.name : 'Welcome';
+}
+function setDemo(on) {
+  if (on) { if (adjusting) setAdjust(false); if (editing) setEdit(false); if (god) setGod(false); if (filing) setFile(false); togglePanel(false); demo = { paused: false, wait: 0, done: false }; }
+  else demo = null;
+  document.body.classList.toggle('demo', on); document.getElementById('dmPlay').classList.add('bi'); demoDraw();
+  try { history.replaceState(null, '', on ? '#demo' : '#' + idx); } catch (e) {}
+}
+function demoPlay() { if (!demo) return; if (demo.done) return demoRestart(); demo.paused = !demo.paused; demo.wait = 0; demoDraw(); }
+function demoRestart() { if (!demo) return; demo.paused = demo.done = false; enter(0, -1); }
+document.getElementById('demoBar').addEventListener('click', e => {
+  e.stopPropagation(); const b = e.target.closest('button'), id = b && b.id;
+  if (id === 'dmPlay') demoPlay(); else if (id === 'dmRestart') demoRestart(); else if (id === 'dmExit') setDemo(false);
+});
 addEventListener('keydown', e => {
+  if (demo && !panel.classList.contains('on')) {          // demo: Space pauses and plays, Esc leaves; the arrows still step by hand
+    if (e.key === ' ') { e.preventDefault(); return demoPlay(); }
+    if (e.key === 'Escape') { e.preventDefault(); return setDemo(false); }
+  }
   if (e.target && e.target.isContentEditable && guideEl.contains(e.target)) {     // typing in a script box
     if (e.key === 'Escape') setGuideEdit(false); else if (e.key === 'Enter' && e.target.classList.contains('who')) { e.preventDefault(); setGuideEdit(false); }
     return;
@@ -1540,7 +1581,7 @@ addEventListener('resize', layout); layout();
 
 const fpsEl = document.getElementById('fps'), tmpV = new THREE.Vector3(); let fAcc = 0, fN = 0, last = performance.now(), clock = 0;
 function frame(now) {
-  const dt = Math.min((now - last) / 1000, .1); last = now; clock += dt;
+  const dt = Math.min((now - last) / 1000, .1); last = now; clock += dt; demoTick(dt);
   const s = STEPS[idx];
   if (god) godFrame(dt);
   else if (s.k === 'travel') {
@@ -1572,9 +1613,11 @@ function frame(now) {
   fAcc += dt; fN++; if (fAcc > .5) { fpsEl.textContent = Math.round(fN / fAcc) + ' fps'; fAcc = 0; fN = 0; }
   requestAnimationFrame(frame);
 }
-const startAt = parseInt((location.hash || '').slice(1), 10);
+const startAt = parseInt((location.hash || '').slice(1), 10), startDemo = /^#demo/i.test(location.hash || '');
 enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length; i++) enter(i, -1);
-window.__mt = { godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+if (startDemo) setDemo(true);
+addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
+window.__mt = { demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
