@@ -150,9 +150,10 @@
   #panel .sheet { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid rgba(255,255,255,.22); border-radius: .5em; }
   #panel .srow { display: grid; grid-template-columns: minmax(13.5em, 1.3fr) minmax(6.5em, .75fr) minmax(6.5em, .75fr) minmax(9.5em, .95fr) minmax(8em, 1.4fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
   #panel .shead { position: sticky; top: 0; z-index: 1; background: #0a3a6e; font-weight: 700; color: #FFC843; font-size: .85em; letter-spacing: .03em; padding: .4em .8em; }
-  #panel .sstop { background: rgba(116,210,231,.1); } #panel .sstop label { font-weight: 700; color: #74D2E7; grid-column: 1 / -1; }
-  #panel .srow.off label, #panel .srow.off input[type=text], #panel .srow.off select { opacity: .45; }
-  #panel .srow label.pr { display: flex; align-items: center; }
+  #panel .sstop { background: rgba(116,210,231,.1); } #panel .sstop .nm { font-weight: 700; color: #74D2E7; grid-column: 1 / -1; }
+  #panel .srow.off .nm, #panel .srow.off input[type=text], #panel .srow.off select { opacity: .45; }
+  #panel .srow .nm { display: flex; align-items: center; padding: .12em 0; cursor: default; } #panel .srow .nm.pr { padding-left: 1.5em; }
+  #panel .srow .nm input[type=checkbox] { font-size: inherit; width: 1.15em; height: 1.15em; flex: none; cursor: pointer; }   /* sized from the list's own text */
   #panel .srow .go { flex: none; margin-left: auto; width: 1.7em; height: 1.5em; padding: .2em .35em; background: transparent; color: #FFC843; opacity: .55; border-radius: .3em; }
   #panel .srow .go svg { width: 100%; height: 100%; display: block; pointer-events: none; } #panel .srow .go:hover, #panel .srow .go:focus { opacity: 1; background: rgba(255,200,67,.15); outline: none; }
   #panel .srow select { width: 100%; box-sizing: border-box; font: inherit; font-size: .9em; color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); border-radius: .3em; padding: .1em .3em; cursor: pointer; }
@@ -1736,9 +1737,10 @@ function drawPanel() {
   panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">' + listCount() + '</div><div id="shr">' + sheetRow() + '</div>' +
     '<div class="sheet"><div class="srow shead"><span>Prayer</span><span title="Reads the guide’s script before this prayer; shown on the script on screen and in print">Guide</span><span title="Leads the prayer itself">Leader</span><span>Melody</span><span>Notes</span></div>' +
     ORDER.filter(o => !HIDDEN_STOPS[o.stop]).map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
-      return '<div class="srow sstop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</label></div>' +
-        o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) +
-          (isOn(p) ? '<button class="go" data-go="' + p.id + '" title="Go to ' + q(p.name) + '">' + IC.go + '</button>' : '') + '</label>' +
+      // only the checkbox itself ticks or unticks: the names are plain text, so a stray click on a row changes nothing
+      return '<div class="srow sstop"><div class="nm"><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + ' title="Tick or untick the whole stop">' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</div></div>' +
+        o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><div class="nm pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + ' title="Tick or untick ' + q(p.name) + '"><span>' + esc(p.name) + '</span>' +
+          (isOn(p) ? '<button class="go" data-go="' + p.id + '" title="Go to ' + q(p.name) + '">' + IC.go + '</button>' : '') + '</div>' +
           '<input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">' +
           '<input type="text" data-n="' + p.id + '" maxlength="40" placeholder="leads prayer" title="Who leads ' + q(p.name) + '" value="' + q(names[p.id]) + '">' + melCell(p) +
           '<input type="text" data-m="' + p.id + '" maxlength="140" placeholder="notes" title="Notes for ' + q(p.name) + '" value="' + q(notes[p.id]) + '"></div>').join(''); }).join('') +
