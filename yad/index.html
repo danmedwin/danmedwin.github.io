@@ -84,26 +84,33 @@
   /* bottom bar */
   .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff;
     border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(0,0,0,.06); padding: 12px 16px; }
-  .bar .wrap { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-  #msg { flex: 1 1 220px; }
-  .selbox { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
-  .sel { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border: 2px solid var(--teal);
-    border-radius: 10px; background: #fff; }
-  .sel img { width: 150px; height: auto; display: block; }
-  .sel span { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  /* One row at every width: [picture + caption + name] ........ [button] */
+  .bar .wrap { display: flex; gap: 12px; align-items: center; min-height: 47px; }
+  #msg { flex: 1 1 auto; min-width: 0; }
+  #msg:empty { display: none; }
+  .sel { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; }
+  .sel[hidden] { display: none; }
+  .sel img { flex: none; width: 180px; height: auto; display: block; padding: 3px;
+    border: 2px solid var(--teal); border-radius: 8px; background: #fff; }
+  .selt { min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .selt small { font-size: 12px; color: #6b6962; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .selt small.err { color: var(--err); font-weight: 600; }
+  .selt b { color: var(--navy); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #save { flex: none; margin-left: auto; white-space: nowrap; }
   @media (max-width: 700px) {
     .bar { padding: 8px 12px; }
-    .bar .wrap { gap: 6px; }
-    #msg { flex-basis: 100%; font-size: 14px; }
-    .selbox { flex-wrap: nowrap; width: 100%; justify-content: space-between; gap: 8px; }
-    .sel { flex: 0 1 auto; min-width: 0; overflow: hidden; padding: 3px 8px 3px 3px; }
-    .sel img { flex: 0 1 88px; min-width: 50px; }
-    .sel span { overflow: hidden; text-overflow: ellipsis; }
-    #save { flex: none; }
-    .sel img { width: 88px; }
-    .sel span { font-size: 14px; }
-    #save { padding: 11px 14px; white-space: nowrap; }
+    .bar .wrap { gap: 8px; }
+    .sel { gap: 8px; }
+    .sel img { width: 120px; }
+    .selt b { font-size: 15px; }
+    .bar #save { padding: 11px 14px; }
   }
+  @media (max-width: 440px) {
+    .sel img { width: 100px; }
+    .selt .num { display: none; }
+    .bar #save { padding: 10px 12px; font-size: 15px; }
+  }
+  @media (max-width: 340px) { .sel img { width: 80px; } }
   #msg.err { color: var(--err); font-weight: 600; }
   #save { background: var(--navy); color: #fff; border: 0; border-radius: 8px;
     padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; }
@@ -196,10 +203,11 @@
 
 <div class="bar"><div class="wrap">
   <div id="msg" aria-live="polite"></div>
-  <div class="selbox">
-    <div id="selBox" class="sel" hidden><img id="selImg" alt=""><span id="selName"></span></div>
-    <button id="save" type="button">Save my choice</button>
+  <div id="selBox" class="sel" hidden aria-live="polite">
+    <img id="selImg" alt="">
+    <div class="selt"><small id="selCap"></small><b id="selName"></b></div>
   </div>
+  <button id="save" type="button">Save my choice</button>
 </div></div>
 
 <dialog id="lb" aria-labelledby="lbTitle">
@@ -258,11 +266,13 @@ const tagsOf = n => ({ c: TAGS[n][0].split(' '), t: TAGS[n][1].split(' ') });
 // server), and as the public gallery at techrabbi.org/yad (STATE.public, no sign-in),
 // where "save" hands the choice to the app as ?pick=N.
 const APP_URL = "https://script.google.com/a/macros/davisstudent.org/s/AKfycbyhl7pSa6m2yS_nt_M6wrUP5KTrL3uSeqDBiZb5McWH4Do8yCcLYeCSxbt7RDwyi1ux/exec";
+// Public gallery only: an open (no sign-in) endpoint that returns Settings!B4, the deadline.
+const INFO_URL = "";
 let STATE = {"public": true, "open": true, "past": false, "deadline": "Friday, January 1 at 11:59 PM", "signedIn": "", "pick": null};
 const PUBLIC = !!STATE.public;
 let chosen = (STATE.preselect >= 1 && STATE.preselect <= DESIGNS.length && STATE.open) ? STATE.preselect
            : STATE.pick ? STATE.pick.design : 0;
-let busy = false;
+let busy = false, note = null;   // note: a save result shown in the bar until the pick or name changes
 const fC = new Set(), fT = new Set();
 let lbN = 0;
 
@@ -396,46 +406,50 @@ function render() {
   ['first', 'last'].forEach(id => $(id).disabled = !canEdit());
   $('random').disabled = !canEdit() || !visible().length;
 
+  // Bottom bar: the message line is only for "nothing chosen yet"; once a yad is chosen,
+  // its status rides in the small caption above its name, so the row never changes height.
+  const m = $('msg'), cap = $('selCap');
+  const f = $('first').value.trim(), l = $('last').value.trim();
+  if (note && note.key !== chosen + '|' + f + '|' + l) note = null;
   $('selBox').hidden = !chosen;
   if (chosen) {
     $('selImg').src = IMG[chosen - 1]; $('selImg').alt = DESIGNS[chosen - 1] + ' yad';
-    $('selName').textContent = DESIGNS[chosen - 1] + ' #' + chosen;
+    $('selName').innerHTML = esc(DESIGNS[chosen - 1]) + '<span class="num"> #' + chosen + '</span>';
   }
-  const m = $('msg');
+  m.className = ''; cap.className = '';
   if (PUBLIC) {
-    $('save').disabled = !chosen;
-    $('save').textContent = 'Sign in to save';
-    m.className = '';
-    m.textContent = chosen ? 'Your selection:' : 'Tap a yad to choose it.';
+    $('save').disabled = !chosen || !STATE.open;
+    $('save').textContent = STATE.open ? 'Sign in to save' : 'Choices are closed';
+    m.textContent = chosen ? '' : 'Tap a yad to choose it.';
+    cap.textContent = 'Your selection';
     return;
   }
-  const f = $('first').value.trim(), l = $('last').value.trim();
   const unchanged = p && p.design === chosen && p.first === f && p.last === l;
   $('save').disabled = busy || !canEdit() || !chosen || !f || !l || unchanged;
   $('save').textContent = p ? 'Save change' : 'Save my choice';
-  if (!busy) {
-    m.className = '';
-    if (!canEdit()) m.textContent = '';
-    else if (!chosen) m.textContent = 'Tap a yad to choose it.';
-    else if (!f || !l) m.textContent = 'Type your first and last name.';
-    else if (unchanged) m.textContent = '✓ Saved: ' + DESIGNS[chosen - 1] + '.';
-    else m.textContent = 'Selected, not saved yet:';
-  }
+  m.textContent = (canEdit() && !chosen) ? 'Tap a yad to choose it.' : '';
+  if (busy) cap.textContent = 'Saving\u2026';
+  else if (note) { cap.textContent = note.text; if (note.err) cap.className = 'err'; }
+  else if (!canEdit()) cap.textContent = p ? (p.random ? 'Chosen for you' : 'Your yad') : '';
+  else if (unchanged) cap.textContent = '\u2713 Saved';
+  else if (!f || !l) cap.textContent = 'Type your name above to save';
+  else cap.textContent = 'Not saved yet';
 }
 
 $('save').addEventListener('click', () => {
   if (PUBLIC) { window.top.location.href = APP_URL + '?pick=' + chosen; return; }
   busy = true; render();
-  $('msg').className = ''; $('msg').textContent = 'Saving…';
+  const key = () => chosen + '|' + $('first').value.trim() + '|' + $('last').value.trim();
   google.script.run
     .withSuccessHandler(s => {
-      busy = false; STATE = s; render();
-      $('msg').textContent = '✓ Saved: ' + DESIGNS[chosen - 1] + '. ' +
-        (s.emailed ? 'Check your email for a confirmation.' : 'Saved, but the confirmation email didn’t send.');
+      busy = false; STATE = s;
+      note = { key: key(), text: s.emailed ? '\u2713 Saved \u00b7 check your email' : '\u2713 Saved (the email didn\u2019t send)' };
+      render();
     })
     .withFailureHandler(err => {
-      busy = false; render();
-      $('msg').className = 'err'; $('msg').textContent = (err && err.message) || 'Could not save. Please try again.';
+      busy = false;
+      note = { key: key(), err: true, text: (err && err.message) || 'Could not save. Please try again.' };
+      render();
     })
     .savePick($('first').value, $('last').value, chosen);
 });
@@ -517,6 +531,13 @@ if (STATE.pick) {
 }
 applyFilters();
 render();
+// The gallery's deadline comes from the Sheet (Settings!B4); the baked-in text is only a fallback.
+if (PUBLIC && INFO_URL) {
+  fetch(INFO_URL + '?info=deadline')
+    .then(r => r.json())
+    .then(d => { if (d && d.deadline) { STATE.deadline = d.deadline; STATE.past = !!d.past; STATE.open = !!d.open; render(); } })
+    .catch(() => {});
+}
 if (STATE.preselect && chosen === STATE.preselect && $('card' + chosen)) {
   $('card' + chosen).scrollIntoView({ block: 'center' });
 }
