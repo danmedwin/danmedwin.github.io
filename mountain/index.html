@@ -140,6 +140,8 @@
            font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; font-size: calc(var(--pt)*19); z-index: 5; }
   #panel.on { display: flex; }
   #panel h2 { margin: 0; font-size: calc(var(--pt)*30); } #panel .sub { opacity: .8; margin: .2em 0 .8em; }
+  #shr { display: flex; align-items: center; gap: .8em; margin: 0 0 .7em; font-size: .9em; min-height: 0; } #shr:empty { display: none; }
+  #shr .ok { color: #B6D77B; font-weight: 700; } #shr .warn { color: #FFC843; } #shr a { color: #74D2E7; } #shr button { padding: .25em .8em; }
   #panel .sheet { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid rgba(255,255,255,.22); border-radius: .5em; }
   #panel .srow { display: grid; grid-template-columns: minmax(13em, 1.15fr) minmax(8em, 1fr) minmax(12em, 2.3fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
   #panel .shead { position: sticky; top: 0; z-index: 1; background: #0a3a6e; font-weight: 700; color: #FFC843; font-size: .85em; letter-spacing: .03em; padding: .4em .8em; }
@@ -862,10 +864,10 @@ const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nu
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff;
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
-const settings = () => ({ name: designName, sel, names, notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, names: sheetOn ? {} : names, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(names, DEF.names), notes: changed(notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), names: changed(sheetOn ? localNames : names, DEF.names), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
   guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff })); } catch (e) {} };
 // Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
 const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
@@ -958,7 +960,7 @@ function guideTyped() {                                 // keep what was typed: 
   const lines = [...guideEl.querySelectorAll('li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
   if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
   const who = guideEl.querySelector('.who').textContent.replace(/\s+/g, ' ').trim();
-  if (s.k === 'slide' || s.k === 'turn') { if (who) names[s.prayer.id] = who; else delete names[s.prayer.id]; }   // one prayer: the same name as in the Prayer List
+  if (s.k === 'slide' || s.k === 'turn') { if (who) names[s.prayer.id] = who; else delete names[s.prayer.id]; if (sheetOn) sheetQueue(s.prayer.id, 'C', who); }   // one prayer: the same name as in the Prayer List
   else if (who === whoFor(s)) delete readers[key]; else readers[key] = who;
   document.getElementById('gUndo').style.display = key in scriptEd || key in readers ? '' : 'none'; save();
 }
@@ -1376,6 +1378,85 @@ function downloadScript() {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/plain' })); a.download = 'Mountain Tefillah script.txt'; document.body.appendChild(a); a.click(); a.remove();
 }
 
+/* ---------- leaders and notes from a shared Google Sheet ----------
+   Set in weekly.js: sheet: { clientId, id }. After "Sign in with Google" (school accounts only: the Google project is Internal) the Leader and
+   Melody or notes columns are read from the Sheet's first tab and typed changes are written back, so everyone signed in sees the same list.
+   Tab layout, made on first use: A id | B Prayer | C Leader | D Melody or notes. Signed out, or opened as a file, the page uses this computer's own names. */
+const SHEET = WEEKLY.sheet && WEEKLY.sheet.clientId && WEEKLY.sheet.id && /^https?:$/.test(location.protocol) ? WEEKLY.sheet : null;
+let sheetTok = null, sheetOn = false, sheetMsg = '', sheetWhen = '', sheetTimer = 0, localNames = {}, localNotes = {}; const sheetWait = {};
+const sheetPrayers = () => ORDER.filter(o => !HIDDEN_STOPS[o.stop]).reduce((a, o) => a.concat(o.prayers), []);
+async function sheetCall(method, range, body, query) {
+  const add = /:append$/.test(range), rg = add ? range.slice(0, -7) : range;
+  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET.id + '/values/' + encodeURIComponent(rg) + (add ? ':append' : '') + (query || ''),
+    { method, headers: Object.assign({ Authorization: 'Bearer ' + sheetTok.t }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401) { sheetSignOut('Your sign-in ran out. Sign in again to carry on.'); throw new Error('signed out'); }
+  if (!r.ok) { const e = new Error('Sheet error ' + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+function sheetRow() {                                   // the line under the Prayer List's title
+  if (!SHEET) return '';
+  const link = '<a href="https://docs.google.com/spreadsheets/d/' + SHEET.id + '/edit" target="_blank" rel="noopener">Open the sheet</a>';
+  if (sheetOn) return '<span class="ok">● Shared sheet</span><span>Leaders and notes are saved to the school sheet' + (sheetWhen ? ' · checked ' + sheetWhen : '') + '</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '') + link + '<button id="shOut">Sign out</button>';
+  return '<button id="shIn" class="main">Sign in with Google</button><span>to share leaders and notes through the school sheet</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '');
+}
+function sheetDraw() { const n = document.getElementById('shr'); if (n) n.innerHTML = sheetRow(); }
+function sheetShow() {                                  // put the sheet's values into the list without disturbing a box that is being typed in
+  panel.querySelectorAll('input[data-n], input[data-m]').forEach(i => { if (i !== document.activeElement) i.value = (i.dataset.n ? names[i.dataset.n] : notes[i.dataset.m]) || ''; });
+  showGuide(STEPS[idx]); sheetDraw();
+}
+async function sheetPull() {
+  if (!sheetOn) return;
+  try {
+    let rows = (await sheetCall('GET', 'A1:D400')).values || [];
+    if (rows.length && String(rows[0][0] || '').trim().toLowerCase() !== 'id') { sheetMsg = 'The sheet’s first tab has something else in it. Clear it, or put a blank tab first.'; return sheetDraw(); }
+    const have = {}; rows.forEach((r, i) => { if (i && r[0]) have[String(r[0]).trim()] = r; });
+    const missing = sheetPrayers().filter(p => !have[p.id]);
+    if (!rows.length || missing.length) {                 // first use, or a prayer that is new since then: add its row
+      const add = (rows.length ? [] : [['id', 'Prayer', 'Leader', 'Melody or notes']]).concat(missing.map(p => [p.id, p.name, localNames[p.id] || '', localNotes[p.id] || '']));
+      await sheetCall('POST', 'A1:D1:append', { values: add }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS');
+      missing.forEach(p => { have[p.id] = [p.id, p.name, localNames[p.id] || '', localNotes[p.id] || '']; });
+    }
+    sheetPrayers().forEach(p => { const r = have[p.id] || [];
+      if (!sheetWait[p.id + 'C']) { const v = String(r[2] || '').trim(); if (v) names[p.id] = v; else delete names[p.id]; }
+      if (!sheetWait[p.id + 'D']) { const v = String(r[3] || '').trim(); if (v) notes[p.id] = v; else delete notes[p.id]; } });
+    sheetMsg = ''; sheetWhen = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); sheetShow();
+  } catch (e) { if (sheetOn) { sheetMsg = e.status === 403 || e.status === 404 ? 'This account cannot open the sheet. Ask for it to be shared with you as an editor.' : 'Could not reach the sheet just now.'; sheetDraw(); } }
+}
+function sheetQueue(id, col, value) {                   // a typed change: written a moment after the typing stops
+  const k = id + col; clearTimeout((sheetWait[k] || {}).timer);
+  sheetWait[k] = { timer: setTimeout(async () => {
+    try {
+      const ids = ((await sheetCall('GET', 'A1:A400')).values || []).map(r => String(r[0] || '').trim()), at = ids.indexOf(id);     // find the row now, in case rows were moved
+      if (at > 0) await sheetCall('PUT', col + (at + 1), { values: [[value]] }, '?valueInputOption=RAW');
+      else { const p = sheetPrayers().find(x => x.id === id) || { name: id }; await sheetCall('POST', 'A1:D1:append', { values: [[id, p.name, col === 'C' ? value : '', col === 'D' ? value : '']] }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS'); }
+      sheetMsg = '';
+    } catch (e) { if (sheetOn) sheetMsg = 'That change did not reach the sheet. Check the connection and type it again.'; }
+    delete sheetWait[k]; sheetDraw();
+  }, 700) };
+}
+function sheetStart() {                                 // signed in: the sheet takes over from this computer's own names
+  if (!sheetOn) { localNames = Object.assign({}, names); localNotes = Object.assign({}, notes); }
+  sheetOn = true; sheetMsg = ''; clearInterval(sheetTimer); sheetTimer = setInterval(sheetPull, 10000); sheetDraw(); return sheetPull();
+}
+function sheetSignOut(msg) {
+  clearInterval(sheetTimer); if (sheetOn) { for (const k in names) delete names[k]; Object.assign(names, localNames); for (const k in notes) delete notes[k]; Object.assign(notes, localNotes); }
+  sheetOn = false; sheetTok = null; sheetMsg = msg || ''; try { sessionStorage.removeItem('mt-sheet'); } catch (e) {}
+  if (panel.classList.contains('on')) { panel.querySelectorAll('input[data-n], input[data-m]').forEach(i => { i.value = (i.dataset.n ? names[i.dataset.n] : notes[i.dataset.m]) || ''; }); } showGuide(STEPS[idx]); sheetDraw();
+}
+function sheetSignIn() {
+  sheetMsg = 'Waiting for Google…'; sheetDraw();
+  const go = () => {
+    try {
+      google.accounts.oauth2.initTokenClient({ client_id: SHEET.clientId, scope: 'https://www.googleapis.com/auth/spreadsheets',
+        callback: r => { if (r && r.access_token) { sheetTok = { t: r.access_token, exp: Date.now() + ((+r.expires_in || 3600) - 90) * 1000 }; try { sessionStorage.setItem('mt-sheet', JSON.stringify(sheetTok)); } catch (e) {} sheetStart(); }
+          else { sheetMsg = 'Sign-in did not finish.'; sheetDraw(); } },
+        error_callback: () => { sheetMsg = 'The sign-in window was closed or blocked.'; sheetDraw(); } }).requestAccessToken();
+    } catch (e) { sheetMsg = 'Google sign-in could not start.'; sheetDraw(); }
+  };
+  if (window.google && google.accounts && google.accounts.oauth2) return go();
+  const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.onload = go; sc.onerror = () => { sheetMsg = 'Could not reach Google.'; sheetDraw(); }; document.head.appendChild(sc);
+}
+
 /* ---------- control panel ---------- */
 const panel = document.getElementById('panel');
 const IC = {
@@ -1409,7 +1490,7 @@ const IC = {
 let designName = saved.name || DEF.name || '';
 function drawPanel() {
   const slides = STEPS.filter(s => s.k === 'slide').length, q = v => esc(v || '').replace(/"/g, '&quot;');
-  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div>' +
+  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + slides + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '') + '</div><div id="shr">' + sheetRow() + '</div>' +
     '<div class="sheet"><div class="srow shead"><span>Prayer</span><span>Leader</span><span>Melody or notes</span></div>' +
     ORDER.filter(o => !HIDDEN_STOPS[o.stop]).map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
       return '<div class="srow sstop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</label></div>' +
@@ -1423,7 +1504,7 @@ function applyChoice() { const sh = panel.querySelector('.sheet'), top = sh ? sh
 panel.addEventListener('click', e => e.stopPropagation());
 panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
   const t = e.target, k = t.dataset.n || t.dataset.m; if (!k) return; const into = t.dataset.n ? names : notes;
-  if (t.value.trim()) into[k] = t.value; else delete into[k]; save(); if (t.dataset.n) showGuide(STEPS[idx]);
+  if (t.value.trim()) into[k] = t.value; else delete into[k]; if (sheetOn) sheetQueue(k, t.dataset.n ? 'C' : 'D', t.value.trim()); else save(); if (t.dataset.n) showGuide(STEPS[idx]);
 });
 panel.addEventListener('change', e => {
   const t = e.target;
@@ -1434,7 +1515,7 @@ panel.addEventListener('change', e => {
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
   for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
-  showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh();
+  showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh(); if (sheetOn) sheetPull();
 }
 function saveDesign(name, asDefault) {
   designName = asDefault ? '' : name; save();
@@ -1446,7 +1527,7 @@ const dlg = html => { document.getElementById('dlg').innerHTML = html ? '<div cl
 let typedName = '', filing = false;
 const toolClick = e => {
   const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
-  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false);
+  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
   else if (id === 'btnOpen') document.getElementById('fileOpen').click();
   else if (id === 'btnSave') { typedName = designName;
     dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
@@ -1650,8 +1731,9 @@ function frame(now) {
 const startAt = parseInt((location.hash || '').slice(1), 10), startDemo = /^#demo/i.test(location.hash || '');
 enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length; i++) enter(i, -1);
 if (startDemo) setDemo(true);
+if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
