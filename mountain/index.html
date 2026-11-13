@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<title>Mountain Tefillah (Traditional)</title>
+<title>Mountain Tefillah</title>
 <style>
   /* Fonts travel with the page (vendor/fonts), so nothing is fetched from the web. */
   @font-face { font-family: "Carlito"; font-weight: 400; font-style: normal; src: url("vendor/fonts/Carlito-400.woff2") format("woff2"); }
@@ -243,7 +243,7 @@
 
 <script>
 // The text, script, defaults and weekly files are fetched fresh on every load, so a changed default is never hidden by the browser's cache.
-['slides.js', 'script.js', 'defaults.js', 'weekly.js'].forEach(function (f) { document.write('<script src="' + f + '?t=' + Date.now() + '"><\/script>'); });
+['slides.js', 'script.js', 'defaults.js', 'weekly.js', 'parallel.js'].forEach(function (f) { document.write('<script src="' + f + '?t=' + Date.now() + '"><\/script>'); });
 </script>
 <script src="vendor/three.min.js"></script>
 <script>
@@ -1135,9 +1135,13 @@ function langRoles(sl) {
 function langLayout() {
   const inch = inchPx(); if (!inch) return;
   document.querySelectorAll('#slides .slide').forEach(sl => {
+    sl.querySelectorAll('.tr-par').forEach(n => n.remove());                // the line-by-line English is made fresh each time, never saved
     const r = langRoles(sl); if (!r) return;
     [...r.he, ...r.tl, ...r.tr].forEach(b => { if (langHTML.has(b)) { b.innerHTML = langHTML.get(b); langHTML.delete(b); } if (langOrig.has(b)) b.setAttribute('style', langOrig.get(b)); });
     if (editing) return;
+    // Count the Hebrew lines while they are on screen: the line-by-line English (parallel.js) is used only if it has the same number.
+    const heLines = r.he.length === 1 ? r.he[0].innerText.replace(/\n+$/, '').split('\n').length : 0, par = (window.PARALLEL || {})[sl.id];
+    const lineH = r.he.length === 1 ? (/line-height:\s*calc\(var\(--pt\)\s*\*\s*([\d.]+)\)/.exec(styleOf(r.he[0])) || [])[1] : null;
     const keep = b => { if (!langOrig.has(b)) langOrig.set(b, b.getAttribute('style') || ''); }, hide = b => { keep(b); b.style.display = 'none'; };
     if (!langs.he) r.he.forEach(hide); if (!langs.tl) r.tl.forEach(hide); if (!langs.tr) r.tr.forEach(hide);
     if (!langs.tr || (langs.he && langs.tl) || r.stacked || !r.tr.length) return;
@@ -1146,6 +1150,16 @@ function langLayout() {
     else if (langs.tl && r.tl.length) x0 = Math.max(...r.tl.map(b => (b.offsetLeft + b.offsetWidth) / inch)) + .6;
     if (x1 - x0 < 5) return;                                                   // no room beside it: the translation stays at the bottom
     let y = Math.min(...[...r.he, ...r.tl].map(b => inchesIn(b, 'top')).filter(v => v != null));
+    if (par && par.length === heLines && lineH) {                            // English written line for line: each line beside its Hebrew (or transliteration) line
+      const p = document.createElement('div'); p.className = 'box tr-par';
+      p.innerHTML = par.map(l => esc(l)).join('<br>');
+      p.style.cssText = 'top:calc(var(--in)*' + y + ');left:calc(var(--in)*' + x0.toFixed(2) + ');line-height:calc(var(--pt)*' + lineH + ')';
+      sl.appendChild(p);
+      let pt = 44; const fit = () => { p.style.fontSize = 'calc(var(--pt)*' + pt + ')'; };
+      fit(); while (pt > 28 && p.offsetWidth / inch > x1 - x0) { pt -= 1; fit(); }   // the same rows as the Hebrew; smaller type if a line is too long
+      if (p.offsetWidth / inch <= x1 - x0) { r.tr.forEach(hide); return; }
+      p.remove();                                                              // does not fit even small: the wrapped translation below
+    }
     r.tr.forEach(b => {
       keep(b); langHTML.set(b, b.innerHTML); b.innerHTML = b.innerHTML.replace(/\s*<br\s*\/?>\s*/gi, ' ');   // its own line breaks were for the wide bottom line
       Object.assign(b.style, { top: 'calc(var(--in)*' + y + ')', bottom: 'auto', left: 'calc(var(--in)*' + x0 + ')', right: 'auto', width: 'calc(var(--in)*' + (x1 - x0).toFixed(2) + ')', whiteSpace: 'normal', textAlign: 'left' });
@@ -1451,7 +1465,7 @@ document.getElementById('godBar').addEventListener('click', e => {
 function scriptSections() {                                // the whole script for the prayers that are ticked
   const out = [{ head: 'Start: before the first click', who: whoAt('start', whoFor(STEPS[0])), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
-    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt('stop:' + s.to, whoFor(s)), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
+    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel && melName(p) !== 'Traditional' ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt('stop:' + s.to, whoFor(s)), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('turn:' + p.id, linesOf((SCRIPT.turns || {})[p.id])) }));
   });
