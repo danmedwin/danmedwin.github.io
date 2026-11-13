@@ -148,10 +148,13 @@
   #shr { display: flex; align-items: center; gap: .8em; margin: 0 0 .7em; font-size: .9em; min-height: 0; } #shr:empty { display: none; }
   #shr .ok { color: #B6D77B; font-weight: 700; } #shr .warn { color: #FFC843; } #shr a { color: #74D2E7; } #shr button { padding: .25em .8em; }
   #panel .sheet { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid rgba(255,255,255,.22); border-radius: .5em; }
-  #panel .srow { display: grid; grid-template-columns: minmax(12em, 1.1fr) minmax(7em, .85fr) minmax(10em, 1.15fr) minmax(10em, 1.9fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
+  #panel .srow { display: grid; grid-template-columns: minmax(13.5em, 1.3fr) minmax(6.5em, .75fr) minmax(6.5em, .75fr) minmax(9.5em, .95fr) minmax(8em, 1.4fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
   #panel .shead { position: sticky; top: 0; z-index: 1; background: #0a3a6e; font-weight: 700; color: #FFC843; font-size: .85em; letter-spacing: .03em; padding: .4em .8em; }
   #panel .sstop { background: rgba(116,210,231,.1); } #panel .sstop label { font-weight: 700; color: #74D2E7; grid-column: 1 / -1; }
   #panel .srow.off label, #panel .srow.off input[type=text], #panel .srow.off select { opacity: .45; }
+  #panel .srow label.pr { display: flex; align-items: center; }
+  #panel .srow .go { flex: none; margin-left: auto; width: 1.7em; height: 1.5em; padding: .2em .35em; background: transparent; color: #FFC843; opacity: .55; border-radius: .3em; }
+  #panel .srow .go svg { width: 100%; height: 100%; display: block; pointer-events: none; } #panel .srow .go:hover, #panel .srow .go:focus { opacity: 1; background: rgba(255,200,67,.15); outline: none; }
   #panel .srow select { width: 100%; box-sizing: border-box; font: inherit; font-size: .9em; color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); border-radius: .3em; padding: .1em .3em; cursor: pointer; }
   #panel .srow select:focus { outline: none; border-color: #FFC843; background: rgba(255,255,255,.16); } #panel .srow select option { color: #05305E; background: #fff; }
   #panel .srow input[type=text] { width: 100%; box-sizing: border-box; font: inherit; font-size: .9em; color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); border-radius: .3em; padding: .12em .5em; }
@@ -870,15 +873,16 @@ const guideBox = {};                                                 // one box 
 const textEd = Object.assign({}, DEF.text, saved.text);              // slides changed with the text editor: { "s-shma-1": html }
 const notes = Object.assign({}, DEF.notes, saved.notes);              // notes for each prayer: { shma: "sung, seated" }
 const melody = Object.assign({}, DEF.mel, saved.mel);                 // the melody chosen for a prayer that has more than one (MELODIES in build.py): { mahtovu: "morning" }
-const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }
+const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }. In the Prayer List and the Sheet only
+const guides = Object.assign({}, DEF.guides, saved.guides);           // who reads the guide's script before each prayer: { modeh: "Sam" }. On the script, on screen and printed
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = +saved.bright || 1;   // bright: how much the scene is lifted for this room's projector
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
-const settings = () => ({ name: designName, sel, mel: melody, names: sheetOn ? {} : names, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, mel: melody, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), names: changed(sheetOn ? localNames : names, DEF.names), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
   guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff, bright: bright !== 1 ? bright : undefined })); } catch (e) {} };
 // Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
 const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
@@ -934,14 +938,14 @@ document.querySelectorAll('.slide').forEach(s => {       // which scrim each sli
 const SCRIPT = window.SCRIPT || {}, guideEl = document.getElementById('guide');
 const anyOn = id => ORDER.some(o => o.prayers.some(p => p.id === id && isOn(p)));
 const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if || anyOn(l.if)).map(l => typeof l === 'string' ? l : l.t);
-// The names typed in the Prayer List, for the prayers a script moment leads into. One shared name is shown alone; otherwise each prayer with its name.
+// The guides typed in the Prayer List (Guide column, not Leader), for the prayers a script moment leads into. One shared name is shown alone; otherwise each prayer with its name.
 // A later prayer at a stop with its own lines in the script (the parts of the Amidah): printed as its own section. On screen the view turns and the text follows with no extra click.
 const hasTurn = (r, p) => r.prayers[0] !== p && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
 // A prayer with a note of its own under "pops" in the script: the note comes up beside the prayer's text, pop-up style, not during the walk.
 const hasPop = p => linesOf((SCRIPT.pops || {})[p.id]).length > 0;
 function whoFor(s) {
   const ps = s.k === 'turn' || s.k === 'slide' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p) && !hasPop(p));
-  const got = ps.map(p => ({ p: p.name, n: (names[p.id] || '').trim() })).filter(x => x.n);
+  const got = ps.map(p => ({ p: p.name, n: (guides[p.id] || '').trim() })).filter(x => x.n);
   if (!got.length) return '';
   return got.every(x => x.n === got[0].n) ? got[0].n : got.map(x => x.p + ': ' + x.n).join(' · ');
 }
@@ -975,7 +979,7 @@ function guideTyped() {                                 // keep what was typed: 
   const lines = [...guideEl.querySelectorAll('li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
   if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
   const who = guideEl.querySelector('.who').textContent.replace(/\s+/g, ' ').trim();
-  if (s.k === 'slide' || s.k === 'turn') { if (who) names[s.prayer.id] = who; else delete names[s.prayer.id]; if (sheetOn) sheetQueue(s.prayer.id, 'C', who); }   // one prayer: the same name as in the Prayer List
+  if (s.k === 'slide' || s.k === 'turn') { if (who) guides[s.prayer.id] = who; else delete guides[s.prayer.id]; if (sheetOn) sheetQueue(s.prayer.id, 'F', who); }   // one prayer: the same name as its Guide in the Prayer List
   else if (who === whoFor(s)) delete readers[key]; else readers[key] = who;
   document.getElementById('gUndo').style.display = key in scriptEd || key in readers ? '' : 'none'; save();
 }
@@ -1380,8 +1384,8 @@ function scriptSections() {                                // the whole script f
   const out = [{ head: 'Start: before the first click', who: whoAt('start', whoFor(STEPS[0])), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
     if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt('stop:' + s.to, whoFor(s)), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
-    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (names[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
-    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (names[p.id] || '').trim(), lines: linesAt('turn:' + p.id, linesOf((SCRIPT.turns || {})[p.id])) }));
+    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
+    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('turn:' + p.id, linesOf((SCRIPT.turns || {})[p.id])) }));
   });
   out.push({ head: 'End: closing', lines: linesOf(SCRIPT.end) });
   return out.filter(x => x.lines.length);
@@ -1399,11 +1403,12 @@ function downloadScript() {
 /* ---------- leaders and notes from a shared Google Sheet ----------
    Set in weekly.js: sheet: { clientId, id }. After "Sign in with Google" (school accounts only: the Google project is Internal) the Leader and
    Melody or notes columns are read from the Sheet's first tab and typed changes are written back, so everyone signed in sees the same list.
-   Tab layout, made on first use: A id | B Prayer | C Leader | D Notes | E Melody. Signed out, or opened as a file, the page uses this computer's own names.
+   Tab layout, made on first use: A id | B Prayer | C Leader | D Notes | E Melody | F Guide. Signed out, or opened as a file, the page uses this computer's
+   own names. C is who leads the prayer; F is who reads the guide's script before it (on the script, on screen and printed).
    E holds the melody's name as the Prayer List shows it, with a drop-down in the Sheet for each prayer that has a choice; an empty cell is the first
    melody. Unlike names, a melody read from the Sheet is kept on this computer, so the service does not change if the sign-in runs out. */
 const SHEET = WEEKLY.sheet && WEEKLY.sheet.clientId && WEEKLY.sheet.id && /^https?:$/.test(location.protocol) ? WEEKLY.sheet : null;
-let sheetTok = null, sheetOn = false, sheetMsg = '', sheetWhen = '', sheetTimer = 0, localNames = {}, localNotes = {}, sheetRuled = false; const sheetWait = {};
+let sheetTok = null, sheetOn = false, sheetMsg = '', sheetWhen = '', sheetTimer = 0, localNames = {}, localGuides = {}, localNotes = {}, sheetRuled = false; const sheetWait = {};
 const sheetPrayers = () => ORDER.filter(o => !HIDDEN_STOPS[o.stop]).reduce((a, o) => a.concat(o.prayers), []);
 const melLabel = id => { const p = sheetPrayers().find(x => x.id === id); return p && p.mel ? melOf(p).t : ''; };
 const melNorm = v => String(v || '').trim().toLowerCase().replace(/[’‘`]/g, "'");
@@ -1428,35 +1433,41 @@ async function sheetCall(method, range, body, query) {
 function sheetRow() {                                   // the line under the Prayer List's title
   if (!SHEET) return '';
   const link = '<a href="https://docs.google.com/spreadsheets/d/' + SHEET.id + '/edit" target="_blank" rel="noopener">Open the sheet</a>';
-  if (sheetOn) return '<span class="ok">● Shared sheet</span><span>Leaders, melodies and notes are saved to the school sheet' + (sheetWhen ? ' · checked ' + sheetWhen : '') + '</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '') + link + '<button id="shOut">Sign out</button>';
-  return '<button id="shIn" class="main">Sign in with Google</button><span>to share leaders, melodies and notes through the school sheet</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '');
+  if (sheetOn) return '<span class="ok">● Shared sheet</span><span>Guides, leaders, melodies and notes are saved to the school sheet' + (sheetWhen ? ' · checked ' + sheetWhen : '') + '</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '') + link + '<button id="shOut">Sign out</button>';
+  return '<button id="shIn" class="main">Sign in with Google</button><span>to share guides, leaders, melodies and notes through the school sheet</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '');
 }
 function sheetDraw() { const n = document.getElementById('shr'); if (n) n.innerHTML = sheetRow(); }
+const FIELDS = 'input[data-n], input[data-g], input[data-m]', fieldVal = i => (i.dataset.n ? names[i.dataset.n] : i.dataset.g ? guides[i.dataset.g] : notes[i.dataset.m]) || '';
 function sheetShow() {                                  // put the sheet's values into the list without disturbing a box that is being typed in
-  panel.querySelectorAll('input[data-n], input[data-m]').forEach(i => { if (i !== document.activeElement) i.value = (i.dataset.n ? names[i.dataset.n] : notes[i.dataset.m]) || ''; });
+  panel.querySelectorAll(FIELDS).forEach(i => { if (i !== document.activeElement) i.value = fieldVal(i); });
   showGuide(STEPS[idx]); sheetDraw();
 }
 async function sheetPull() {
   if (!sheetOn) return;
   try {
-    let rows = (await sheetCall('GET', 'A1:E400')).values || [];
+    let rows = (await sheetCall('GET', 'A1:F400')).values || [];
     if (rows.length && String(rows[0][0] || '').trim().toLowerCase() !== 'id') { sheetMsg = 'The sheet’s first tab has something else in it. Clear it, or put a blank tab first.'; return sheetDraw(); }
     if (rows.length && !String(rows[0][4] || '').trim()) {  // a sheet made before melodies: head column E and fill it with this computer's choices
       const col = rows.map((r, i) => [i ? melLabel(String(r[0] || '').trim()) : 'Melody']);
       await sheetCall('PUT', 'E1:E' + rows.length, { values: col }, '?valueInputOption=RAW'); rows.forEach((r, i) => { r[4] = col[i][0]; });
       if (String(rows[0][3] || '').trim() === 'Melody or notes') await sheetCall('PUT', 'D1', { values: [['Notes']] }, '?valueInputOption=RAW');
     }
+    if (rows.length && !String(rows[0][5] || '').trim()) {  // a sheet made before guides: head column F and fill it with this computer's guides
+      const col = rows.map((r, i) => [i ? localGuides[String(r[0] || '').trim()] || '' : 'Guide']);
+      await sheetCall('PUT', 'F1:F' + rows.length, { values: col }, '?valueInputOption=RAW'); rows.forEach((r, i) => { r[5] = col[i][0]; });
+    }
     const have = {}; rows.forEach((r, i) => { if (i && r[0]) have[String(r[0]).trim()] = r; });
-    const missing = sheetPrayers().filter(p => !have[p.id]), row = p => [p.id, p.name, localNames[p.id] || '', localNotes[p.id] || '', melLabel(p.id)];
+    const missing = sheetPrayers().filter(p => !have[p.id]), row = p => [p.id, p.name, localNames[p.id] || '', localNotes[p.id] || '', melLabel(p.id), localGuides[p.id] || ''];
     if (!rows.length || missing.length) {                 // first use, or a prayer that is new since then: add its row
-      const add = (rows.length ? [] : [['id', 'Prayer', 'Leader', 'Notes', 'Melody']]).concat(missing.map(row));
-      await sheetCall('POST', 'A1:E1:append', { values: add }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS');
+      const add = (rows.length ? [] : [['id', 'Prayer', 'Leader', 'Notes', 'Melody', 'Guide']]).concat(missing.map(row));
+      await sheetCall('POST', 'A1:F1:append', { values: add }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS');
       missing.forEach(p => { have[p.id] = row(p); }); sheetRuled = false;
     }
     let melMoved = false;
     sheetPrayers().forEach(p => { const r = have[p.id] || [];
       if (!sheetWait[p.id + 'C']) { const v = String(r[2] || '').trim(); if (v) names[p.id] = v; else delete names[p.id]; }
       if (!sheetWait[p.id + 'D']) { const v = String(r[3] || '').trim(); if (v) notes[p.id] = v; else delete notes[p.id]; }
+      if (!sheetWait[p.id + 'F']) { const v = String(r[5] || '').trim(); if (v) guides[p.id] = v; else delete guides[p.id]; }
       if (p.mel && !sheetWait[p.id + 'E']) { const v = melNorm(r[4]), m = v ? p.mel.find(x => melNorm(x.t) === v || x.k === v) : p.mel[0];   // a name the list does not know is left alone
         if (m && m !== melOf(p)) { melody[p.id] = m.k; melMoved = true; } } });
     if (melMoved) rebuildKeep(true);
@@ -1470,20 +1481,20 @@ function sheetQueue(id, col, value) {                   // a typed change: writt
     try {
       const ids = ((await sheetCall('GET', 'A1:A400')).values || []).map(r => String(r[0] || '').trim()), at = ids.indexOf(id);     // find the row now, in case rows were moved
       if (at > 0) await sheetCall('PUT', col + (at + 1), { values: [[value]] }, '?valueInputOption=RAW');
-      else { const p = sheetPrayers().find(x => x.id === id) || { name: id }; await sheetCall('POST', 'A1:E1:append', { values: [[id, p.name, col === 'C' ? value : '', col === 'D' ? value : '', col === 'E' ? value : '']] }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS'); sheetRuled = false; }
+      else { const p = sheetPrayers().find(x => x.id === id) || { name: id }; await sheetCall('POST', 'A1:F1:append', { values: [[id, p.name, col === 'C' ? value : '', col === 'D' ? value : '', col === 'E' ? value : '', col === 'F' ? value : '']] }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS'); sheetRuled = false; }
       sheetMsg = '';
     } catch (e) { if (sheetOn) sheetMsg = 'That change did not reach the sheet. Check the connection and type it again.'; }
     delete sheetWait[k]; sheetDraw();
   }, 700) };
 }
 function sheetStart() {                                 // signed in: the sheet takes over from this computer's own names
-  if (!sheetOn) { localNames = Object.assign({}, names); localNotes = Object.assign({}, notes); }
+  if (!sheetOn) { localNames = Object.assign({}, names); localGuides = Object.assign({}, guides); localNotes = Object.assign({}, notes); }
   sheetRuled = false; sheetOn = true; sheetMsg = ''; clearInterval(sheetTimer); sheetTimer = setInterval(sheetPull, 10000); sheetDraw(); return sheetPull();
 }
 function sheetSignOut(msg) {
-  clearInterval(sheetTimer); if (sheetOn) { for (const k in names) delete names[k]; Object.assign(names, localNames); for (const k in notes) delete notes[k]; Object.assign(notes, localNotes); }
+  clearInterval(sheetTimer); if (sheetOn) { for (const k in names) delete names[k]; Object.assign(names, localNames); for (const k in guides) delete guides[k]; Object.assign(guides, localGuides); for (const k in notes) delete notes[k]; Object.assign(notes, localNotes); }
   sheetOn = false; sheetTok = null; sheetMsg = msg || ''; try { sessionStorage.removeItem('mt-sheet'); } catch (e) {}
-  if (panel.classList.contains('on')) { panel.querySelectorAll('input[data-n], input[data-m]').forEach(i => { i.value = (i.dataset.n ? names[i.dataset.n] : notes[i.dataset.m]) || ''; }); } showGuide(STEPS[idx]); sheetDraw();
+  if (panel.classList.contains('on')) { panel.querySelectorAll(FIELDS).forEach(i => { i.value = fieldVal(i); }); } showGuide(STEPS[idx]); sheetDraw();
 }
 function sheetSignIn() {
   sheetMsg = 'Waiting for Google…'; sheetDraw();
@@ -1532,16 +1543,18 @@ const IC = {
 [['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
  ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full'], ['brDown', 'dim'], ['brUp', 'bright']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
-const listCount = () => 'Untick a prayer to skip it; untick a whole stop and we walk past it. ' + (ROUTE.length) + ' stops, ' + STEPS.filter(s => s.k === 'slide').length + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '');
+const listCount = () => 'Untick a prayer to skip it; untick a whole stop and we walk past it. The gold arrow on a row goes straight to that prayer. ' + (ROUTE.length) + ' stops, ' + STEPS.filter(s => s.k === 'slide').length + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '');
 function drawPanel() {
   const q = v => esc(v || '').replace(/"/g, '&quot;');
   const melCell = p => p.mel && p.mel.length > 1 ? '<select data-mel="' + p.id + '" title="Melody for ' + q(p.name) + '">' + p.mel.map(m => '<option value="' + q(m.k) + '"' + (m === melOf(p) ? ' selected' : '') + '>' + esc(m.t) + '</option>').join('') + '</select>' : '<span></span>';
   panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">' + listCount() + '</div><div id="shr">' + sheetRow() + '</div>' +
-    '<div class="sheet"><div class="srow shead"><span>Prayer</span><span>Leader</span><span>Melody</span><span>Notes</span></div>' +
+    '<div class="sheet"><div class="srow shead"><span>Prayer</span><span title="Reads the guide’s script before this prayer; shown on the script on screen and in print">Guide</span><span title="Leads the prayer itself">Leader</span><span>Melody</span><span>Notes</span></div>' +
     ORDER.filter(o => !HIDDEN_STOPS[o.stop]).map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
       return '<div class="srow sstop"><label><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + '>' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</label></div>' +
-        o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) + '</label>' +
-          '<input type="text" data-n="' + p.id + '" maxlength="40" placeholder="name" title="Who leads ' + q(p.name) + '" value="' + q(names[p.id]) + '">' + melCell(p) +
+        o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><label class="pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + '>' + esc(p.name) +
+          (isOn(p) ? '<button class="go" data-go="' + p.id + '" title="Go to ' + q(p.name) + '">' + IC.go + '</button>' : '') + '</label>' +
+          '<input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">' +
+          '<input type="text" data-n="' + p.id + '" maxlength="40" placeholder="leads prayer" title="Who leads ' + q(p.name) + '" value="' + q(names[p.id]) + '">' + melCell(p) +
           '<input type="text" data-m="' + p.id + '" maxlength="140" placeholder="notes" title="Notes for ' + q(p.name) + '" value="' + q(notes[p.id]) + '"></div>').join(''); }).join('') +
     '</div>';
   panel.querySelectorAll('input[data-part]').forEach(i => { i.indeterminate = true; });
@@ -1572,9 +1585,19 @@ function setMelody(id, key) {                            // chosen in the Prayer
 }
 function applyChoice() { const sh = panel.querySelector('.sheet'), top = sh ? sh.scrollTop : 0; save(); buildSteps(); enter(0, -1); drawPanel(); const sh2 = panel.querySelector('.sheet'); if (sh2) sh2.scrollTop = top; if (god) { godBuild(); godSel(0); } if (editing) edRefresh(); }
 panel.addEventListener('click', e => e.stopPropagation());
+// The arrow on a prayer's row: close the list and go there. The first prayer at a stop arrives at the stop, as a click on the mini-map does,
+// so the guide can speak; a later prayer opens on its own first slide (or, at the summit with the script on screen, its turn).
+function jumpToPrayer(id) {
+  let n = STEPS.findIndex(s => (s.k === 'slide' || s.k === 'turn') && s.prayer.id === id); if (n < 0) return;
+  const s = STEPS[n];
+  if (ROUTE[s.mi].prayers[0].id === id) n = s.mi === 0 ? 0 : STEPS.findIndex(t => t.k === 'travel' && t.mi === s.mi);
+  else if (s.k === 'turn' && !showScript) n++;           // no script on screen: no turn, straight to the text
+  togglePanel(false); enter(n, -1);
+}
+panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } });
 panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
-  const t = e.target, k = t.dataset.n || t.dataset.m; if (!k) return; const into = t.dataset.n ? names : notes;
-  if (t.value.trim()) into[k] = t.value; else delete into[k]; if (sheetOn) sheetQueue(k, t.dataset.n ? 'C' : 'D', t.value.trim()); else save(); if (t.dataset.n) showGuide(STEPS[idx]);
+  const t = e.target, k = t.dataset.n || t.dataset.g || t.dataset.m; if (!k) return; const into = t.dataset.n ? names : t.dataset.g ? guides : notes;
+  if (t.value.trim()) into[k] = t.value; else delete into[k]; if (sheetOn) sheetQueue(k, t.dataset.n ? 'C' : t.dataset.g ? 'F' : 'D', t.value.trim()); else save(); if (t.dataset.g) showGuide(STEPS[idx]);
 });
 panel.addEventListener('change', e => {
   const t = e.target;
@@ -1584,7 +1607,7 @@ panel.addEventListener('change', e => {
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
-  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in melody) delete melody[k]; Object.assign(melody, d.mel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); for (const k in melody) delete melody[k]; Object.assign(melody, d.mel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in guides) delete guides[k]; Object.assign(guides, d.guides); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
   showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh(); if (sheetOn) sheetPull();
 }
