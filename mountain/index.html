@@ -63,7 +63,11 @@
   #map .cap { font-size: calc(var(--pt)*24); line-height: 1.15; margin-top: calc(var(--pt)*4); white-space: nowrap; }
   #map .cap b { color: #FFC843; font-weight: 700; }
   .hl { color: #FFC843; }
-  #title .t3 { font-size: calc(var(--pt)*20); margin-top: calc(var(--pt)*14); opacity: .7; }
+  /* the keys, on the title card only: along the bottom beside the toolbar, in the toolbar's order */
+  #hint { position: absolute; left: calc(var(--in)*5.75); right: calc(var(--in)*.3); bottom: calc(var(--in)*.12); height: calc(var(--pt)*50); display: flex; align-items: center; color: #fff; opacity: 0; pointer-events: none;
+          transition: opacity .7s ease; font: calc(var(--pt)*16) Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; white-space: nowrap; text-shadow: 0 0 calc(var(--pt)*10) rgba(2,14,40,.8); }
+  #hint.on { opacity: .8; } #hint b { color: #FFC843; font-weight: 700; margin-right: .1em; }
+  .adjusting #hint, .editing #hint, .god #hint, .filing #hint, .demo #hint { display: none; }
 
   /* ---------- guide script on screen ---------- */
   #guide { position: absolute; background: rgba(5,48,94,.84); border: calc(var(--pt)*1.5) solid rgba(255,255,255,.28); border-radius: calc(var(--pt)*14);
@@ -135,7 +139,7 @@
 
   /* ---------- control panel (for the person at the computer) ---------- */
   #panel { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.9); width: calc(100% - var(--in)*.24); max-height: calc(100% - var(--in)*1.05); display: none; flex-direction: column;
-           background: rgba(5,40,82,.96); color: #fff; border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
+           background: #06284f; color: #fff; box-shadow: 0 calc(var(--pt)*6) calc(var(--pt)*30) rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.3); border-left: calc(var(--pt)*3) solid #FFC843;
            border-radius: calc(var(--pt)*10); padding: calc(var(--pt)*16) calc(var(--pt)*22); box-sizing: border-box; cursor: default;
            font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; font-size: calc(var(--pt)*19); z-index: 5; }
   #panel.on { display: flex; }
@@ -188,7 +192,8 @@
 <body>
 <div id="stage">
   <div id="scrim"></div>
-  <div id="title"><div class="t1"></div><div class="t2"></div><div class="t3">Click or → to begin · C: prayer list · S: guide script on screen · M: map (click a stop to jump) · V: adjust a view · E: edit text · G: overview · F: full screen</div></div>
+  <div id="title"><div class="t1"></div><div class="t2"></div></div>
+  <div id="hint">Click or → to begin · <b>C</b> list · <b>M</b> map (click a stop to jump) · <b>S</b> script · <b>E</b> edit text · <b>V</b> adjust view · <b>G</b> look · <b>F</b> full screen</div>
   <div id="slides"></div>
   <div id="map"><svg viewBox="0 0 400 190" id="mapsvg"></svg><div class="cap" id="mapcap"></div><div class="x" id="mapX" title="Hide the map (M)">×</div></div>
   <div id="guide"><h4></h4><ul></ul><div class="gx" id="gClose" title="Hide this box; the walk carries on">×</div><div class="tools"><span id="gEdit" title="Edit these words and the reader's name">✎</span><span id="gUndo" title="Back to the original words">↺</span><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
@@ -1583,7 +1588,7 @@ function enter(i, dir) {
   idx = clamp(i, 0, STEPS.length - 1); const s = STEPS[idx];
   if (s.k === 'turn' && !showScript) return enter(idx + (dir > 0 ? 1 : -1), dir);   // no script on screen, no pause: straight on to the text
   glide = null; autoNext = false; let post = null;
-  titleEl.classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
+  titleEl.classList.toggle('on', s.k === 'hold'); document.getElementById('hint').classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
   if (s.k === 'slide' || s.k === 'turn') {
     // text fades out, the camera moves to this prayer's view, then the new text fades in
     const pose = s.pose; s.dp = 0; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
