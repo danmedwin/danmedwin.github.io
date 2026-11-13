@@ -989,8 +989,10 @@ const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if 
 const hasTurn = (r, p) => r.prayers[0] !== p && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
 // A prayer with a note of its own under "pops" in the script: the note comes up beside the prayer's text, pop-up style, not during the walk.
 const hasPop = p => linesOf((SCRIPT.pops || {})[p.id]).length > 0;
+// The prayers a script box leads into: its own prayer for a pop-up or a summit turn; for the welcome or a walk, that stop's prayers that have no box of their own.
+const boxPrayers = s => s.k === 'turn' || s.k === 'slide' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p) && !hasPop(p));
 function whoFor(s) {
-  const ps = s.k === 'turn' || s.k === 'slide' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p) && !hasPop(p));
+  const ps = boxPrayers(s);
   const got = ps.map(p => ({ p: p.name, n: (guides[p.id] || '').trim() })).filter(x => x.n);
   if (!got.length) return '';
   return got.every(x => x.n === got[0].n) ? got[0].n : got.map(x => x.p + ': ' + x.n).join(' · ');
@@ -1003,13 +1005,15 @@ function guideFor(s) {
   return null;
 }
 // Words and reader for one script moment, after any rewording done on screen. key: "start", "stop:tents", "pop:modeh", "turn:gvurot", "end".
-const linesAt = (key, lines) => scriptEd[key] || lines, whoAt = (key, who) => key in readers ? readers[key] : who;
+// The name on a box is the Guide of the prayers it leads into (Prayer List, Sheet column F), so all three always agree. Only a box that leads
+// into no prayer of its own (a walk whose prayers all have pop-up notes) keeps a name of its own, in "readers".
+const linesAt = (key, lines) => scriptEd[key] || lines, whoAt = (s, key) => boxPrayers(s).length ? whoFor(s) : (readers[key] || '');
 const guideKey = s => s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : (s.k === 'slide' ? 'pop:' : 'turn:') + s.prayer.id;
 let guideStep = null;
 function showGuide(s) {
   setGuideEdit(false); guideStep = s;
   const g = showScript ? guideFor(s) : null, key = g ? guideKey(s) : '', lines = g ? linesAt(key, g.lines) : [], on = lines.length > 0;
-  if (on) { const who = whoAt(key, whoFor(s)); guideEl.querySelector('h4').innerHTML = '<span class="hd">' + esc(g.head) + '</span><span class="who">' + esc(who) + '</span>'; guideEl.querySelector('ul').innerHTML = lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
+  if (on) { const who = whoAt(s, key); guideEl.querySelector('h4').innerHTML = '<span class="hd">' + esc(g.head) + '</span><span class="who">' + esc(who) + '</span>'; guideEl.querySelector('ul').innerHTML = lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
   if (on) { guideMode = key; placeGuide(); }
   guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide');
   document.getElementById('gUndo').style.display = on && (key in scriptEd || key in readers) ? '' : 'none';
@@ -1025,8 +1029,12 @@ function guideTyped() {                                 // keep what was typed: 
   const lines = [...guideEl.querySelectorAll('li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
   if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
   const who = guideEl.querySelector('.who').textContent.replace(/\s+/g, ' ').trim();
-  if (s.k === 'slide' || s.k === 'turn') { if (who) guides[s.prayer.id] = who; else delete guides[s.prayer.id]; if (sheetOn) sheetQueue(s.prayer.id, 'F', who); }   // one prayer: the same name as its Guide in the Prayer List
-  else if (who === whoFor(s)) delete readers[key]; else readers[key] = who;
+  const ps = boxPrayers(s);
+  if (ps.length) {                                       // the name is those prayers' Guide: write it there (and to the Sheet) if it changed
+    if (who !== whoFor(s)) ps.forEach(p => { if (who) guides[p.id] = who; else delete guides[p.id]; if (sheetOn) sheetQueue(p.id, 'F', who); });
+    delete readers[key];
+    if (panel.classList.contains('on')) panel.querySelectorAll(FIELDS).forEach(i => { if (i !== document.activeElement) i.value = fieldVal(i); });
+  } else if (who) readers[key] = who; else delete readers[key];
   document.getElementById('gUndo').style.display = key in scriptEd || key in readers ? '' : 'none'; save();
 }
 let guideMode = 'start';
@@ -1498,9 +1506,9 @@ document.getElementById('godBar').addEventListener('click', e => {
 });
 
 function scriptSections() {                                // the whole script for the prayers that are ticked
-  const out = [{ head: 'Start: before the first click', who: whoAt('start', whoFor(STEPS[0])), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
+  const out = [{ head: 'Start: before the first click', who: whoAt(STEPS[0], 'start'), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
-    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel && melName(p) !== 'Traditional' ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt('stop:' + s.to, whoFor(s)), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
+    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel && melName(p) !== 'Traditional' ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt(s, 'stop:' + s.to), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('turn:' + p.id, linesOf((SCRIPT.turns || {})[p.id])) }));
   });
