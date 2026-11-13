@@ -52,7 +52,7 @@
   #title .t2 { font-size: calc(var(--pt)*32); margin-top: calc(var(--pt)*12); opacity: .92; }
 
   /* ---------- mini-map ---------- */
-  #map { position: absolute; left: calc(var(--in)*.45); bottom: calc(var(--in)*.85); width: calc(var(--in)*6.4);
+  #map { position: absolute; left: calc(var(--in)*.12); bottom: calc(var(--in)*.85); width: calc(var(--in)*6.4);   /* left edge in line with the toolbar */
          background: rgba(5,48,94,.78); border: calc(var(--pt)*1.5) solid rgba(255,255,255,.28);
          border-radius: calc(var(--pt)*14); padding: calc(var(--pt)*10) calc(var(--pt)*12) calc(var(--pt)*8);
          box-sizing: border-box; opacity: 0; transition: opacity .7s ease; pointer-events: none;
@@ -825,9 +825,12 @@ const mapEl = document.getElementById('map'), mapCap = document.getElementById('
 const SVGNS = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
 let ROUTE = [], SUMMIT_X = 258, doneLine, dots, lblFrom, lblTo, halo, marker;
+// The mountain's outline on the map (the polygon's top edge); names may sit above it or wholly inside it, never across it.
+const MAP_EDGE = [[0, 178], [26, 174], [60, 168], [92, 160], [128, 140], [158, 121], [186, 97], [212, 75], [236, 54], [258, 32], [268, 46], [288, 82], [318, 126], [350, 172], [400, 182]];
+let mapLblKey = '';
 function buildMap() {
-  while (svg.firstChild) svg.removeChild(svg.firstChild);
-  el('polygon', { points: '0,190 0,178 26,174 60,168 92,160 128,140 158,121 186,97 212,75 236,54 258,32 268,46 288,82 318,126 350,172 400,182 400,190', fill: 'rgba(255,255,255,.13)', stroke: 'rgba(255,255,255,.4)', 'stroke-width': 1.2 });
+  while (svg.firstChild) svg.removeChild(svg.firstChild); mapLblKey = '';
+  el('polygon', { points: '0,190 ' + MAP_EDGE.map(p => p.join(',')).join(' ') + ' 400,190', fill: 'rgba(255,255,255,.13)', stroke: 'rgba(255,255,255,.4)', 'stroke-width': 1.2 });
   el('polyline', { points: ROUTE.map(s => s.x + ',' + s.y).join(' '), fill: 'none', stroke: 'rgba(255,255,255,.5)', 'stroke-width': 2, 'stroke-dasharray': '4 4' });
   doneLine = el('polyline', { points: '', fill: 'none', stroke: '#74D2E7', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   dots = ROUTE.map(s => el('circle', { cx: s.x, cy: s.y, r: 3.6, fill: '#05305E', stroke: '#fff', 'stroke-width': 1.6 }));
@@ -846,24 +849,56 @@ const mapAuto = s => s.k === 'hold' || s.k === 'travel';
 function showMap() { const on = !mapOff && (mapForce || mapAuto(STEPS[idx])); mapEl.classList.toggle('on', on); document.getElementById('tbMap').classList.toggle('act', on); }
 function toggleMap() { if (mapEl.classList.contains('on')) { mapForce = false; mapOff = true; } else { mapForce = true; mapOff = false; } showMap(); }
 document.getElementById('mapX').addEventListener('click', e => { e.stopPropagation(); toggleMap(); });
-function label(t, i, txt, isFrom) {
-  const s = ROUTE[i], right = s.x > SUMMIT_X, low = !right && s.x < 130, start = right || low;
-  let x = low ? Math.max(2, s.x - 14) : s.x + (right ? 10 : -9), y = s.y + (right ? 5 : low ? (isFrom ? 19 : -11) : (isFrom ? -5 : -6));   // on the way down the names sit beside their dots and run downward, so close stops do not collide
-  t.setAttribute('text-anchor', start ? 'start' : 'end'); t.setAttribute('x', x); t.setAttribute('y', y);
-  // wrap at spaces so a long name stays inside the map; lines stack away from the dot
-  const fs = isFrom ? 15 : 17, cw = fs * (isFrom ? .47 : .51), room = start ? 394 - x : x - 6, lines = [];
-  txt.split(' ').forEach(w => { const n = lines.length - 1; if (n >= 0 && (lines[n] + ' ' + w).length * cw <= room) lines[n] += ' ' + w; else if (w) lines.push(w); });
+// A stop's name on the map, placed where it covers no dot, no part of the trail, no other name and not the mountain's outline (so it sits in the
+// sky above the mountain or wholly inside it). Tries spots all round its dot, near first, on one, two or three lines, and takes the closest clear one.
+const mapMeasure = (() => { const cache = {}; let probe = null; return (s, fs, bold) => { const k = fs + (bold ? 'b' : '') + s; if (k in cache) return cache[k];
+  if (!probe || probe.parentNode !== svg) probe = el('text', { visibility: 'hidden' }); probe.setAttribute('font-size', fs); probe.setAttribute('font-weight', bold ? 700 : 400); probe.textContent = s;
+  let w = 0; try { w = probe.getComputedTextLength(); } catch (e) {} if (!w) w = s.length * fs * (bold ? .52 : .48); return (cache[k] = w); }; })();
+function segHitsBox(ax, ay, bx, by, r) {                  // does the segment a-b touch the box r = { x0, y0, x1, y1 }?
+  const inside = (x, y) => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1; if (inside(ax, ay) || inside(bx, by)) return true;
+  const cross = (px, py, qx, qy) => { const d = (bx - ax) * (qy - py) - (by - ay) * (qx - px); if (!d) return false;
+    const u = ((px - ax) * (qy - py) - (py - ay) * (qx - px)) / d, v = ((px - ax) * (by - ay) - (py - ay) * (bx - ax)) / d; return u >= 0 && u <= 1 && v >= 0 && v <= 1; };
+  return cross(r.x0, r.y0, r.x1, r.y0) || cross(r.x1, r.y0, r.x1, r.y1) || cross(r.x1, r.y1, r.x0, r.y1) || cross(r.x0, r.y1, r.x0, r.y0);
+}
+function placeLabel(i, txt, fs, bold, avoid) {
+  const s = ROUTE[i], words = txt.split(' ').filter(Boolean), lh = fs * 1.08, wraps = [[txt]];
+  const best = n => { let pick = null, worst = 1e9; const go = (k, from, acc) => { if (k === n - 1) { const ls = acc.concat([words.slice(from).join(' ')]), w = Math.max(...ls.map(l => mapMeasure(l, fs, bold))); if (w < worst) { worst = w; pick = ls; } return; }
+    for (let j = from + 1; j <= words.length - (n - 1 - k); j++) go(k + 1, j, acc.concat([words.slice(from, j).join(' ')])); }; go(0, 0, []); return pick; };
+  if (words.length >= 2) wraps.push(best(2)); if (words.length >= 3) wraps.push(best(3));
+  const pad = 2.5, dotR = 6.5, segs = [];
+  for (let k = 1; k < ROUTE.length; k++) segs.push([ROUTE[k - 1].x, ROUTE[k - 1].y, ROUTE[k].x, ROUTE[k].y]);
+  for (let k = 1; k < MAP_EDGE.length; k++) segs.push([MAP_EDGE[k - 1][0], MAP_EDGE[k - 1][1], MAP_EDGE[k][0], MAP_EDGE[k][1]]);
+  const clear = r => r.x0 >= 3 && r.x1 <= 397 && r.y0 >= 2 && r.y1 <= 188 && !(r.x1 > 368 && r.y0 < 20) &&              // inside the map, clear of its close button
+    !ROUTE.some(d => d.x > r.x0 - dotR && d.x < r.x1 + dotR && d.y > r.y0 - dotR && d.y < r.y1 + dotR) &&
+    !segs.some(g => segHitsBox(g[0], g[1], g[2], g[3], { x0: r.x0 - pad, y0: r.y0 - pad, x1: r.x1 + pad, y1: r.y1 + pad })) &&
+    !avoid.some(o => r.x0 < o.x1 + 3 && r.x1 > o.x0 - 3 && r.y0 < o.y1 + 3 && r.y1 > o.y0 - 3);
+  let found = null, score = 1e9;
+  wraps.forEach((ls, wi) => {
+    const w = Math.max(...ls.map(l => mapMeasure(l, fs, bold))), h = ls.length * lh;
+    for (let a = 0; a < 24; a++) { const ang = a / 24 * Math.PI * 2, ux = Math.cos(ang), uy = Math.sin(ang);
+      for (const gap of [5, 8, 12, 17, 24, 32, 42, 55]) {
+        const cx = s.x + ux * (w / 2 + gap), cy = s.y + uy * (h / 2 + gap), r = { x0: cx - w / 2, y0: cy - h / 2, x1: cx + w / 2, y1: cy + h / 2 };
+        const sc = gap + wi * 9 + (uy > .3 ? 2 : 0);                          // near first; fewer lines; a little preference for above or beside
+        if (sc < score && clear(r)) { score = sc; found = { r, ls }; } } }
+  });
+  return found;
+}
+function label(t, i, txt, isFrom, avoid) {                // returns the box it took, so the other name can keep clear of it
   while (t.firstChild) t.removeChild(t.firstChild);
-  const down = right || (low && isFrom), wide = Math.max(0, ...lines.map(l => l.length)) * cw;
-  if (start && x + wide > 396) x = 396 - wide; else if (!start && x - wide < 4) x = 4 + wide;   // a single long word: slide it back inside
-  lines.forEach((ln, k) => { const ts = document.createElementNS(SVGNS, 'tspan'); ts.textContent = ln; ts.setAttribute('x', x); ts.setAttribute('y', y + (down ? k : k - (lines.length - 1)) * fs * 1.08); t.appendChild(ts); });
+  if (!txt) return null;
+  const fs = isFrom ? 15 : 17, p = placeLabel(i, txt, fs, !isFrom, avoid || []);
+  if (!p) return null;                                     // nowhere clear: leave it off rather than cover the trail (the caption below names the stop)
+  t.setAttribute('text-anchor', 'start');
+  p.ls.forEach((ln, k) => { const ts = document.createElementNS(SVGNS, 'tspan'); ts.textContent = ln; ts.setAttribute('x', p.r.x0); ts.setAttribute('y', p.r.y0 + fs * .8 + k * fs * 1.08); t.appendChild(ts); });
+  return p.r;
 }
 function setMap(fi, ti, t, arrived) {
   const a = ROUTE[fi], b = ROUTE[ti], x = lerp(a.x, b.x, t), y = lerp(a.y, b.y, t);
   marker.setAttribute('cx', x); marker.setAttribute('cy', y); halo.setAttribute('cx', x); halo.setAttribute('cy', y);
   doneLine.setAttribute('points', ROUTE.slice(0, fi + 1).map(s => s.x + ',' + s.y).join(' ') + ' ' + x + ',' + y);
   dots.forEach((d, i) => d.setAttribute('fill', (i <= fi || (i === ti && t >= 1)) ? '#74D2E7' : '#05305E'));
-  label(lblFrom, fi, fi === ti ? '' : a.name, true); label(lblTo, ti, b.name, false);
+  const key = fi + '|' + ti + '|' + a.name + '|' + b.name;
+  if (key !== mapLblKey) { mapLblKey = key; const box = label(lblTo, ti, b.name, false, []); label(lblFrom, fi, fi === ti ? '' : a.name, true, box ? [box] : []); }   // where we are going first; placed once per walk, not every frame
   const P = b.place.charAt(0).toUpperCase() + b.place.slice(1);
   mapCap.innerHTML = arrived ? '<b>' + P + '</b> · ' + b.name : 'To <b>' + b.place + '</b> · ' + b.name;
 }
