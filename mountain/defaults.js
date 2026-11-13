@@ -9,7 +9,8 @@ window.DEFAULTS = {
     "modeh": "cowboy",
     "mahtovu": "morning",
     "barchu": "awake",
-    "song": "trad"
+    "psalm150": "kolhan",
+    "song": "shabbat"
   },
   "text": {
     "s-opening-1": "<div class=\"box h-he he\">קְרִיאָה</div><div class=\"box h-en\"><span style=\"font-weight:700\">Opening Reading</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">All I have to offer in prayer is myself.<br><br><span class=\"hw\" style=\"font-style:italic;font-weight:700\">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sometimes I cannot find the ‎רוּחַ‎ to pray alone.</span></div><div class=\"box dots\">●○○○○○○</div>",
