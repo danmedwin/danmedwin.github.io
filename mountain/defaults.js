@@ -5,13 +5,6 @@ window.DEFAULTS = {
   "sel": {
     "elohai": true
   },
-  "mel": {
-    "modeh": "cowboy",
-    "mahtovu": "morning",
-    "barchu": "awake",
-    "psalm150": "kolhan",
-    "song": "shabbat"
-  },
   "text": {
     "s-opening-1": "<div class=\"box h-he he\">קְרִיאָה</div><div class=\"box h-en\"><span style=\"font-weight:700\">Opening Reading</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">All I have to offer in prayer is myself.<br><br><span class=\"hw\" style=\"font-style:italic;font-weight:700\">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sometimes I cannot find the ‎רוּחַ‎ to pray alone.</span></div><div class=\"box dots\">●○○○○○○</div>",
     "s-opening-2": "<div class=\"box h-he he\">קְרִיאָה</div><div class=\"box h-en\"><span style=\"font-weight:700\">Opening Reading</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">As two people walking together through a dark wood <br>feel stronger and braver for each other’s presence,<br><br><span class=\"hw\" style=\"font-style:italic;font-weight:700\">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; so I find spiritual strength in communal ‎תְּפִלָּה‎.</span></div><div class=\"box dots\">○●○○○○○</div>",
