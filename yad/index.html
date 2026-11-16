@@ -30,6 +30,7 @@
     padding: 14px 16px; margin-bottom: 16px; }
   .status { border-left: 5px solid var(--teal); }
   .status.closed { border-left-color: var(--err); }
+  .status a { overflow-wrap: anywhere; }
   .fields { display: flex; gap: 12px; flex-wrap: wrap; }
   .fields label { flex: 1 1 200px; font-weight: 600; color: var(--navy); font-size: 14px; }
   .fields label.wide { flex-basis: 100%; }
@@ -273,7 +274,7 @@ const tagsOf = n => ({ c: TAGS[n][0].split(' '), t: TAGS[n][1].split(' ') });
 const APP_URL = "https://script.google.com/a/macros/davisstudent.org/s/AKfycbyhl7pSa6m2yS_nt_M6wrUP5KTrL3uSeqDBiZb5McWH4Do8yCcLYeCSxbt7RDwyi1ux/exec";
 // Public gallery only: an open (no sign-in) endpoint that returns Settings!B4, the deadline.
 const INFO_URL = "https://script.google.com/macros/s/AKfycbxaHRGQSqi2Pd8I0riHBJvfoemGTXRBf2BBVIR5NrT4sidKQmBe9RFF3iDLBXHOQFu6/exec";
-let STATE = {"public": true, "open": true, "past": false, "deadline": "Friday, January 1 at 11:59 PM", "signedIn": "", "pick": null};
+let STATE = {"public": true, "open": true, "past": false, "deadline": "Thursday, December 17", "signedIn": "", "pick": null};
 const PUBLIC = !!STATE.public;
 let chosen = (STATE.preselect >= 1 && STATE.preselect <= DESIGNS.length && STATE.open) ? STATE.preselect
            : STATE.pick ? STATE.pick.design : 0;
@@ -284,6 +285,8 @@ let lbN = 0;
 const $ = id => document.getElementById(id);
 // canEdit: may this person pick a yad on this page right now?
 const canEdit = () => PUBLIC || (STATE.open && !!STATE.signedIn);
+// Email addresses in the closed message (Settings!B3) become mailto links.
+const linkify = h => h.replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, m => '<a href="mailto:' + m + '">' + m + '</a>');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MAG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/></svg>';
 
@@ -379,21 +382,20 @@ $('lb').addEventListener('keydown', e => { if (e.key === 'ArrowRight') stepLb(1)
 function render() {
   const p = STATE.pick, open = STATE.open;
   const dl = $('deadline');
-  if (STATE.deadline) {
-    dl.hidden = false;
-    dl.innerHTML = (STATE.past ? 'Choices closed ' : 'Choose or change by <b>') + esc(STATE.deadline) + (STATE.past ? '' : '</b>');
-  }
+  if (STATE.past) { dl.hidden = false; dl.textContent = 'Choices are closed'; }
+  else if (STATE.deadline) { dl.hidden = false; dl.innerHTML = 'Choose or change by <b>' + esc(STATE.deadline) + '</b>'; }
   const st = $('status');
-  st.classList.toggle('closed', !PUBLIC && !open);
+  st.classList.toggle('closed', !open);
   let h;
-  if (PUBLIC) h = 'Look through the designs, zoom in, and choose one. When you save, you’ll sign in with your ' +
+  if (PUBLIC && !open) h = '';
+  else if (PUBLIC) h = 'Look through the designs, zoom in, and choose one. When you save, you’ll sign in with your ' +
       'Davis school Google account. Already chose? Saving again shows your choice and lets you change it.';
   else if (!STATE.signedIn) h = '<b>Please sign in</b> with your Davis school Google account, then reload this page.';
   else if (p && p.random) h = 'A yad was chosen for you: <b>' + esc(DESIGNS[p.design - 1]) + heb(p.design) + '</b> (#' + p.design + ').';
   else if (p) h = 'Your saved choice: <b>' + esc(DESIGNS[p.design - 1]) + heb(p.design) + '</b> (#' + p.design + ')' +
       (p.updated ? ', saved ' + esc(p.updated) : '') + '.' + (open ? ' You can still change it.' : '');
   else h = open ? 'You haven’t chosen yet.' : 'You didn’t choose a yad before choices closed.';
-  if (!PUBLIC && !open) h += '<br>' + esc(STATE.closedMsg || 'Choices are closed.');
+  if (!open) h += (h ? '<br>' : '') + '<b>' + linkify(esc(STATE.closedMsg || 'Choices are closed.')) + '</b>';
   st.innerHTML = h;
 
   $('fieldsPanel').hidden = PUBLIC || !STATE.signedIn;
@@ -540,7 +542,8 @@ render();
 if (PUBLIC && INFO_URL) {
   fetch(INFO_URL + '?info=deadline')
     .then(r => r.json())
-    .then(d => { if (d && d.deadline) { STATE.deadline = d.deadline; STATE.past = !!d.past; STATE.open = !!d.open; render(); } })
+    .then(d => { if (d && (d.deadline || d.past)) { STATE.deadline = d.deadline; STATE.past = !!d.past;
+      STATE.open = !!d.open; STATE.closedMsg = d.closedMsg || ''; render(); } })
     .catch(() => {});
 }
 if (STATE.preselect && chosen === STATE.preselect && $('card' + chosen)) {
