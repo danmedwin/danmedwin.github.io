@@ -377,6 +377,8 @@ window.DEFAULTS = {
   },
   "off": {
     "turn:gvurot": true,
-    "turn:kedushah": true
+    "turn:kedushah": true,
+    "pop:shma": true,
+    "pop:vahavta": true
   }
 };

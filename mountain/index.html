@@ -77,7 +77,8 @@
   #guide h4 { margin: 0 0 .2em; font-size: .73em; font-weight: 700; color: #FFC843; letter-spacing: .04em; text-transform: uppercase; }
   #guide h4 .who { display: block; margin-top: .15em; font-size: .78em; font-weight: 400; color: #fff; opacity: .85; letter-spacing: 0; text-transform: none; }
   #guide.pop { border-color: rgba(255,200,67,.75); background: rgba(5,40,82,.9); } #guide.pop ul { list-style: none; padding-left: 0; }
-  #guide.quiet .who { display: none !important; } #guide.fixed #gOff { display: none; }
+  #guide.quiet .who { display: none !important; }
+  #panel .srow button.coff.mini { flex: none; padding: 0 .4em; font-weight: 700; } #panel .srow .gc { display: flex; align-items: center; gap: .3em; min-width: 0; } #panel .srow .gc input { flex: 1; min-width: 0; } #panel .srow button.ctog { flex: none; width: 1.5em; height: 1.5em; padding: .1em; border: 0; border-radius: .3em; background: none; color: rgba(255,255,255,.5); cursor: pointer; } #panel .srow button.ctog:hover { color: #FFC843; background: rgba(255,255,255,.12); } #panel .srow button.ctog svg { width: 100%; height: 100%; display: block; }
   #panel .srow .cnote { font-size: .8em; font-style: italic; color: rgba(255,255,255,.5); align-self: center; } #panel .srow button.coff { font: inherit; font-size: .8em; color: #05305E; background: #FFC843; border: 0; border-radius: .3em; padding: .12em .5em; cursor: pointer; justify-self: start; align-self: center; }
   #guide li.sub { margin-left: 1.4em; list-style: circle; }
   #guide ul { margin: 0; padding-left: 1em; } #guide li { margin: .23em 0; }
@@ -1008,7 +1009,10 @@ const hasPop = p => linesOf((SCRIPT.pops || {})[p.id]).length > 0 && !cardOff['p
 // A pop-up note that is only there to be seen ("quiet" in the script): nobody reads it aloud, so it has no reader and no Guide field.
 const isQuiet = p => (SCRIPT.quiet || []).indexOf(p.id) >= 0;
 // The words said on the way to a stop: the welcome for the first stop, the walk's lines for the others. Nothing when that card is off.
+const walkKey = o => o === ORDER[0] ? 'start' : 'stop:' + o.stop, walkRaw = o => linesOf(o === ORDER[0] ? SCRIPT.start : (SCRIPT.stops || {})[o.stop]);
 const walkLines = o => cardOff['stop:' + o.stop] ? [] : linesOf((SCRIPT.stops || {})[o.stop]);
+// A stop where every prayer has a card of its own, so the walk's card has no prayer row to sit on: its field and switch go on the stop's row.
+const walkAlone = o => o !== ORDER[0] && walkRaw(o).length > 0 && o.prayers.every((p, i) => hasPop(p) || (i > 0 && turnOn(p)));
 // A walk with a reading of its own that leads into no prayer's box (every prayer at the stop has its own pop-up note or summit turn: the tents,
 // the overlook). Its guide gets a field of its own on the stop's row in the Prayer List, kept as guides["walk:<stop>"] and as a row in the Sheet.
 const walkOwn = o => walkLines(o).length > 0 && o.prayers.every((p, i) => hasPop(p) || (i > 0 && turnOn(p)));
@@ -1019,14 +1023,13 @@ function whoFor(s) {
   return boxPrayers(s).map(p => (guides[p.id] || '').trim()).find(Boolean) || '';   // one card, one reader: kept on the first prayer the card leads into
 }
 // The Guide a prayer's row shows: its own card's reader, or the walk's reader on the first prayer the walk leads into. kind says what the cell holds.
-function cellOf(o, p) {
+function cellOf(o, p) {                                 // key: the card this row's switch turns on and off
   const i = o.prayers.indexOf(p), popLines = linesOf((SCRIPT.pops || {})[p.id]).length > 0, turnLines = i > 0 && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
-  if (popLines && cardOff['pop:' + p.id]) return { kind: 'off', key: 'pop:' + p.id };
-  if (turnLines && cardOff['turn:' + p.id]) return { kind: 'off', key: 'turn:' + p.id };
-  if (popLines) return isQuiet(p) ? { kind: 'quiet' } : { kind: 'own' };
-  if (turnLines) return { kind: 'own' };
-  if (!isOn(p) || !walkLines(o).length && !(o === ORDER[0] && linesOf(SCRIPT.start).length)) return { kind: 'none' };
-  return o.prayers.filter(isOn).find(q => !hasPop(q) && !(o.prayers.indexOf(q) > 0 && turnOn(q))) === p ? { kind: 'own' } : { kind: 'with' };
+  let own;                                               // own: this prayer's own reading, when it is turned off (the row then also carries the walk's)
+  if (popLines || turnLines) { const key = (popLines ? 'pop:' : 'turn:') + p.id; if (!cardOff[key]) return popLines && isQuiet(p) ? { kind: 'quiet', key } : { kind: 'own', key }; own = key; }
+  const key = walkKey(o); if (!isOn(p) || !walkRaw(o).length) return { kind: 'none', own };
+  if (o.prayers.filter(isOn).find(q => !hasPop(q) && !(o.prayers.indexOf(q) > 0 && turnOn(q))) !== p) return { kind: cardOff[key] ? 'none' : 'with', own };
+  return { kind: cardOff[key] ? 'off' : 'own', key, own };
 }
 // Every card that is read aloud, in order, as the Guide key its reader is kept under. "Number" on More > Script counts along these.
 function readSlots() {
@@ -1047,7 +1050,7 @@ function numberGuides() {                                // Student 1, Student 2
   save(); if (panel.classList.contains('on')) panel.querySelectorAll(FIELDS).forEach(i => { i.value = fieldVal(i); }); showGuide(STEPS[idx]);
   toastMsg(n + ' readers numbered' + (slots.length > n ? ', ' + (slots.length - n) + ' names kept' : ''));
 }
-function setCard(key, on) { cardOff[key] = !on; rebuildKeep(false); showGuide(STEPS[idx]); toastMsg(on ? 'Script card back on' : 'Script card off. Turn it back on in the Prayer List.'); }
+function setCard(key, on) { cardOff[key] = !on; rebuildKeep(false); showGuide(STEPS[idx]); toastMsg(on ? 'Reading back on' : 'Reading off. Turn it back on in the Prayer List.'); }
 function guideFor(s) {
   if (s.k === 'hold') return { head: 'Welcome', lines: linesOf(SCRIPT.start) };
   if (s.k === 'travel') return { head: 'On the way to ' + STOPS[s.to].place, lines: linesOf((SCRIPT.stops || {})[s.to]) };
@@ -1069,7 +1072,7 @@ function showGuide(s) {
   const key = g ? guideKey(s) : '', lines = g ? linesAt(key, g.lines) : [], on = lines.length > 0, quiet = on && s.k === 'slide' && isQuiet(s.prayer);
   if (on) { const who = whoAt(s, key); guideEl.querySelector('h4').innerHTML = '<span class="hd">' + esc(g.head) + '</span><span class="who">' + esc(who) + '</span>'; guideEl.querySelector('ul').innerHTML = lines.map(liOf).join(''); }
   if (on) { guideMode = key; placeGuide(); }
-  guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide'); guideEl.classList.toggle('quiet', quiet); guideEl.classList.toggle('fixed', on && s.k === 'hold');
+  guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide'); guideEl.classList.toggle('quiet', quiet); 
   document.getElementById('gUndo').style.display = on && (key in scriptEd || key in readers) ? '' : 'none';
 }
 // The pencil on a script box: type straight into the lines and the reader's name. Enter starts a new bullet.
@@ -1566,7 +1569,7 @@ document.getElementById('godBar').addEventListener('click', e => {
 });
 
 function scriptSections() {                                // the whole script for the prayers that are ticked
-  const out = [{ head: 'Start: before the first click', who: whoAt(STEPS[0], 'start'), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
+  const out = [{ head: 'Start: before the first click', who: whoAt(STEPS[0], 'start'), lines: cardOff.start ? [] : linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
     if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel && melName(p) !== 'Traditional' ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt(s, 'stop:' + s.to), lines: cardOff['stop:' + s.to] ? [] : linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name + (isQuiet(p) ? ' (on screen, not read aloud)' : ''), who: isQuiet(p) ? '' : (guides[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
@@ -1787,6 +1790,7 @@ const IC = {
   he: '<svg viewBox="0 0 24 24"><text x="12" y="19" text-anchor="middle" font-family="David Libre, Arial Hebrew, serif" font-weight="700" font-size="20" fill="currentColor">אב</text></svg>',
   tl: '<svg viewBox="0 0 24 24"><text x="12" y="18" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="17" fill="currentColor">Aa</text></svg>',
   tr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7 H20 M4 12 H20 M4 17 H14"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 C5 6.5 8.5 5 12 5 S19 6.5 22 12 C19 17.5 15.5 19 12 19 S5 17.5 2 12 Z"/><circle cx="12" cy="12" r="3"/></svg>',
   num: '<svg viewBox="0 0 24 24"><text x="12" y="18" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="15" fill="currentColor">123</text></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
@@ -1796,6 +1800,7 @@ let designName = saved.name || DEF.name || '';
 const listCount = () => 'Untick a prayer to skip it; untick a whole stop and we walk past it. The gold arrow on a row goes straight to that prayer. ' + (ROUTE.length) + ' stops, ' + STEPS.filter(s => s.k === 'slide').length + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '');
 function drawPanel() {
   const q = v => esc(v || '').replace(/"/g, '&quot;');
+  const tog = key => '<button class="ctog" data-cardoff="' + key + '" title="Turn this reading off: it leaves the script on screen and in print until it is turned back on here">' + IC.eye + '</button>';
   const melCell = p => p.mel && p.mel.length > 1 ? '<select data-mel="' + p.id + '" title="Melody for ' + q(p.name) + '">' + p.mel.map(m => '<option value="' + q(m.k) + '"' + (m === melOf(p) ? ' selected' : '') + '>' + esc(m.t) + '</option>').join('') + '</select>' : '<span></span>';
   panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">' + listCount() + '</div><div id="shr">' + sheetRow() + '</div>' +
     '<div class="sheet"><div class="srow shead"><span>Prayer</span><span title="Reads the guide’s script before this prayer; shown on the script on screen and in print">Guide</span><span title="Leads the prayer itself">Leader</span><span>Melody</span><span>Notes</span></div>' +
@@ -1803,12 +1808,13 @@ function drawPanel() {
       // only the checkbox itself ticks or unticks: the names are plain text, so a stray click on a row changes nothing
       const wk = walkOwn(o) ? 'walk:' + o.stop : '';           // a walk with its own reading: its guide's name goes on the stop's row
       return '<div class="srow sstop' + (wk ? ' walk' : '') + '"><div class="nm"><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + ' title="Tick or untick the whole stop">' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</div>' +
-        (cardOff['stop:' + o.stop] ? '<button class="coff" data-card="stop:' + o.stop + '" title="The script card for the walk here is turned off. Click to turn it back on.">walk card off</button>' : '') + (wk ? '<input type="text" data-g="' + wk + '" maxlength="40" placeholder="reads the walk" title="Who reads the script on the way to ' + q(st.place) + '" value="' + q(guides[wk]) + '"><span class="wkn">the walk here has its own reading</span>' : '') + '</div>' +
+        (walkAlone(o) && cardOff['stop:' + o.stop] ? '<button class="coff" data-card="stop:' + o.stop + '" title="The reading for the walk here is turned off. Click to turn it back on.">reading off</button>' : '') + (wk ? '<div class="gc"><input type="text" data-g="' + wk + '" maxlength="40" placeholder="reads the walk" title="Who reads the script on the way to ' + q(st.place) + '" value="' + q(guides[wk]) + '">' + tog('stop:' + o.stop) + '</div><span class="wkn">the walk here has its own reading</span>' : '') + '</div>' +
         o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><div class="nm pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + ' title="Tick or untick ' + q(p.name) + '"><span>' + esc(p.name) + '</span>' +
           (isOn(p) ? '<button class="go" data-go="' + p.id + '" title="Go to ' + q(p.name) + '">' + IC.go + '</button>' : '') + '</div>' +
-          (c => c.kind === 'own' ? '<input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">'
-            : c.kind === 'off' ? '<button class="coff" data-card="' + c.key + '" title="The script card for ' + q(p.name) + ' is turned off. Click to turn it back on.">card off</button>'
-            : '<span class="cnote">' + (c.kind === 'quiet' ? 'pop-up note' : c.kind === 'with' ? 'same reader' : '') + '</span>')(cellOf(o, p)) +
+          (c => { const more = c.own ? '<button class="coff' + (c.kind === 'own' || c.kind === 'off' ? ' mini' : '') + '" data-card="' + c.own + '" title="' + q(p.name) + ' has a reading of its own that is turned off. Click to turn it on.">' + (c.kind === 'own' || c.kind === 'off' ? '+' : 'reading off') + '</button>' : '';
+            return c.kind === 'own' ? '<div class="gc"><input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">' + tog(c.key) + more + '</div>'
+            : c.kind === 'off' ? '<div class="gc"><button class="coff" data-card="' + c.key + '" title="This reading is turned off. Click to turn it back on.">reading off</button>' + more + '</div>'
+            : more || '<span class="cnote">' + (c.kind === 'quiet' ? 'pop-up note' : c.kind === 'with' ? 'same reader' : '') + '</span>'; })(cellOf(o, p)) +
           '<input type="text" data-n="' + p.id + '" maxlength="40" placeholder="leads prayer" title="Who leads ' + q(p.name) + '" value="' + q(names[p.id]) + '">' + melCell(p) +
           '<input type="text" data-m="' + p.id + '" maxlength="140" placeholder="notes" title="Notes for ' + q(p.name) + '" value="' + q(notes[p.id]) + '"></div>').join(''); }).join('') +
     '</div>';
@@ -1845,7 +1851,7 @@ function jumpToPrayer(id) {
   const n = STEPS.findIndex(s => s.k === 'slide' && s.prayer.id === id); if (n < 0) return;
   togglePanel(false); enter(n, -1);
 }
-panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } const c = e.target.closest('[data-card]'); if (c) setCard(c.dataset.card, true); });
+panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } const c = e.target.closest('[data-card]'); if (c) setCard(c.dataset.card, true); const f = e.target.closest('[data-cardoff]'); if (f) setCard(f.dataset.cardoff, false); });
 panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
   const t = e.target, k = t.dataset.n || t.dataset.g || t.dataset.m; if (!k) return; const into = t.dataset.n ? names : t.dataset.g ? guides : notes;
   if (t.value.trim()) into[k] = t.value; else delete into[k]; if (sheetOn) sheetQueue(k, t.dataset.n ? 'C' : t.dataset.g ? 'F' : 'D', t.value.trim()); else save(); if (t.dataset.g) showGuide(STEPS[idx]);

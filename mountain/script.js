@@ -118,8 +118,7 @@ window.SCRIPT = {
 
   // Pop-ups: a note that comes up beside one prayer's text (with its first slide) when the script is on screen.
   // Any prayer can have one: add its id here. The note has its own box, which can be dragged like the others.
-  // Notes under "pops" that are there to be seen, not read aloud: they get no reader.
-  quiet: ["shma", "vahavta"],
+  // Any reading can be turned off by itself: "Off" on its box, or the eye beside its Guide field in the Prayer List. Sh'ma and V'ahavta start off.
 
   pops: {
     modeh: [
