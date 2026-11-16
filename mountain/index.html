@@ -236,7 +236,7 @@
   <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button><button id="btnNum" class="tbl" title="Number the readers in order: Student 1, Student 2… one for each card that is read aloud. Names you have typed are kept.">Number</button>
     <b>Outline</b><button id="btnOutPdf" class="tbl" title="The service outline for the ticked prayers: print it, or choose Save as PDF in the print window">PDF</button><button id="btnOutXls" class="tbl" title="Save the service outline as an Excel file">Excel</button>
     <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button>
-    <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to the planned brightness: 300% before dawn, 150% from the sunrise ridge">300%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button>
+    <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to the planned brightness: 300% in the woods, 250% at the gate, 150% from the sunrise ridge">300%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button>
     <b>Text</b><button id="lgHe" class="tbl" title="Show or hide the Hebrew on the prayer slides (L steps through the choices)">Hebrew</button><button id="lgTl" class="tbl" title="Show or hide the transliteration; hidden, the translation moves up beside the Hebrew (L)">Translit</button><button id="lgTr" class="tbl" title="Show or hide the translation at the bottom (L)">Translation</button><button id="fileDone" class="fx" title="Close">×</button></div>
   <div id="demoBar"><b>Demo</b><button id="dmPlay" class="tbl" title="Pause or play (Space)">Pause</button><button id="dmRestart" class="tbl" title="Back to the start">Restart</button><span id="dmWhere"></span><button id="dmFull" class="tbl" title="Full screen on or off (F)">Full</button><button id="dmExit" class="tbl" title="Leave the demo and lead it yourself (Esc)">Exit demo</button></div>
   <div id="toast"></div>
@@ -848,7 +848,7 @@ function buildMap() {
     h.addEventListener('click', e => { e.stopPropagation(); jumpTo(i); });
   });
 }
-function jumpTo(i) { const n = i === 0 ? 0 : STEPS.findIndex(s => s.k === 'travel' && s.mi === i); if (n >= 0) enter(n, -1); }
+function jumpTo(i) { const n = i === 0 ? STEPS.findIndex(s => s.k === 'hold') : STEPS.findIndex(s => s.k === 'travel' && s.mi === i); if (n >= 0) enter(n, -1); }
 mapEl.addEventListener('click', e => e.stopPropagation());
 let mapForce = false, mapOff = false;
 const mapAuto = s => s.k === 'hold' || s.k === 'travel';
@@ -972,6 +972,7 @@ function buildSteps() {
     const n = list.length;
     const poseOf = (j, p) => { const v = st.views && p && st.views[p.id], u = st.u + (st.walk && n > 1 ? st.walk * j / (n - 1) / L : 0) + ((v && v.du) || 0) / L; return fixPose({ u, key: p ? r.stop + '/' + p.id : r.stop, base: v ? v.aim : 'walk' in st ? pathAim(u, 5) : st.aim, label: p ? p.name : st.place }); };
     const first = poseOf(0, list[0] && list[0].p);
+    if (ri === 0) STEPS.push({ k: 'intro', stop: r.stop, mi: 0, pose: first });   // the opening: just the title over the scene, for people coming in
     STEPS.push(ri === 0 ? { k: 'hold', stop: r.stop, mi: 0, pose: first } : { k: 'travel', from: ROUTE[ri - 1].stop, to: r.stop, mi: ri, A: lastPose, A0: lastPose, B: first });
     lastPose = first;
     list.forEach((it, j) => {
@@ -1569,7 +1570,7 @@ document.getElementById('godBar').addEventListener('click', e => {
 });
 
 function scriptSections() {                                // the whole script for the prayers that are ticked
-  const out = [{ head: 'Start: before the first click', who: whoAt(STEPS[0], 'start'), lines: cardOff.start ? [] : linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
+  const out = [{ head: 'Welcome: on the first click (before it, only the title is up)', who: whoAt(STEPS.find(s => s.k === 'hold'), 'start'), lines: cardOff.start ? [] : linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
     if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel && melName(p) !== 'Traditional' ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt(s, 'stop:' + s.to), lines: cardOff['stop:' + s.to] ? [] : linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name + (isQuiet(p) ? ' (on screen, not read aloud)' : ''), who: isQuiet(p) ? '' : (guides[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
@@ -1941,7 +1942,7 @@ function enter(i, dir) {
   idx = clamp(i, 0, STEPS.length - 1); const s = STEPS[idx];
   if (s.k === 'turn' && !showScript) return enter(idx + (dir > 0 ? 1 : -1), dir);   // no script on screen, no pause: straight on to the text
   glide = null; bow = null; autoNext = false; let post = null;
-  titleEl.classList.toggle('on', s.k === 'hold'); document.getElementById('hint').classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
+  titleEl.classList.toggle('on', s.k === 'hold' || s.k === 'intro'); document.getElementById('hint').classList.toggle('on', s.k === 'hold'); if (dir > 0 && mapAuto(s)) mapOff = false; showMap();
   if (s.k === 'slide' || s.k === 'turn') {
     // text fades out, the camera moves to this prayer's view, then the new text fades in
     const pose = s.pose; s.dp = 0; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
@@ -1952,7 +1953,7 @@ function enter(i, dir) {
     showText(s.k === 'slide' && !go ? s.id : null, s.stop);
     if (go) glide = { pos0: cur.pos.clone(), y0: cur.yaw, p0: cur.pitch, z0: cur.zoom, to: pose, t: 0, then: after, dur: Math.abs(pose.aim.pitch - cur.pitch) > .5 || pose.pos.distanceTo(cur.pos) > 14 ? 5 : 3.6 };
     else { if (!walking) toPose(pose); if (dir <= 0 && s.k === 'slide') tod = s.tod; if (s.k === 'turn') post = after; if (dir > 0) startMove(s); }
-  } else if (s.k === 'hold') {
+  } else if (s.k === 'hold' || s.k === 'intro') {
     showText(null); todTarget = tod = STOPS[s.stop].tod[0]; toPose(s.pose); setMap(s.mi, s.mi, 0, true);
   } else {
     showText(null);
@@ -1972,15 +1973,16 @@ function enter(i, dir) {
 }
 function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
 function prev() { if (idx > 0) enter(idx - 1, -1); }
-// Picture brightness: lifts the scene only (the text is already white). It follows the trail: 300% in the dark before dawn, easing down to
-// 150% on the walk up to the sunrise ridge (Yotzeir Or), then 150% to the end. B / Shift+B (or More > Picture) nudge it for this room's projector,
-// kept on this computer as brightNudge; the percentage button puts the nudge back to none.
-const BRIGHT_EARLY = 3, BRIGHT_LATE = 1.5, BRIGHT_AT = 'ridge';
+// Picture brightness: lifts the scene only (the text is already white). It follows the trail (BRIGHT_PLAN: each level holds from its stop on,
+// easing in during the walk to that stop): 300% in the dark woods, 250% at the gate (Bar'chu), 150% from the sunrise ridge (Yotzeir Or) to the end.
+// B / Shift+B (or More > Picture) nudge it for this room's projector, kept on this computer as brightNudge; the percentage button puts the nudge back to none.
+const BRIGHT_PLAN = [['woods', 3], ['gate', 2.5], ['ridge', 1.5]];
 const stopRank = st => ORDER.findIndex(o => o.stop === st);
+const levelAt = rank => BRIGHT_PLAN.reduce((v, [st, b]) => rank >= stopRank(st) ? b : v, BRIGHT_PLAN[0][1]);
 function planBright() {
-  const s = STEPS[idx], at = stopRank(BRIGHT_AT); if (!s) return BRIGHT_EARLY;
-  if (s.k === 'travel') { const a = stopRank(s.from), b = stopRank(s.to); return a < at && b >= at ? lerp(BRIGHT_EARLY, BRIGHT_LATE, ease(clamp(travelP, 0, 1))) : b >= at ? BRIGHT_LATE : BRIGHT_EARLY; }
-  return stopRank(s.stop) >= at ? BRIGHT_LATE : BRIGHT_EARLY;
+  const s = STEPS[idx]; if (!s) return BRIGHT_PLAN[0][1];
+  if (s.k === 'travel') { const a = levelAt(stopRank(s.from)), b = levelAt(stopRank(s.to)); return a === b ? b : lerp(a, b, ease(clamp(travelP, 0, 1))); }
+  return levelAt(stopRank(s.stop));
 }
 let toastTimer = 0, brightShown = '';
 function applyBright() {                                   // every frame; touches the page only when the level changes
@@ -2007,7 +2009,7 @@ function toggleFull() {
 /* ---------- demo: the whole service plays by itself (open the page with #demo on the end of the address) ---------- */
 let demo = null;                                        // { paused, wait: seconds spent on this step, done }
 function demoDwell(s) {                                 // long enough to take in the scene and the text, not to read every word
-  if (s.k === 'hold') return 7; if (s.k === 'travel') return 2.5; if (s.k === 'turn') return 7;
+  if (s.k === 'intro') return 5; if (s.k === 'hold') return 7; if (s.k === 'travel') return 2.5; if (s.k === 'turn') return 7;
   if (s.drift) return 18;                                // the bridge: part of the crossing, then on
   const n = (document.getElementById(s.id) || {}).textContent || '';
   return clamp(4.5 + n.length / 85, 5.5, 11) + (guideEl.classList.contains('on') ? 2.5 : 0);
@@ -2119,7 +2121,7 @@ function frame(now) {
     }
     tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
   }
-  applyBright();                                                // brightness by place (eases down on the walk to the ridge)
+  applyBright();                                                // brightness by place (eases on the walks to the gate and the ridge)
   applyTOD(god ? (god.fly ? lerp(4, god.fly.tod, god.fly.u) : 4) : tod); animateWind(clock);
   sky.position.copy(camera.position); stars.position.copy(camera.position);
   clouds.forEach(c => { const az = SUN_AZ + c.az + clock * 0.0009; c.s.position.set(camera.position.x + Math.cos(c.el) * Math.cos(az) * 6000, camera.position.y + Math.sin(c.el) * 6000, camera.position.z + Math.cos(c.el) * Math.sin(az) * 6000); });
