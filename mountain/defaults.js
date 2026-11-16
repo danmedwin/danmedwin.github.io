@@ -1,9 +1,14 @@
 // Mountain Tefillah design: prayer choices, camera views and script box places.
-// Open it from the Prayer List (folder icon). A file named defaults.js next to index.html is what every computer starts from.
+// Open it from More > Design > Open. A file named defaults.js next to index.html is what every computer starts from.
 window.DEFAULTS = {
   "name": "default",
   "sel": {
     "elohai": true
+  },
+  "langs": {
+    "he": true,
+    "tl": true,
+    "tr": true
   },
   "text": {
     "s-opening-1": "<div class=\"box h-he he\">קְרִיאָה</div><div class=\"box h-en\"><span style=\"font-weight:700\">Opening Reading</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">All I have to offer in prayer is myself.<br><br><span class=\"hw\" style=\"font-style:italic;font-weight:700\">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sometimes I cannot find the ‎רוּחַ‎ to pray alone.</span></div><div class=\"box dots\">●○○○○○○</div>",
@@ -22,7 +27,7 @@ window.DEFAULTS = {
     "s-psalm150-1": "<div class=\"box h-he he\">הַלְלוּיָהּ</div><div class=\"box h-en\"><span style=\"font-weight:700\">Halleluyah (Psalm 150)</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">Hallelu El b’kodsho,<br>halleluhu birkia uzo.<br>Halleluhu bigvurotav,<br>halleluhu k’rov gudlo.<br>Halleluhu b’teika shofar,<br>halleluhu b’neivel v’chinor.<br>Halleluyah, Halleluyah,<br>Halleluyah, Hallelu-yah!</div><div class=\"box he\" style=\"font-size:calc(var(--pt)*48);line-height:calc(var(--pt)*60);right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*1.21)\"><span class=\"hw\">הַלְלוּ אֵל בְּקׇדְשׁוֹ,</span><br><span class=\"hw\">הַלְלוּהוּ בִּרְקִיעַ עֻזּוֹ.</span><br><span class=\"hw\">הַלְלוּהוּ בִגְבוּרֹתָיו,</span><br><span class=\"hw\">הַלְלוּהוּ כְּרֹב גֻּדְלוֹ.</span><br><span class=\"hw\">הַלְלוּהוּ בְּתֵקַע שׁוֹפָר,</span><br><span class=\"hw\">הַלְלוּהוּ בְּנֵבֶל וְכִנּוֹר.</span><br><span class=\"hw\">הַלְלוּיָהּ, הַלְלוּיָהּ,</span><br><span class=\"hw\">הַלְלוּיָהּ, הַלְלוּיָהּ!</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*28);line-height:calc(var(--pt)*33.6);left:calc(var(--in)*0.45);right:calc(var(--in)*.45);white-space:normal;bottom:calc(var(--in)*0.85)\">Halleluyah! Praise God in the sanctuary; <br>praise God in the mighty heavens.<br>Praise God for mighty deeds and surpassing greatness.<br>Praise with shofar blasts, with harp and lyre.</div><div class=\"box\" style=\"font-size:calc(var(--pt)*14);line-height:calc(var(--pt)*16.8);text-align:right;right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*10.55)\"><br></div><div class=\"box dots\">●○</div>",
     "s-psalm150-2": "<div class=\"box h-he he\">הַלְלוּיָהּ</div><div class=\"box h-en\"><span style=\"font-weight:700\">Halleluyah (Psalm 150)</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">Halleluhu b’tof umachol,<br>halleluhu b’minim v’ugav.<br>Halleluhu b’tziltz’lei shama,<br>halleluhu b’tziltz’lei t’ruah.<br>Kol han’shamah t’hallel Yah,<br>Halleluyah!<br>Halleluyah, Halleluyah,<br>Halleluyah, Hallelu-yah!</div><div class=\"box he\" style=\"font-size:calc(var(--pt)*48);line-height:calc(var(--pt)*60);right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*1.21)\"><span class=\"hw\">הַלְלוּהוּ בְּתֹף וּמָחוֹל,</span><br><span class=\"hw\">הַלְלוּהוּ בְּמִנִּים וְעֻגָב.</span><br><span class=\"hw\">הַלְלוּהוּ בְצִלְצְלֵי שָׁמַע,</span><br><span class=\"hw\">הַלְלוּהוּ בְּצִלְצְלֵי תְרוּעָה.</span><br><span class=\"hw\">כֹּל הַנְּשָׁמָה תְּהַלֵּל יָהּ,</span><br><span class=\"hw\">הַלְלוּיָהּ!</span><br><span class=\"hw\">הַלְלוּיָהּ, הַלְלוּיָהּ,</span><br><span class=\"hw\">הַלְלוּיָהּ, הַלְלוּיָהּ!</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*28);line-height:calc(var(--pt)*33.6);left:calc(var(--in)*0.45);right:calc(var(--in)*.45);white-space:normal;bottom:calc(var(--in)*0.85)\">Praise with drum and dance, with strings and flute.<br>Praise with resounding cymbals, with clashing cymbals.<br>Let every breath praise God. Halleluyah!</div><div class=\"box\" style=\"font-size:calc(var(--pt)*14);line-height:calc(var(--pt)*16.8);text-align:right;right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*10.55)\"><br></div><div class=\"box dots\">○●</div>",
     "s-yotzeir-1": "<div class=\"box h-en\">Yotzeir Or</div><div class=\"box h-he he\">יוֹצֵר אוֹר</div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.2)\">Baruch atah, Adonai,<br>Eloheinu Melech haolam,<br>yotzeir or uvorei choshech,<br>oseh shalom uvorei et hakol.</div><div class=\"box he\" style=\"font-size:calc(var(--pt)*48);line-height:calc(var(--pt)*60);right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*1.2)\"><span class=\"hw\">בָּרוּךְ אַתָּה יְיָ,</span><br><span class=\"hw\">אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם,</span><br><span class=\"hw\">יוֹצֵר אוֹר וּבוֹרֵא חֹשֶׁךְ,</span><br><span class=\"hw\">עֹשֶׂה שָׁלוֹם וּבוֹרֵא אֶת הַכֹּל.</span></div><div class=\"box\" style=\"font-size: calc(var(--pt)*28); line-height: calc(var(--pt)*33.6); left: calc(var(--in)*0.51); right: calc(var(--in)*0.44); white-space: normal; bottom: calc(var(--in)*1.42);\">Blessed are You, Adonai our God, Sovereign of the universe, <br>Creator of light and darkness, who makes peace and fashions all things.</div><div class=\"box dots\">●○</div>",
-    "s-shma-1": "<div class=\"box h-he he\">שְׁמַע</div><div class=\"box h-en\"><span style=\"font-weight:700\">Sh’ma</span></div><div class=\"box he\" style=\"font-size: calc(var(--pt)*60); line-height: calc(var(--pt)*72); left: calc(var(--in)*0.46); right: calc(var(--in)*0.44); text-align: center; top: calc(var(--in)*1.34);\"><span class=\"hw\">שְׁמַע יִשְׂרָאֵל, יְיָ אֱלֹהֵינוּ, יְיָ אֶחָד!</span></div><div class=\"box\" style=\"font-size: calc(var(--pt)*48); line-height: calc(var(--pt)*60); left: calc(var(--in)*0.47); right: calc(var(--in)*0.43); text-align: center; top: calc(var(--in)*2.6);\">Sh’ma Yisrael, Adonai Eloheinu, Adonai Echad!</div><div class=\"box he\" style=\"font-size: calc(var(--pt)*44); line-height: calc(var(--pt)*60); left: calc(var(--in)*0.45); right: calc(var(--in)*0.45); text-align: center; top: calc(var(--in)*4.22);\"><span class=\"hw\">בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד.</span></div><div class=\"box\" style=\"font-size: calc(var(--pt)*36); line-height: calc(var(--pt)*43.2); left: calc(var(--in)*0.45); right: calc(var(--in)*0.45); text-align: center; top: calc(var(--in)*5.26);\">Baruch shem k’vod malchuto l’olam va-ed.</div><div class=\"box\" style=\"font-size: calc(var(--pt)*28); line-height: calc(var(--pt)*33.6); left: calc(var(--in)*0.6); right: calc(var(--in)*0.3); text-align: center; bottom: calc(var(--in)*3.24);\">Listen, Israel: Adonai is our God, Adonai is One! <br>Blessed is the name of God’s glorious kingdom, forever and ever.</div>",
+    "s-shma-1": "<div class=\"box h-he he\">שְׁמַע</div><div class=\"box h-en\"><span style=\"font-weight:700\">Sh’ma</span></div><div class=\"box he\" style=\"font-size: calc(var(--pt)*60); line-height: calc(var(--pt)*72); left: calc(var(--in)*0.46); right: calc(var(--in)*0.44); text-align: center; top: calc(var(--in)*1.34);\"><span class=\"hw\">שְׁמַע יִשְׂרָאֵל, יְיָ אֱלֹהֵינוּ, יְיָ אֶחָד!</span></div><div class=\"box\" style=\"font-size: calc(var(--pt)*48); line-height: calc(var(--pt)*60); left: calc(var(--in)*0.47); right: calc(var(--in)*0.43); text-align: center; top: calc(var(--in)*2.6);\">Sh’ma Yisrael, Adonai Eloheinu, Adonai Echad!</div><div class=\"box he\" style=\"font-size: calc(var(--pt)*44); line-height: calc(var(--pt)*60); left: calc(var(--in)*0.45); right: calc(var(--in)*0.45); text-align: center; top: calc(var(--in)*4.22);\"><span class=\"hw\">בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד.</span></div><div class=\"box\" style=\"font-size: calc(var(--pt)*36); line-height: calc(var(--pt)*43.2); left: calc(var(--in)*0.45); right: calc(var(--in)*0.45); text-align: center; top: calc(var(--in)*5.26);\">Baruch shem k’vod malchuto l’olam va-ed.</div><div class=\"box\" style=\"font-size: calc(var(--pt)*28); line-height: calc(var(--pt)*33.6); left: calc(var(--in)*0.6); right: calc(var(--in)*0.3); text-align: center; bottom: calc(var(--in)*3.01);\">Listen, Israel: Adonai is our God, Adonai is One! <br>Blessed is the name of God’s glorious kingdom, forever and ever.</div>",
     "s-vahavta-3": "<div class=\"box h-he he\">וְאָהַבְתָּ</div><div class=\"box h-en\"><span style=\"font-weight:700\">V’ahavta</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">L’maan tizk’ru vaasitem<br>et kol mitzvotai,<br>vih’yitem k’doshim<br>l’Eloheichem.<br>Ani Adonai Eloheichem,<br>asher hotzeiti etchem<br>mei-eretz Mitzrayim<br>lih’yot lachem l’Elohim.<br>Ani Adonai Eloheichem.</div><div class=\"box he\" style=\"font-size:calc(var(--pt)*48);line-height:calc(var(--pt)*60);right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*1.21)\"><span class=\"hw\">לְמַעַן תִּזְכְּרוּ וַעֲשִׂיתֶם</span><br><span class=\"hw\">אֶת־כׇּל־מִצְוֹתָי,</span><br><span class=\"hw\">וִהְיִיתֶם קְדֹשִׁים</span><br><span class=\"hw\">לֵאלֹהֵיכֶם.</span><br><span class=\"hw\">אֲנִי יְיָ אֱלֹהֵיכֶם,</span><br><span class=\"hw\">אֲשֶׁר הוֹצֵאתִי אֶתְכֶם</span><br><span class=\"hw\">מֵאֶרֶץ מִצְרַיִם</span><br><span class=\"hw\">לִהְיוֹת לָכֶם לֵאלֹהִים.</span><br><span class=\"hw\">אֲנִי יְיָ אֱלֹהֵיכֶם.</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*28);line-height:calc(var(--pt)*33.6);left:calc(var(--in)*0.45);right:calc(var(--in)*.45);white-space:normal;bottom:calc(var(--in)*0.85)\">In this way, you will remember and do all My mitzvot, and you will be holy to your God. <br>I am Adonai your God who brought you out of the land of Egypt to be your God. I am Adonai your God.</div><div class=\"box dots\">○○●</div>",
     "s-avot-2": "<div class=\"box h-he he\">אָבוֹת וְאִמָּהוֹת</div><div class=\"box h-en\"><span style=\"font-weight:700\">Amidah: Avot v’Imahot</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">HaEl hagadol hagibor<br>v’hanora, El elyon,<br>gomeil chasadim tovim,<br>v’koneih hakol,<br>v’zocheir chasdei avot v’imahot,<br>umeivi g’ulah livnei v’neihem<br>l’maan sh’mo b’ahavah.</div><div class=\"box he\" style=\"font-size:calc(var(--pt)*48);line-height:calc(var(--pt)*60);right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*1.21)\"><span class=\"hw\">הָאֵל הַגָּדוֹל הַגִּבּוֹר</span><br><span class=\"hw\">וְהַנּוֹרָא, אֵל עֶלְיוֹן,</span><br><span class=\"hw\">גּוֹמֵל חֲסָדִים טוֹבִים,</span><br><span class=\"hw\">וְקוֹנֵה הַכֹּל,</span><br><span class=\"hw\">וְזוֹכֵר חַסְדֵי אָבוֹת וְאִמָּהוֹת,</span><br><span class=\"hw\">וּמֵבִיא גְאֻלָּה לִבְנֵי בְנֵיהֶם</span><br><span class=\"hw\">לְמַעַן שְׁמוֹ בְּאַהֲבָה.</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*28);line-height:calc(var(--pt)*33.6);left:calc(var(--in)*0.45);right:calc(var(--in)*.45);white-space:normal;bottom:calc(var(--in)*0.85)\">You are a great, mighty, powerful, and supreme God who acts with lovingkindness, creates everything, <br>remembers the good deeds of our fathers and mothers, and with love brings redemption to their children’s <br>children for the sake of God’s name.</div><div class=\"box dots\">○●○</div>",
     "s-gvurot-1": "<div class=\"box h-he he\">גְּבוּרוֹת</div><div class=\"box h-en\"><span style=\"font-weight:700\">Amidah: G’vurot</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*44);line-height:calc(var(--pt)*60);left:calc(var(--in)*0.45);top:calc(var(--in)*1.21)\">Atah gibor l’olam, Adonai,<br>m’chayeih hakol/meitim <br>atah, rav l’hoshia.<br><br>Mashiv haruach<br>umorid hagashem.</div><div class=\"box he\" style=\"font-size:calc(var(--pt)*48);line-height:calc(var(--pt)*60);right:calc(var(--in)*.45);text-align:right;top:calc(var(--in)*1.21)\"><span class=\"hw\">אַתָּה גִּבּוֹר לְעוֹלָם אֲדֹנָי,</span><br><span class=\"hw\">מְחַיֵּה הַכֹּל/</span><span class=\"hw\">מֵתִים</span> <br><span class=\"hw\">אַתָּה,</span> <span class=\"hw\">רַב לְהוֹשִׁיעַ.</span><br><br><span class=\"hw\">מַשִּׁיב הָרוּחַ</span><br><span class=\"hw\">וּמוֹרִיד הַגֶּשֶׁם.</span></div><div class=\"box\" style=\"font-size:calc(var(--pt)*28);line-height:calc(var(--pt)*33.6);left:calc(var(--in)*0.45);right:calc(var(--in)*.45);white-space:normal;bottom:calc(var(--in)*0.85)\">You are a hero forever, God: You give life to everything and have a great ability to save. <br>You cause wind to blow and rain to fall.</div><div class=\"box dots\">●○○</div>",
@@ -42,7 +47,15 @@ window.DEFAULTS = {
     ],
     "pop:vahavta": [
       "The V'ahavta tells us to carry these words everywhere,",
-      "at home and when we walk on the way. Today we are on the way."
+      "at home and when we walk on the way."
+    ],
+    "turn:silent": [
+      "There are no words on the screen for this one. The words are yours: a thank you, a hope, something you are carrying, or just the view."
+    ],
+    "stop:stones": [
+      "Beside the trail are small piles of stones, like the pile we passed on the way up.",
+      "When Jews visit a grave, we leave a stone. A stone does not fade, and it says, \"Someone was here, and someone remembers.\"",
+      "If you are remembering someone, please raise your hand, and share their name out loud or in your heart."
     ]
   },
   "script": true,
@@ -91,7 +104,7 @@ window.DEFAULTS = {
     },
     "stop:overlook": {
       "x": 8.82,
-      "y": 6.81,
+      "y": 6.49,
       "w": 9.77,
       "fs": 30,
       "yb": 10.4
@@ -105,7 +118,7 @@ window.DEFAULTS = {
     },
     "stop:summit": {
       "x": 7.4,
-      "y": 3.98,
+      "y": 3.66,
       "w": 12.2,
       "fs": 30,
       "yb": 10.4
@@ -136,8 +149,8 @@ window.DEFAULTS = {
       "fs": 30
     },
     "pop:shma": {
-      "x": 6.19,
-      "y": 8.51,
+      "x": 6.18,
+      "y": 8.94,
       "w": 7.66,
       "fs": 24
     },
@@ -341,16 +354,16 @@ window.DEFAULTS = {
       "y": -0.336,
       "p": 0.079,
       "z": 1.25,
-      "dx": 44,
-      "dz": -32,
+      "dx": 43.865,
+      "dz": -28.49,
       "dh": 8
     },
     "trailhead/closing": {
-      "y": 2.302,
-      "p": -0.537,
+      "y": 2.757,
+      "p": -0.361,
       "z": 1,
-      "dx": 6.055,
-      "dz": 3.255,
+      "dx": 34.603,
+      "dz": -30.744,
       "dh": 0
     },
     "lower/aleinu": {
@@ -361,5 +374,9 @@ window.DEFAULTS = {
       "dz": 2.659,
       "dh": 0
     }
+  },
+  "off": {
+    "turn:gvurot": true,
+    "turn:kedushah": true
   }
 };

@@ -77,6 +77,8 @@
   #guide h4 { margin: 0 0 .2em; font-size: .73em; font-weight: 700; color: #FFC843; letter-spacing: .04em; text-transform: uppercase; }
   #guide h4 .who { display: block; margin-top: .15em; font-size: .78em; font-weight: 400; color: #fff; opacity: .85; letter-spacing: 0; text-transform: none; }
   #guide.pop { border-color: rgba(255,200,67,.75); background: rgba(5,40,82,.9); } #guide.pop ul { list-style: none; padding-left: 0; }
+  #guide.quiet .who { display: none !important; } #guide.fixed #gOff { display: none; }
+  #panel .srow .cnote { font-size: .8em; font-style: italic; color: rgba(255,255,255,.5); align-self: center; } #panel .srow button.coff { font: inherit; font-size: .8em; color: #05305E; background: #FFC843; border: 0; border-radius: .3em; padding: .12em .5em; cursor: pointer; justify-self: start; align-self: center; }
   #guide li.sub { margin-left: 1.4em; list-style: circle; }
   #guide ul { margin: 0; padding-left: 1em; } #guide li { margin: .23em 0; }
   #guide .gx { position: absolute; right: calc(var(--pt)*9); top: calc(var(--pt)*3); cursor: pointer; opacity: .7; font: 700 calc(var(--pt)*22)/1 Calibri, Carlito, sans-serif; } #guide .gx:hover { opacity: 1; color: #FFC843; }
@@ -209,7 +211,7 @@
   <div id="hint">Click or → to begin · <b>C</b> list · <b>M</b> map (click a stop to jump) · <b>S</b> script · <b>E</b> edit text · <b>V</b> adjust view · <b>G</b> look · <b>F</b> full screen · <b>B</b> brighter</div>
   <div id="slides"></div>
   <div id="map"><svg viewBox="0 0 400 190" id="mapsvg"></svg><div class="cap" id="mapcap"></div><div class="x" id="mapX" title="Hide the map (M)">×</div></div>
-  <div id="guide"><h4></h4><ul></ul><div class="gx" id="gClose" title="Hide this box; the walk carries on">×</div><div class="tools"><span id="gEdit" title="Edit these words and the reader's name">✎</span><span id="gUndo" title="Back to the original words">↺</span><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
+  <div id="guide"><h4></h4><ul></ul><div class="gx" id="gClose" title="Hide this box; the walk carries on">×</div><div class="tools"><span id="gEdit" title="Edit these words and the reader's name">✎</span><span id="gUndo" title="Back to the original words">↺</span><span id="gOff" title="Turn this card off: it stays out of the script, on screen and in print, until it is turned back on in the Prayer List">Off</span><span id="gSmaller" title="Smaller text">A−</span><span id="gBigger" title="Bigger text">A+</span></div><div class="grip" title="Drag to change the width"></div></div>
   <div id="bar">
     <button id="tbList" title="Prayer List (C)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="4" cy="5" r="1.7"/><rect x="8" y="3.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="12" r="1.7"/><rect x="8" y="10.8" width="13" height="2.4" rx="1.2"/><circle cx="4" cy="19" r="1.7"/><rect x="8" y="17.8" width="13" height="2.4" rx="1.2"/></svg><span>List</span></button>
     <button id="tbMap" title="Map (M)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 20 L9 6 L13 13 L16 9 L23 20 Z"/><path d="M9 6 L7.2 9.2 L9 10.4 L10.6 9.2 Z" fill="#05305E" opacity=".55"/></svg><span>Map</span></button>
@@ -230,7 +232,7 @@
   <div id="edMove" title="Drag to move this text">✥</div>
   <div id="edGrip" title="Drag to change the shade's width and height">⤡</div><div id="edRot" title="Drag to turn the shade">↻</div>
   <div id="godBar"><button id="godPrev" class="nav" title="Previous prayer ( [ )">‹</button><b id="godName"></b><button id="godFwd" class="nav" title="Next prayer ( ] )">›</button><span>drag: orbit · wheel: zoom · WASD: move · drag a marker · arrows: turn it</span><button id="godHome" class="tbl" title="Back to the whole-mountain view (H)">Home</button><button id="godGo" class="tbl" title="Fly down to this prayer’s view (Enter)">Go there</button><button id="godReset" class="tbl" title="Put this stop back to its default view">Reset</button><button id="godDone" class="fx" title="Close (G, or the diamond icon)">×</button></div>
-  <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button>
+  <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button><button id="btnNum" class="tbl" title="Number the readers in order: Student 1, Student 2… one for each card that is read aloud. Names you have typed are kept.">Number</button>
     <b>Outline</b><button id="btnOutPdf" class="tbl" title="The service outline for the ticked prayers: print it, or choose Save as PDF in the print window">PDF</button><button id="btnOutXls" class="tbl" title="Save the service outline as an Excel file">Excel</button>
     <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button>
     <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to normal brightness">100%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button>
@@ -927,13 +929,14 @@ const guides = Object.assign({}, DEF.guides, saved.guides);           // who rea
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
 let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = +saved.bright || 1;   // bright: how much the scene is lifted for this room's projector
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
+const cardOff = Object.assign({}, DEF.off, saved.off);                // script cards turned off, kept but not shown or printed: { "turn:gvurot": true }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
 // Names typed on a walk's box before walks had a Guide field of their own: carried over as that walk's Guide ("walk:tents").
 for (const k in readers) if (k.indexOf('stop:') === 0 && !(('walk:' + k.slice(5)) in guides)) guides['walk:' + k.slice(5)] = readers[k];
-const settings = () => ({ name: designName, sel, mel: melody, langs, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, mel: melody, langs, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, off: cardOff, script: showScript, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), langs: changed(langs, Object.assign({}, LANG0, DEF.langs)), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers),
+const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), langs: changed(langs, Object.assign({}, LANG0, DEF.langs)), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers), off: changed(cardOff, DEF.off),
   guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff, bright: bright !== 1 ? bright : undefined })); } catch (e) {} };
 // Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
 const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
@@ -998,20 +1001,53 @@ const anyOn = id => ORDER.some(o => o.prayers.some(p => p.id === id && isOn(p)))
 const linesOf = list => (list || []).filter(l => typeof l === 'string' || !l.if || anyOn(l.if)).map(l => typeof l === 'string' ? l : l.t);
 // The guides typed in the Prayer List (Guide column, not Leader), for the prayers a script moment leads into. One shared name is shown alone; otherwise each prayer with its name.
 // A later prayer at a stop with its own lines in the script (the parts of the Amidah): printed as its own section. On screen the view turns and the text follows with no extra click.
-const hasTurn = (r, p) => r.prayers[0] !== p && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
+const turnOn = p => linesOf((SCRIPT.turns || {})[p.id]).length > 0 && !cardOff['turn:' + p.id];
+const hasTurn = (r, p) => r.prayers[0] !== p && turnOn(p);
 // A prayer with a note of its own under "pops" in the script: the note comes up beside the prayer's text, pop-up style, not during the walk.
-const hasPop = p => linesOf((SCRIPT.pops || {})[p.id]).length > 0;
+const hasPop = p => linesOf((SCRIPT.pops || {})[p.id]).length > 0 && !cardOff['pop:' + p.id];
+// A pop-up note that is only there to be seen ("quiet" in the script): nobody reads it aloud, so it has no reader and no Guide field.
+const isQuiet = p => (SCRIPT.quiet || []).indexOf(p.id) >= 0;
+// The words said on the way to a stop: the welcome for the first stop, the walk's lines for the others. Nothing when that card is off.
+const walkLines = o => cardOff['stop:' + o.stop] ? [] : linesOf((SCRIPT.stops || {})[o.stop]);
 // A walk with a reading of its own that leads into no prayer's box (every prayer at the stop has its own pop-up note or summit turn: the tents,
 // the overlook). Its guide gets a field of its own on the stop's row in the Prayer List, kept as guides["walk:<stop>"] and as a row in the Sheet.
-const walkOwn = o => linesOf((SCRIPT.stops || {})[o.stop]).length > 0 && o.prayers.every((p, i) => hasPop(p) || (i > 0 && linesOf((SCRIPT.turns || {})[p.id]).length > 0));
+const walkOwn = o => walkLines(o).length > 0 && o.prayers.every((p, i) => hasPop(p) || (i > 0 && turnOn(p)));
 // The prayers a script box leads into: its own prayer for a pop-up or a summit turn; for the welcome or a walk, that stop's prayers that have no box of their own.
 const boxPrayers = s => s.k === 'turn' || s.k === 'slide' ? [s.prayer] : (ROUTE[s.mi] ? ROUTE[s.mi].prayers : []).filter(p => !hasTurn(ROUTE[s.mi], p) && !hasPop(p));
 function whoFor(s) {
-  const ps = boxPrayers(s);
-  const got = ps.map(p => ({ p: p.name, n: (guides[p.id] || '').trim() })).filter(x => x.n);
-  if (!got.length) return '';
-  return got.every(x => x.n === got[0].n) ? got[0].n : got.map(x => x.p + ': ' + x.n).join(' · ');
+  if (s.k === 'slide' && isQuiet(s.prayer)) return '';     // a note to be seen, not read
+  return boxPrayers(s).map(p => (guides[p.id] || '').trim()).find(Boolean) || '';   // one card, one reader: kept on the first prayer the card leads into
 }
+// The Guide a prayer's row shows: its own card's reader, or the walk's reader on the first prayer the walk leads into. kind says what the cell holds.
+function cellOf(o, p) {
+  const i = o.prayers.indexOf(p), popLines = linesOf((SCRIPT.pops || {})[p.id]).length > 0, turnLines = i > 0 && linesOf((SCRIPT.turns || {})[p.id]).length > 0;
+  if (popLines && cardOff['pop:' + p.id]) return { kind: 'off', key: 'pop:' + p.id };
+  if (turnLines && cardOff['turn:' + p.id]) return { kind: 'off', key: 'turn:' + p.id };
+  if (popLines) return isQuiet(p) ? { kind: 'quiet' } : { kind: 'own' };
+  if (turnLines) return { kind: 'own' };
+  if (!isOn(p) || !walkLines(o).length && !(o === ORDER[0] && linesOf(SCRIPT.start).length)) return { kind: 'none' };
+  return o.prayers.filter(isOn).find(q => !hasPop(q) && !(o.prayers.indexOf(q) > 0 && turnOn(q))) === p ? { kind: 'own' } : { kind: 'with' };
+}
+// Every card that is read aloud, in order, as the Guide key its reader is kept under. "Number" on More > Script counts along these.
+function readSlots() {
+  const out = [];
+  ORDER.filter(o => !HIDDEN_STOPS[o.stop]).forEach(o => {
+    const ps = o.prayers.filter(isOn); if (!ps.length) return;
+    const lead = ps.find(p => cellOf(o, p).kind === 'own' && !hasPop(p) && !(o.prayers.indexOf(p) > 0 && turnOn(p)));
+    if (lead) out.push(lead.id); else if (walkOwn(o)) out.push('walk:' + o.stop);
+    ps.forEach(p => { if (p !== lead && cellOf(o, p).kind === 'own') out.push(p.id); });
+  });
+  return out;
+}
+const STUDENT = /^student\s*#?\s*\d*$/i;
+function numberGuides() {                                // Student 1, Student 2... on every card read aloud; a real name typed there is left alone
+  const slots = readSlots(), set = (k, v) => { if ((guides[k] || '') === v) return; if (v) guides[k] = v; else delete guides[k]; if (sheetOn) sheetQueue(k, 'F', v); }; let n = 0;
+  slots.forEach(k => { const v = (guides[k] || '').trim(); if (!v || STUDENT.test(v)) set(k, 'Student ' + (++n)); });
+  Object.keys(guides).forEach(k => { if (slots.indexOf(k) < 0 && STUDENT.test((guides[k] || '').trim())) set(k, ''); });   // a number left on a card nobody reads
+  save(); if (panel.classList.contains('on')) panel.querySelectorAll(FIELDS).forEach(i => { i.value = fieldVal(i); }); showGuide(STEPS[idx]);
+  toastMsg(n + ' readers numbered' + (slots.length > n ? ', ' + (slots.length - n) + ' names kept' : ''));
+}
+function setCard(key, on) { cardOff[key] = !on; rebuildKeep(false); showGuide(STEPS[idx]); toastMsg(on ? 'Script card back on' : 'Script card off. Turn it back on in the Prayer List.'); }
 function guideFor(s) {
   if (s.k === 'hold') return { head: 'Welcome', lines: linesOf(SCRIPT.start) };
   if (s.k === 'travel') return { head: 'On the way to ' + STOPS[s.to].place, lines: linesOf((SCRIPT.stops || {})[s.to]) };
@@ -1029,10 +1065,11 @@ let guideStep = null;
 const liOf = l => /^\s*[–-]\s+/.test(l) ? '<li class="sub">' + esc(l.replace(/^\s*[–-]\s+/, '')) + '</li>' : '<li>' + esc(l) + '</li>';
 function showGuide(s) {
   setGuideEdit(false); guideStep = s;
-  const g = showScript ? guideFor(s) : null, key = g ? guideKey(s) : '', lines = g ? linesAt(key, g.lines) : [], on = lines.length > 0;
+  let g = showScript ? guideFor(s) : null; if (g && cardOff[guideKey(s)]) g = null;
+  const key = g ? guideKey(s) : '', lines = g ? linesAt(key, g.lines) : [], on = lines.length > 0, quiet = on && s.k === 'slide' && isQuiet(s.prayer);
   if (on) { const who = whoAt(s, key); guideEl.querySelector('h4').innerHTML = '<span class="hd">' + esc(g.head) + '</span><span class="who">' + esc(who) + '</span>'; guideEl.querySelector('ul').innerHTML = lines.map(liOf).join(''); }
   if (on) { guideMode = key; placeGuide(); }
-  guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide');
+  guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide'); guideEl.classList.toggle('quiet', quiet); guideEl.classList.toggle('fixed', on && s.k === 'hold');
   document.getElementById('gUndo').style.display = on && (key in scriptEd || key in readers) ? '' : 'none';
 }
 // The pencil on a script box: type straight into the lines and the reader's name. Enter starts a new bullet.
@@ -1047,8 +1084,9 @@ function guideTyped() {                                 // keep what was typed: 
   if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
   const who = guideEl.querySelector('.who').textContent.replace(/\s+/g, ' ').trim();
   const ps = boxPrayers(s);
-  if (ps.length) {                                       // the name is those prayers' Guide: write it there (and to the Sheet) if it changed
-    if (who !== whoFor(s)) ps.forEach(p => { if (who) guides[p.id] = who; else delete guides[p.id]; if (sheetOn) sheetQueue(p.id, 'F', who); });
+  if (s.k === 'slide' && isQuiet(s.prayer)) { /* a note to be seen: no name */ }
+  else if (ps.length) {                                  // the name is the card's reader, kept on the first prayer it leads into (and in the Sheet)
+    if (who !== whoFor(s)) ps.forEach((p, i) => { const v = i ? '' : who; if ((guides[p.id] || '') === v) return; if (v) guides[p.id] = v; else delete guides[p.id]; if (sheetOn) sheetQueue(p.id, 'F', v); });
     delete readers[key];
     if (panel.classList.contains('on')) panel.querySelectorAll(FIELDS).forEach(i => { if (i !== document.activeElement) i.value = fieldVal(i); });
   } else if (s.k === 'travel') {                         // a walk of its own (the tents, the overlook): the name is that walk's Guide
@@ -1090,6 +1128,7 @@ function placeGuide() {
     e.stopPropagation();
     if (e.target.id === 'gClose') { setGuideEdit(false); guideEl.classList.remove('on'); return; }   // gone until the next script moment; nothing else stops
     if (e.target.id === 'gEdit') return setGuideEdit(!guideEl.classList.contains('edit'));
+    if (e.target.id === 'gOff') return setCard(guideMode, false);
     if (e.target.id === 'gUndo') { delete scriptEd[guideMode]; delete readers[guideMode]; save(); return showGuide(guideStep); }
     if (e.target.id !== 'gSmaller' && e.target.id !== 'gBigger') return;
     const b = boxOf(boxKey(), true); b.fs = e.target.id === 'gSmaller' ? Math.max(16, b.fs - 2) : Math.min(48, b.fs + 2); placeGuide(); save();
@@ -1407,8 +1446,9 @@ function setGod(on) {
   on = !!on;
   if (on) { if (filing) setFile(false); if (adjusting) setAdjust(false); if (editing) setEdit(false); endGlide(); if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; }
     const from = { pos: cur.pos.clone(), aim: { yaw: cur.yaw, pitch: cur.pitch }, zoom: cur.zoom }, todNow = tod;
-    god = Object.assign({}, GOD_HOME, godCam, { sel: -1, drag: null, list: [], fly: null }); godBuild(); const k = curPose().key; godSel(god.list.findIndex(m => m.pose.key === k));
-    if (!/[?&]still/.test(location.search)) god.fly = godFlight(from, godEye(god), true, todNow); }   // pull up and away from the live shot
+    const near = { tx: from.pos.x, tz: from.pos.z, dist: 95, az: from.aim.yaw, el: .5 };   // the first time: a little back and above this stop, not the whole mountain (Home goes there)
+    god = Object.assign({}, GOD_HOME, godCam || near, { sel: -1, drag: null, list: [], fly: null }); godBuild(); const k = curPose().key; godSel(god.list.findIndex(m => m.pose.key === k));
+    if (!/[?&]still/.test(location.search)) { god.fly = godFlight(from, godEye(god), true, todNow); if (god.dist < 200) god.fly.dur = 3; } }   // pull up and away from the live shot
   else { if (god) godCam = { tx: god.tx, tz: god.tz, dist: god.dist, az: god.az, el: god.el }; god = null; const s = STEPS[idx]; if (s.k !== 'travel') { s.dp = 0; toPose(s.pose); } }
   godG.visible = on; document.body.classList.toggle('god', on); document.getElementById('tbGod').classList.toggle('act', on);
 }
@@ -1528,8 +1568,8 @@ document.getElementById('godBar').addEventListener('click', e => {
 function scriptSections() {                                // the whole script for the prayers that are ticked
   const out = [{ head: 'Start: before the first click', who: whoAt(STEPS[0], 'start'), lines: linesAt('start', linesOf(SCRIPT.start)) }]; let walk = 0;
   STEPS.forEach(s => {
-    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel && melName(p) !== 'Traditional' ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt(s, 'stop:' + s.to), lines: linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
-    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
+    if (s.k === 'travel') { walk++; const r = ROUTE[s.mi]; out.push({ head: 'Walk ' + walk + ': to ' + r.place, sub: r.prayers.map(p => p.name + (p.mel && melName(p) !== 'Traditional' ? ' (' + melName(p) + ')' : '')).join(', '), notes: r.prayers.filter(p => (notes[p.id] || '').trim()).map(p => p.name + ': ' + notes[p.id].trim()), who: whoAt(s, 'stop:' + s.to), lines: cardOff['stop:' + s.to] ? [] : linesAt('stop:' + s.to, linesOf((SCRIPT.stops || {})[s.to])) }); }
+    if (s.k === 'travel') ROUTE[s.mi].prayers.filter(hasPop).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': with ' + p.name + (isQuiet(p) ? ' (on screen, not read aloud)' : ''), who: isQuiet(p) ? '' : (guides[p.id] || '').trim(), lines: linesAt('pop:' + p.id, linesOf((SCRIPT.pops || {})[p.id])) }));
     if (s.k === 'travel') ROUTE[s.mi].prayers.filter(p => hasTurn(ROUTE[s.mi], p)).forEach(p => out.push({ head: 'At ' + STOPS[s.to].place + ': before ' + p.name, who: (guides[p.id] || '').trim(), lines: linesAt('turn:' + p.id, linesOf((SCRIPT.turns || {})[p.id])) }));
   });
   out.push({ head: 'End: closing', lines: linesOf(SCRIPT.end) });
@@ -1552,7 +1592,7 @@ function outlineRows() {
   ROUTE.forEach(r => { const o = ORDER.find(x => x.stop === r.stop), place = STOPS[r.stop].place.charAt(0).toUpperCase() + STOPS[r.stop].place.slice(1);
     if (o && walkOwn(o)) rows.push(['', place, 'The walk here (its own reading)', '', (guides['walk:' + r.stop] || '').trim(), '', '', '']);   // a walk with a guide of its own
     r.prayers.forEach(p => rows.push([++n, STOPS[r.stop].place.charAt(0).toUpperCase() + STOPS[r.stop].place.slice(1), p.name, p.mel ? melOf(p).t : '',
-    (guides[p.id] || '').trim(), (names[p.id] || '').trim(), (notes[p.id] || '').trim(), slidesOf(p).length]));
+    o && cellOf(o, p).kind === 'own' ? (guides[p.id] || '').trim() : '', (names[p.id] || '').trim(), (notes[p.id] || '').trim(), slidesOf(p).length]));
   });
   return rows;
 }
@@ -1746,10 +1786,11 @@ const IC = {
   grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5 H21 M3 14.8 H21 M9 4 V20"/></svg>',
   he: '<svg viewBox="0 0 24 24"><text x="12" y="19" text-anchor="middle" font-family="David Libre, Arial Hebrew, serif" font-weight="700" font-size="20" fill="currentColor">אב</text></svg>',
   tl: '<svg viewBox="0 0 24 24"><text x="12" y="18" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="17" fill="currentColor">Aa</text></svg>',
-  tr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7 H20 M4 12 H20 M4 17 H14"/></svg>'
+  tr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7 H20 M4 12 H20 M4 17 H14"/></svg>',
+  num: '<svg viewBox="0 0 24 24"><text x="12" y="18" text-anchor="middle" font-family="Calibri, Carlito, Arial, sans-serif" font-weight="700" font-size="15" fill="currentColor">123</text></svg>'
 };
 // The same small icon sits before the words on the strip buttons, wherever a tool appears.
-[['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnOutPdf', 'print'], ['btnOutXls', 'grid'], ['lgHe', 'he'], ['lgTl', 'tl'], ['lgTr', 'tr'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
+[['btnPrint', 'print'], ['btnTxt', 'doc'], ['btnNum', 'num'], ['btnOutPdf', 'print'], ['btnOutXls', 'grid'], ['lgHe', 'he'], ['lgTl', 'tl'], ['lgTr', 'tr'], ['btnOpen', 'open'], ['btnSave', 'save'], ['btnReset', 'reset'], ['edDel', 'trash'], ['edReset', 'reset'], ['edAddT', 'text'], ['edAddS', 'shade'], ['edB', 'bold'], ['edSm', 'smaller'], ['edBg', 'bigger'], ['edKind', 'style'], ['edLt', 'lighter'], ['edDk', 'darker'], ['edSf', 'softer'], ['edSh', 'sharper'],
  ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full'], ['brDown', 'dim'], ['brUp', 'bright']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 const listCount = () => 'Untick a prayer to skip it; untick a whole stop and we walk past it. The gold arrow on a row goes straight to that prayer. ' + (ROUTE.length) + ' stops, ' + STEPS.filter(s => s.k === 'slide').length + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '');
@@ -1762,10 +1803,12 @@ function drawPanel() {
       // only the checkbox itself ticks or unticks: the names are plain text, so a stray click on a row changes nothing
       const wk = walkOwn(o) ? 'walk:' + o.stop : '';           // a walk with its own reading: its guide's name goes on the stop's row
       return '<div class="srow sstop' + (wk ? ' walk' : '') + '"><div class="nm"><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + ' title="Tick or untick the whole stop">' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</div>' +
-        (wk ? '<input type="text" data-g="' + wk + '" maxlength="40" placeholder="reads the walk" title="Who reads the script on the way to ' + q(st.place) + '" value="' + q(guides[wk]) + '"><span class="wkn">the walk here has its own reading</span>' : '') + '</div>' +
+        (cardOff['stop:' + o.stop] ? '<button class="coff" data-card="stop:' + o.stop + '" title="The script card for the walk here is turned off. Click to turn it back on.">walk card off</button>' : '') + (wk ? '<input type="text" data-g="' + wk + '" maxlength="40" placeholder="reads the walk" title="Who reads the script on the way to ' + q(st.place) + '" value="' + q(guides[wk]) + '"><span class="wkn">the walk here has its own reading</span>' : '') + '</div>' +
         o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><div class="nm pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + ' title="Tick or untick ' + q(p.name) + '"><span>' + esc(p.name) + '</span>' +
           (isOn(p) ? '<button class="go" data-go="' + p.id + '" title="Go to ' + q(p.name) + '">' + IC.go + '</button>' : '') + '</div>' +
-          '<input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">' +
+          (c => c.kind === 'own' ? '<input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">'
+            : c.kind === 'off' ? '<button class="coff" data-card="' + c.key + '" title="The script card for ' + q(p.name) + ' is turned off. Click to turn it back on.">card off</button>'
+            : '<span class="cnote">' + (c.kind === 'quiet' ? 'pop-up note' : c.kind === 'with' ? 'same reader' : '') + '</span>')(cellOf(o, p)) +
           '<input type="text" data-n="' + p.id + '" maxlength="40" placeholder="leads prayer" title="Who leads ' + q(p.name) + '" value="' + q(names[p.id]) + '">' + melCell(p) +
           '<input type="text" data-m="' + p.id + '" maxlength="140" placeholder="notes" title="Notes for ' + q(p.name) + '" value="' + q(notes[p.id]) + '"></div>').join(''); }).join('') +
     '</div>';
@@ -1802,7 +1845,7 @@ function jumpToPrayer(id) {
   const n = STEPS.findIndex(s => s.k === 'slide' && s.prayer.id === id); if (n < 0) return;
   togglePanel(false); enter(n, -1);
 }
-panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } });
+panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } const c = e.target.closest('[data-card]'); if (c) setCard(c.dataset.card, true); });
 panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
   const t = e.target, k = t.dataset.n || t.dataset.g || t.dataset.m; if (!k) return; const into = t.dataset.n ? names : t.dataset.g ? guides : notes;
   if (t.value.trim()) into[k] = t.value; else delete into[k]; if (sheetOn) sheetQueue(k, t.dataset.n ? 'C' : t.dataset.g ? 'F' : 'D', t.value.trim()); else save(); if (t.dataset.g) showGuide(STEPS[idx]);
@@ -1815,7 +1858,7 @@ panel.addEventListener('change', e => {
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
-  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); Object.assign(langs, LANG0, d.langs); langDraw(); for (const k in melody) delete melody[k]; Object.assign(melody, d.mel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in guides) delete guides[k]; Object.assign(guides, d.guides); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); Object.assign(langs, LANG0, d.langs); langDraw(); for (const k in melody) delete melody[k]; Object.assign(melody, d.mel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in guides) delete guides[k]; Object.assign(guides, d.guides); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in cardOff) delete cardOff[k]; Object.assign(cardOff, d.off); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
   showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh(); if (sheetOn) sheetPull();
 }
@@ -1829,7 +1872,7 @@ const dlg = html => { document.getElementById('dlg').innerHTML = html ? '<div cl
 let typedName = '', filing = false;
 const toolClick = e => {
   const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
-  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnOutPdf') printOutline(); else if (id === 'btnOutXls') saveOutline(); else if (id === 'lgHe') toggleLang('he'); else if (id === 'lgTl') toggleLang('tl'); else if (id === 'lgTr') toggleLang('tr'); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(1); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
+  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnNum') numberGuides(); else if (id === 'btnOutPdf') printOutline(); else if (id === 'btnOutXls') saveOutline(); else if (id === 'lgHe') toggleLang('he'); else if (id === 'lgTl') toggleLang('tl'); else if (id === 'lgTr') toggleLang('tr'); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(1); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
   else if (id === 'btnOpen') document.getElementById('fileOpen').click();
   else if (id === 'btnSave') { typedName = designName;
     dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
@@ -1872,9 +1915,11 @@ let autoNext = false;                             // (arrivals wait for a click;
 let idx = 0, travelP = 0, travelling = false, travelDur = 12, todFrom = 0, tod = 0, todTarget = 0, glide = null;
 // A move a slide makes once, going forward, after its text is up: { slide id: kind }.
 // "bow": the knees bend and the view bows, then stands straight again (Aleinu, "Vaanachnu kor'im umishtachavim").
-const SLIDE_MOVES = { 's-aleinu-2': 'bow' }, BOW_SECS = 4.4;
+// "tiptoe": the view rises a little and settles, three times (K'dushah, "Kadosh, kadosh, kadosh").
+const SLIDE_MOVES = { 's-aleinu-2': 'bow', 's-kedushah-2': 'tiptoe' }, BOW_SECS = 4.4, TOE = { wait: 1.2, each: 1.7, lift: .5, tilt: 2.2 };
+const toeAt = t => { const x = t - TOE.wait; if (x < 0 || x >= 3 * TOE.each) return 0; const y = x % TOE.each; return sstep(0, .5, y) * (1 - sstep(.85, 1.55, y)); };
 let bow = null;
-const startMove = s => { bow = s.k === 'slide' && SLIDE_MOVES[s.id] === 'bow' && !adjusting && !editing && !god ? { t: 0, s } : null; };
+const startMove = s => { bow = s.k === 'slide' && SLIDE_MOVES[s.id] && !adjusting && !editing && !god ? { t: 0, s, kind: SLIDE_MOVES[s.id] } : null; };
 const titleEl = document.getElementById('title'), scrimEl = document.getElementById('scrim');
 function showText(id, stop) {
   document.querySelectorAll('.slide.on').forEach(e => e.classList.remove('on'));
@@ -2043,6 +2088,11 @@ function frame(now) {
       tmpP.copy(curve.getPointAt(u)).add(s.pose.d);
       setPose(tmpP, lerpAngle(s.pose.aim.yaw, pa.yaw + (a.y || 0), w), lerp(s.pose.aim.pitch, pa.pitch + (a.p || 0), w), s.pose.zoom);
     }
+    else if (bow && bow.s === s && bow.kind === 'tiptoe' && !adjusting && !editing) {   // up on our toes: the view lifts and the chin with it, three times
+      bow.t += dt; const q = s.pose, up = toeAt(bow.t);
+      tmpP.copy(q.pos); tmpP.y += TOE.lift * up; setPose(tmpP, q.aim.yaw, q.aim.pitch + TOE.tilt * DEG * up, q.zoom);
+      if (bow.t >= TOE.wait + 3 * TOE.each) { bow = null; toPose(q); }
+    }
     else if (bow && bow.s === s && !adjusting && !editing) {                 // a slight bow: knees bend, the view dips forward, holds, and stands up again
       bow.t += dt; const t = bow.t, q = s.pose;
       const knee = sstep(0, .9, t) * (1 - sstep(2.8, BOW_SECS, t)), dip = sstep(.5, 1.9, t) * (1 - sstep(2.6, BOW_SECS - .2, t));
@@ -2065,7 +2115,7 @@ enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length;
 if (startDemo) setDemo(true);
 if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };

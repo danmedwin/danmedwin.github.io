@@ -93,6 +93,7 @@ window.SCRIPT = {
 
   // At the summit the view turns before each part of the Amidah. With the script on screen, the view turns and waits
   // for a click while a guide says these lines. With it off, the next prayer's text comes up by itself.
+  // A card can also be turned off by itself ("Off" on its box; back on from the Prayer List). G'vurot and K'dushah start off: the view still turns.
   turns: {
     gvurot: [
       "Now we turn and look down at the last stretch of the climb, and the bridge we crossed.",
@@ -117,6 +118,9 @@ window.SCRIPT = {
 
   // Pop-ups: a note that comes up beside one prayer's text (with its first slide) when the script is on screen.
   // Any prayer can have one: add its id here. The note has its own box, which can be dragged like the others.
+  // Notes under "pops" that are there to be seen, not read aloud: they get no reader.
+  quiet: ["shma", "vahavta"],
+
   pops: {
     modeh: [
       "The first words we traditionally say in the morning are Modeh (or Modah) ani. \"I give thanks.\"",
