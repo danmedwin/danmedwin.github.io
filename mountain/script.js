@@ -6,24 +6,25 @@
 window.SCRIPT = {
   // On the title card, before the first click.
   start: [
-    "Every morning our tefillah has a shape. It warms up, it climbs, it reaches a high point, and it brings us back. Today we get to see that shape.",
-    "The prayers are the ones in our siddur. The mountain is our kavanah (intention). Each place we stop tells us something about the prayer we pray there.",
-    "We begin at the bottom, before sunrise. Keep an eye on the light, and on the map in the corner.",
-    "When a guide is speaking, we listen. When the words come up, we pray.",
-    { if: "opening", t: "It is dark in these woods, and nobody hikes in the dark alone. Our opening readings say the same thing." }
+    "Our tefillah practice is supposed to bring us on a spiritual adventure. When it works well, we are different people on the other side, with a different perspective or insight.",
+    "It has been taught that our tefillah experience can be thought of as a hike up a mountain. We start off slow and warm up.",
+    "Our momentum and energy builds as we reach the real beginning of the climb, the Barchu.",
+    "The ancient words guide us along this well worn path, that we can see anew each time.",
+    "Before each of our prayers on our journey, a guide will share some insight or perspective."
   ],
 
   // Said while we walk to each stop.
   stops: {
-    cairn: [
-      "Up ahead is a pile of stones beside the trail. Hikers call it a cairn.",
-      "A cairn tells you two things. You are on the right path, and someone was here before you.",
-      "Each hiker who passes adds one stone. Nobody builds a cairn alone, and nobody builds it in one day.",
-      "We add today to the pile. Let's count."
+    cairn: [                        // a line that starts with "– " is shown as a sub-point under the line before it
+      "Up ahead is a pile of stones beside the trail that tells you two things:",
+      "– You are on the right path.",
+      "– Others have been here before you.",
+      "Each hiker that passes may add a stone. It is always in process and involves others you do not know.",
+      "Let's add our stone to the pile, through our counting."
     ],
     tents: [
-      "Look ahead: there are lights on in those tents. People are waking up.",
-      "The first prayers of the morning are short ones. Watch for a note with each."
+      "Looks like there are lights on in those tents up ahead. People are waking up.",
+      "The first prayers of the morning help us get warmed up. They help us be present to this time and place before us."
     ],
     garden: [                       // the stone garden is under construction; for now this is a clearing beside the trail
       "Before the climb gets steep, we stop in a clearing to pack what we will need.",
@@ -33,10 +34,9 @@ window.SCRIPT = {
       { if: "eilu", t: "Pick one that is yours to work on today." }
     ],
     climb: [
-      "Now the trail gets steeper. This is the part of a hike where you start to feel it.",
-      "Hikers sing to keep each other going. Our psalm says to praise God with every instrument there is: horn, harp, drum, and cymbals.",
-      "Its last line says that everything that breathes can praise God. On a climb like this, breathing counts.",
-      "See the two lights up ahead? That is where we are headed. Let's sing our way there."
+      "The trail is starting to get steeper and our prayer has momentum.",
+      "Kol Hanshama teaches that each breath is an act of prayer, bringing us closer to God.",
+      "Halleluyah lists instruments we can use: horn, harp, drum, and cymbals."
     ],
     gate: [
       "Everything so far has been the warm-up. We said thank you, we woke up, and we got moving.",
@@ -78,7 +78,7 @@ window.SCRIPT = {
       "Aleinu means \"it is upon us.\" Look at the valley below: that is the world we are going back to, and repairing it is our job."
     ],
     stones: [
-      "Beside the trail are small piles of stones, like the cairn we passed on the way up.",
+      "Beside the trail are small piles of stones, like the pile we passed on the way up.",
       "When Jews visit a grave, we leave a stone. A stone does not fade, and it says, \"Someone was here, and someone remembers.\"",
       "The Mourner's Kaddish does not mention death at all. It praises God, and we say it together so that no one who is remembering has to stand alone.",
       "If you are remembering someone, please rise. The rest of us will answer \"Amen.\""
@@ -118,12 +118,21 @@ window.SCRIPT = {
   // Pop-ups: a note that comes up beside one prayer's text (with its first slide) when the script is on screen.
   // Any prayer can have one: add its id here. The note has its own box, which can be dragged like the others.
   pops: {
-    modeh: ["The first words a Jew says in the morning are Modeh Ani, \"I give thanks.\" We say thank you before we do anything else."],
-    mahtovu: ["Mah Tovu means \"How good are your tents.\" Those words were first said by someone looking at the camp of Israel from a distance, the way we are looking at this one."],
+    modeh: [
+      "The first words we traditionally say in the morning are Modeh (or Modah) ani. \"I give thanks.\"",
+      "We say thank you and appreciate our lives before we do anything else."
+    ],
+    mahtovu: [
+      "Mah Tovu means \"How good are your tents.\"",
+      "These words were first said looking out over the Israelite camp from a distance."
+    ],
     asher: ["Asher Yatzar thanks God for a body that works. We slept all night, and this morning everything opened and closed the way it should."],
     shma: ["The Sh'ma says that God is one. It begins with the word \"listen,\" so before we say it, we get quiet."],
     vahavta: ["The V'ahavta tells us to carry these words everywhere, at home and when we walk on the way. Today we are on the way."],
-    elohai: ["It is cold enough to see your breath. Elohai N'shamah says the soul God breathed into us is pure, and every morning we get it back that way."]
+    elohai: [
+      "When it's cold outside in the morning, you can see your breath.",
+      "Elohai N'shamah thanks God for breathing into us a pure soul, and returning it to us each and every morning."
+    ]
   },
 
   // After the last slide.

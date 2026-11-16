@@ -77,6 +77,7 @@
   #guide h4 { margin: 0 0 .2em; font-size: .73em; font-weight: 700; color: #FFC843; letter-spacing: .04em; text-transform: uppercase; }
   #guide h4 .who { display: block; margin-top: .15em; font-size: .78em; font-weight: 400; color: #fff; opacity: .85; letter-spacing: 0; text-transform: none; }
   #guide.pop { border-color: rgba(255,200,67,.75); background: rgba(5,40,82,.9); } #guide.pop ul { list-style: none; padding-left: 0; }
+  #guide li.sub { margin-left: 1.4em; list-style: circle; }
   #guide ul { margin: 0; padding-left: 1em; } #guide li { margin: .23em 0; }
   #guide .gx { position: absolute; right: calc(var(--pt)*9); top: calc(var(--pt)*3); cursor: pointer; opacity: .7; font: 700 calc(var(--pt)*22)/1 Calibri, Carlito, sans-serif; } #guide .gx:hover { opacity: 1; color: #FFC843; }
   #guide .tools { position: absolute; right: calc(var(--pt)*34); top: calc(var(--pt)*6); display: none; gap: 4px; font-size: calc(var(--pt)*15); }
@@ -193,7 +194,7 @@
     #print table.ol { width: 100%; border-collapse: collapse; font-size: 10.5pt; } #print .ol th { text-align: left; border-bottom: 1.5px solid #000; padding: .03in .06in; }
     #print .ol td { padding: .04in .06in; border-bottom: 1px solid #ccc; vertical-align: top; } #print .ol tr.new td { border-top: 1px solid #000; } #print .ol tr { break-inside: avoid; }
     #print .ol td:first-child, #print .ol th:first-child { color: #666; width: .25in; } #print .ol td:last-child, #print .ol th:last-child { text-align: right; width: .45in; } #print .ol td:nth-child(2) { font-weight: 700; } #print .ol th:nth-child(5), #print .ol th:nth-child(6) { width: 1in; }   /* room to write a name in */
-    #print .nt { margin: .04in 0 .02in; font-size: 11pt; } #print ul { margin: .04in 0; } #print li { margin: .05in 0; } #print section { break-inside: avoid; } #print .who { float: right; font-weight: 400; border-bottom: 1px solid #000; min-width: 2in; } #print .who.named { border: 0; min-width: 0; font-size: 10.5pt; font-style: italic; max-width: 3.6in; text-align: right; }
+    #print .nt { margin: .04in 0 .02in; font-size: 11pt; } #print li.sub { margin-left: .3in; list-style: circle; } #print ul { margin: .04in 0; } #print li { margin: .05in 0; } #print section { break-inside: avoid; } #print .who { float: right; font-weight: 400; border-bottom: 1px solid #000; min-width: 2in; } #print .who.named { border: 0; min-width: 0; font-size: 10.5pt; font-style: italic; max-width: 3.6in; text-align: right; }
   }
   .still .slide, .still #scrim, .still #map, .still #title, .still #guide { transition: none; }
   #fps { position: absolute; right: 8px; top: 6px; color: #fff; font: 12px monospace; opacity: .8; display: none; }
@@ -394,7 +395,7 @@ const U_CAIRN = uNear(318, -212, 0, .3), U_TENTS = uNear(298, -180, 0, .3), U_GA
 // tod: light on arrival and by the last slide (0 pre-dawn, 1 first light, 2 sunrise, 3 morning, 4 full day)
 const STOPS = {
   woods:     { u: 3 / L,                         tod: [0, .06],    walk: 0, stroll: 80, sa: .28, name: 'Opening Readings',  place: 'the dark woods' },
-  cairn:     { u: U_CAIRN - 11 / L,              tod: [.1, .14],   sa: .3,  name: 'Rock Counting',      place: 'the cairn' },
+  cairn:     { u: U_CAIRN - 11 / L,              tod: [.1, .14],   sa: .3,  name: 'Rock Counting',      place: 'the stones' },
   tents:     { u: U_TENTS - 17 / L,              tod: [.22, .34],  sa: .4,  name: 'Morning Blessings',  place: 'the tents' },
   garden:    { u: U_GARDEN - 15 / L,             tod: [.5, .6],    sa: .5,  name: 'Words of Torah',     place: 'the clearing', note: 'stone garden under construction' },
   climb:     { u: uNear(262, -104, 0, .5),       tod: [.66, .72],  sa: .45, name: 'Halleluyah',         place: 'the lower climb' },
@@ -1024,10 +1025,12 @@ function guideFor(s) {
 const linesAt = (key, lines) => scriptEd[key] || lines, whoAt = (s, key) => boxPrayers(s).length ? whoFor(s) : ((s.k === 'travel' ? guides['walk:' + s.to] : '') || readers[key] || '');
 const guideKey = s => s.k === 'hold' ? 'start' : s.k === 'travel' ? 'stop:' + s.to : (s.k === 'slide' ? 'pop:' : 'turn:') + s.prayer.id;
 let guideStep = null;
+// One script line as a list item. A line written with a leading "– " is a sub-point of the line before it.
+const liOf = l => /^\s*[–-]\s+/.test(l) ? '<li class="sub">' + esc(l.replace(/^\s*[–-]\s+/, '')) + '</li>' : '<li>' + esc(l) + '</li>';
 function showGuide(s) {
   setGuideEdit(false); guideStep = s;
   const g = showScript ? guideFor(s) : null, key = g ? guideKey(s) : '', lines = g ? linesAt(key, g.lines) : [], on = lines.length > 0;
-  if (on) { const who = whoAt(s, key); guideEl.querySelector('h4').innerHTML = '<span class="hd">' + esc(g.head) + '</span><span class="who">' + esc(who) + '</span>'; guideEl.querySelector('ul').innerHTML = lines.map(l => '<li>' + esc(l) + '</li>').join(''); }
+  if (on) { const who = whoAt(s, key); guideEl.querySelector('h4').innerHTML = '<span class="hd">' + esc(g.head) + '</span><span class="who">' + esc(who) + '</span>'; guideEl.querySelector('ul').innerHTML = lines.map(liOf).join(''); }
   if (on) { guideMode = key; placeGuide(); }
   guideEl.classList.toggle('on', on); guideEl.classList.toggle('pop', on && s.k === 'slide');
   document.getElementById('gUndo').style.display = on && (key in scriptEd || key in readers) ? '' : 'none';
@@ -1040,7 +1043,7 @@ function setGuideEdit(on) {
 }
 function guideTyped() {                                 // keep what was typed: lines for this box, and the name
   const s = guideStep, key = guideMode, g = guideFor(s); if (!g) return;
-  const lines = [...guideEl.querySelectorAll('li')].map(li => li.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const lines = [...guideEl.querySelectorAll('li')].map(li => { const t = li.textContent.replace(/\s+/g, ' ').trim(); return t && li.classList.contains('sub') ? '– ' + t : t; }).filter(Boolean);
   if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
   const who = guideEl.querySelector('.who').textContent.replace(/\s+/g, ' ').trim();
   const ps = boxPrayers(s);
@@ -1534,7 +1537,7 @@ function scriptSections() {                                // the whole script f
 }
 function printScript() {
   document.getElementById('print').innerHTML = '<h1>' + esc(WEEKLY.title) + ': guides’ script</h1><p>A guide speaks while we walk. The prayer text comes up on the next click after the guide is done.</p>' +
-    scriptSections().map(x => '<section><h2>' + esc(x.head) + (x.who ? '<span class="who named">' + esc(x.who) + '</span>' : '<span class="who">&nbsp;</span>') + '</h2>' + (x.sub ? '<h3>' + esc(x.sub) + '</h3>' : '') + (x.notes && x.notes.length ? '<p class="nt">' + x.notes.map(esc).join('<br>') + '</p>' : '') + '<ul>' + x.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></section>').join('');
+    scriptSections().map(x => '<section><h2>' + esc(x.head) + (x.who ? '<span class="who named">' + esc(x.who) + '</span>' : '<span class="who">&nbsp;</span>') + '</h2>' + (x.sub ? '<h3>' + esc(x.sub) + '</h3>' : '') + (x.notes && x.notes.length ? '<p class="nt">' + x.notes.map(esc).join('<br>') + '</p>' : '') + '<ul>' + x.lines.map(liOf).join('') + '</ul></section>').join('');
   window.print();
 }
 function downloadScript() {
