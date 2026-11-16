@@ -149,8 +149,13 @@
            font-family: Calibri, Carlito, "Helvetica Neue", Arial, sans-serif; font-size: calc(var(--pt)*19); z-index: 5; }
   #panel.on { display: flex; }
   #panel h2 { margin: 0; font-size: calc(var(--pt)*30); } #panel .sub { opacity: .8; margin: .2em 0 .8em; }
-  #shr { display: flex; align-items: center; gap: .8em; margin: 0 0 .7em; font-size: .9em; min-height: 0; } #shr:empty { display: none; }
-  #shr .ok { color: #B6D77B; font-weight: 700; } #shr .warn { color: #FFC843; } #shr a { color: #74D2E7; } #shr button { padding: .25em .8em; } #shr label { display: flex; align-items: center; gap: .45em; font-weight: 700; } #shr select { font: inherit; font-weight: 400; max-width: 15em; padding: .15em .3em; border: 0; border-radius: .4em; }
+  #shr, #svr { display: flex; flex: none; align-items: center; gap: .8em; margin: 0 0 .7em; font-size: .9em; } #shr:empty { display: none; }   /* flex: none, so a long list cannot squeeze these lines into each other */
+  #shr .ok { color: #B6D77B; font-weight: 700; } #shr .warn, #svr .warn { color: #FFC843; } #shr a { color: #74D2E7; } #shr button, #svr button { padding: .25em .8em; } #shr label, #svr label { display: flex; align-items: center; gap: .45em; font-weight: 700; } #shr select, #svr select { font: inherit; font-weight: 400; max-width: 15em; padding: .15em .3em; border: 0; border-radius: .4em; }
+  /* The service's own settings, on the Prayer List's first line: which preset, how fast the walks go, and whether the view moves with the prayers */
+  #svr .gap { margin-left: auto; } #svr .pc { display: flex; align-items: center; gap: .35em; font-weight: 700; } #svr .pc button { padding: .05em .55em; font-weight: 700; } #svr .pc #pcNow { background: transparent; color: #fff; min-width: 3em; padding: .05em .1em; }
+  #svr input[type=checkbox] { font-size: inherit; width: 1.15em; height: 1.15em; cursor: pointer; }
+  #panel .srow button.mv { flex: none; margin-left: .7em; font: inherit; font-size: .74em; line-height: 1.35; padding: 0 .6em; border-radius: 999px; border: 1px solid rgba(255,255,255,.45); background: transparent; color: rgba(255,255,255,.85); cursor: pointer; }
+  #panel .srow button.mv:hover { border-color: #FFC843; color: #FFC843; } #panel .srow button.mv.off { background: #FFC843; border-color: #FFC843; color: #05305E; } #panel .srow button.mv.all { opacity: .4; }
   #panel .sheet { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid rgba(255,255,255,.22); border-radius: .5em; }
   #panel .srow { display: grid; grid-template-columns: minmax(13.5em, 1.3fr) minmax(6.5em, .75fr) minmax(6.5em, .75fr) minmax(9.5em, .95fr) minmax(8em, 1.4fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
   #panel .shead { position: sticky; top: 0; z-index: 1; background: #0a3a6e; font-weight: 700; color: #FFC843; font-size: .85em; letter-spacing: .03em; padding: .4em .8em; }
@@ -249,7 +254,7 @@
 
 <script>
 // The text, script, defaults and weekly files are fetched fresh on every load, so a changed default is never hidden by the browser's cache.
-['slides.js', 'script.js', 'defaults.js', 'weekly.js', 'parallel.js'].forEach(function (f) { document.write('<script src="' + f + '?t=' + Date.now() + '"><\/script>'); });
+['slides.js', 'script.js', 'defaults.js', 'presets.js', 'weekly.js', 'parallel.js'].forEach(function (f) { document.write('<script src="' + f + '?t=' + Date.now() + '"><\/script>'); });
 </script>
 <script src="vendor/three.min.js"></script>
 <script>
@@ -844,7 +849,7 @@ function buildMap() {
   halo = el('circle', { r: 9, fill: 'rgba(255,200,67,.3)' }); marker = el('circle', { r: 5, fill: '#FFC843', stroke: '#fff', 'stroke-width': 1.5 });
   ROUTE.forEach((s, i) => {                                // click a stop on the map to jump there
     const h = el('circle', { cx: s.x, cy: s.y, r: 10, fill: 'transparent', class: 'hit' }), t = document.createElementNS(SVGNS, 'title');
-    t.textContent = s.place.charAt(0).toUpperCase() + s.place.slice(1) + ': ' + s.name; h.appendChild(t);
+    t.textContent = s.place.charAt(0).toUpperCase() + s.place.slice(1) + (s.name ? ': ' + s.name : ''); h.appendChild(t);
     h.addEventListener('click', e => { e.stopPropagation(); jumpTo(i); });
   });
 }
@@ -906,17 +911,30 @@ function setMap(fi, ti, t, arrived) {
   const key = fi + '|' + ti + '|' + a.name + '|' + b.name;
   if (key !== mapLblKey) { mapLblKey = key; const box = label(lblTo, ti, b.name, false, []); label(lblFrom, fi, fi === ti ? '' : a.name, true, box ? [box] : []); }   // where we are going first; placed once per walk, not every frame
   const P = b.place.charAt(0).toUpperCase() + b.place.slice(1);
-  mapCap.innerHTML = arrived ? '<b>' + P + '</b> · ' + b.name : 'To <b>' + b.place + '</b> · ' + b.name;
+  mapCap.innerHTML = (arrived ? '<b>' + P + '</b>' : 'To <b>' + b.place + '</b>') + (b.name ? ' · ' + b.name : '');
 }
 
 /* =====================================================================
    Steps: one click each. A click during travel jumps to arrival.
    The control panel chooses which prayers are in; the steps are rebuilt from that choice.
    ===================================================================== */
-const ORDER = window.ORDER, LS_KEY = 'mountain-tefillah-traditional';
-// Settings: defaults.js (travels with the folder) first, then whatever this computer has saved on top.
-const DEF = window.DEFAULTS || {};
+const ORDER = window.ORDER, LS_BASE = 'mountain-tefillah-traditional';
+// Presets: services that ship with the page (presets.js), picked from the Preset menu at the top of the Prayer List. The address says which one is
+// showing ("?mk"); with none it is the full service, as defaults.js has it. A preset is a partial design laid over the defaults: whatever it does
+// not name stays as the defaults have it. "only" lists the prayers that are ticked; "start" is a stop the walk begins from even with no prayer there.
+const PRESETS = window.PRESETS || {}, PKEY = location.search.slice(1).split('&').map(t => { try { return decodeURIComponent(t.replace(/^(preset|service)=/, '')); } catch (e) { return ''; } }).find(k => k && Object.prototype.hasOwnProperty.call(PRESETS, k)) || '';
+const PRESET = PKEY ? PRESETS[PKEY] : null, LS_KEY = LS_BASE + (PKEY ? '~' + PKEY : '');   // each preset keeps its own changes on this computer
+// Settings: defaults.js (travels with the folder) with the preset laid over it, then whatever this computer has saved on top.
+const DEF = (D => {
+  const P = PRESET; if (!P) return D; const o = Object.assign({}, D);
+  ['sel', 'mel', 'langs', 'off', 'lines', 'guide', 'views', 'text', 'notes', 'moves'].forEach(k => { if (P[k]) o[k] = Object.assign({}, D[k], P[k]); });
+  ['script', 'pace', 'start', 'moveAll'].forEach(k => { if (k in P) o[k] = P[k]; });
+  if (P.only) { const s = {}; ORDER.forEach(x => x.prayers.forEach(p => { s[p.id] = P.only.indexOf(p.id) >= 0; })); o.sel = Object.assign(s, P.sel); }
+  return o;
+})(window.DEFAULTS || {});
 let saved = {}; try { saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; } catch (e) {}
+if (PRESET && PRESET.label) { const t2 = document.querySelector('#title .t2'); t2.innerHTML = esc(PRESET.label) + (t2.innerHTML ? ' · ' + t2.innerHTML : ''); }   // under the title, so the room's computer shows which service is up
+let room = saved; if (PKEY) { room = {}; try { room = JSON.parse(localStorage.getItem(LS_BASE) || '{}') || {}; } catch (e) {} }   // this room's own settings (projector brightness, toolbar tucked away) are the same under every preset
 const sel = Object.assign({}, DEF.sel, saved.sel);
 const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y: 6.3, w: 12.2, fs: 25 }, pop: { x: 4.5, y: 8, yb: 9.45, w: 11, fs: 24 } };   // pop: a note beside a prayer, just above the translation
 const guideBox = {};                                                 // one box per script moment: "start", "stop:tents", "turn:gvurot"...
@@ -928,17 +946,37 @@ const melody = Object.assign({}, DEF.mel, saved.mel);                 // the mel
 const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }. In the Prayer List and the Sheet only
 const guides = Object.assign({}, DEF.guides, saved.guides);           // who reads the guide's script before each prayer: { modeh: "Sam" }. On the script, on screen and printed
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
-let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = 1, brightNudge = +saved.brightNudge || 0;   // bright: the scene's brightness now (the plan by place, plus this room's nudge)
+let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!room.barOff, bright = 1, brightNudge = +room.brightNudge || 0;   // bright: the scene's brightness now (the plan by place, plus this room's nudge)
+// Moves: the view bows, tiptoes or dims with a prayer (MOVES, further down). One switch for them all, and one per prayer: { shma: false } is off.
+const moves = Object.assign({}, DEF.moves, saved.moves);
+let moveAll = 'moveAll' in saved ? !!saved.moveAll : DEF.moveAll !== false;
+let pace = +saved.pace || +DEF.pace || 1;                            // how long the walks between stops take: 1 as planned, 1.5 half as long again
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const cardOff = Object.assign({}, DEF.off, saved.off);                // script cards turned off, kept but not shown or printed: { "turn:gvurot": true }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
 // Names typed on a walk's box before walks had a Guide field of their own: carried over as that walk's Guide ("walk:tents").
 for (const k in readers) if (k.indexOf('stop:') === 0 && !(('walk:' + k.slice(5)) in guides)) guides['walk:' + k.slice(5)] = readers[k];
-const settings = () => ({ name: designName, sel, mel: melody, langs, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, off: cardOff, script: showScript, guide: guideBox, views: viewAdj });
+const settings = () => ({ name: designName, sel, mel: melody, langs, names: sheetOn ? {} : names, guides: sheetOn ? {} : guides, notes: sheetOn ? {} : notes, text: textEd, lines: scriptEd, readers, off: cardOff, script: showScript, moves, moveAll, pace, guide: guideBox, views: viewAdj });
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
-const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), langs: changed(langs, Object.assign({}, LANG0, DEF.langs)), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers), off: changed(cardOff, DEF.off),
-  guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff, brightNudge: brightNudge || undefined })); } catch (e) {} };
+const save = () => { try {
+  const o = { name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), langs: changed(langs, Object.assign({}, LANG0, DEF.langs)), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers), off: changed(cardOff, DEF.off),
+    guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, moves: changed(moves, DEF.moves), moveAll: moveAll !== (DEF.moveAll !== false) ? moveAll : undefined, pace: pace !== (+DEF.pace || 1) ? pace : undefined };
+  if (!PKEY) { o.barOff = barOff; o.brightNudge = brightNudge || undefined; }
+  else { let r = {}; try { r = JSON.parse(localStorage.getItem(LS_BASE) || '{}') || {}; } catch (e) {} r.barOff = barOff; if (brightNudge) r.brightNudge = brightNudge; else delete r.brightNudge; localStorage.setItem(LS_BASE, JSON.stringify(r)); }
+  localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {} };
+// Has this computer changed the service it is showing (the preset, or the defaults)? Compared as the service runs, so a tick taken off and put back
+// is no change. Names and notes, the room's brightness and a tucked-away toolbar do not count.
+function isChanged() {
+  const D = DEF, ps = ORDER.reduce((a, o) => a.concat(o.prayers), []), keys = (a, b) => Object.keys(Object.assign({}, a, b));
+  if (ps.some(p => isOn(p) !== (!hiddenP[p.id] && ((p.id in (D.sel || {})) ? !!D.sel[p.id] : !p.off)))) return true;
+  if (ps.some(p => p.mel && melOf(p) !== (p.mel.find(m => m.k === (D.mel || {})[p.id]) || p.mel[0]))) return true;
+  if (keys(cardOff, D.off).some(k => !!cardOff[k] !== !!(D.off || {})[k])) return true;
+  if (keys(moves, D.moves).some(k => (moves[k] !== false) !== ((D.moves || {})[k] !== false))) return true;
+  if (moveAll !== (D.moveAll !== false) || pace !== (+D.pace || 1) || showScript !== !!D.script) return true;
+  const L0 = Object.assign({}, LANG0, D.langs); if (['he', 'tl', 'tr'].some(k => !!langs[k] !== !!L0[k])) return true;
+  return [[textEd, D.text], [scriptEd, D.lines], [guideBox, D.guide], [viewAdj, D.views]].some(([c, d]) => keys(c, d).some(k => !sameAs(c[k], (d || {})[k])));
+}
 // Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
 const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
 const isOn = p => !hiddenP[p.id] && ((p.id in sel) ? !!sel[p.id] : !p.off);
@@ -964,10 +1002,13 @@ function buildSteps() {
   STEPS = []; ROUTE = [];
   ORDER.forEach(o => { const ps = o.prayers.filter(isOn); if (ps.length) ROUTE.push({ stop: o.stop, prayers: ps }); });
   if (!ROUTE.length) ROUTE.push({ stop: ORDER[0].stop, prayers: [] });
+  // A preset's "start": the service opens at that stop and walks on from there, though nothing is prayed at it (the woods, before the tents).
+  const at = st => ORDER.findIndex(o => o.stop === st);
+  if (DEF.start && STOPS[DEF.start] && at(DEF.start) >= 0 && at(DEF.start) < at(ROUTE[0].stop)) ROUTE.unshift({ stop: DEF.start, prayers: [] });
   let lastPose = null;
   ROUTE.forEach((r, ri) => {
     const st = STOPS[r.stop], names = r.prayers.map(p => p.name).join(', ');
-    r.x = MAPXY[r.stop][0]; r.y = MAPXY[r.stop][1]; r.place = st.place; r.name = names && names.length <= 24 ? names : st.name;
+    r.x = MAPXY[r.stop][0]; r.y = MAPXY[r.stop][1]; r.place = st.place; r.name = !r.prayers.length && ROUTE.length > 1 ? '' : names && names.length <= 24 ? names : st.name;
     const list = []; r.prayers.forEach(p => slidesOf(p).forEach((id, k) => list.push({ p, id: slideId(id), first: k === 0 })));
     const n = list.length;
     const poseOf = (j, p) => { const v = st.views && p && st.views[p.id], u = st.u + (st.walk && n > 1 ? st.walk * j / (n - 1) / L : 0) + ((v && v.du) || 0) / L; return fixPose({ u, key: p ? r.stop + '/' + p.id : r.stop, base: v ? v.aim : 'walk' in st ? pathAim(u, 5) : st.aim, label: p ? p.name : st.place }); };
@@ -1657,7 +1698,7 @@ function saveOutline() {
    own names. C is who leads the prayer; F is who reads the guide's script before it (on the script, on screen and printed).
    E holds the melody's name as the Prayer List shows it, with a drop-down in the Sheet for each prayer that has a choice; an empty cell is the first
    melody. Unlike names, a melody read from the Sheet is kept on this computer, so the service does not change if the sign-in runs out. */
-const SHEET = WEEKLY.sheet && WEEKLY.sheet.clientId && WEEKLY.sheet.id && /^https?:$/.test(location.protocol) ? WEEKLY.sheet : null;
+const SHEET = WEEKLY.sheet && WEEKLY.sheet.clientId && WEEKLY.sheet.id && /^https?:$/.test(location.protocol) && !(PRESET && PRESET.sheet === false) ? WEEKLY.sheet : null;   // a preset with "sheet: false" is led without the school sheet (no names to share)
 let sheetTok = null, sheetOn = false, sheetMsg = '', sheetWhen = '', sheetTimer = 0, localNames = {}, localGuides = {}, localNotes = {}, sheetRuled = false; const sheetWait = {};
 const sheetPrayers = () => ORDER.filter(o => !HIDDEN_STOPS[o.stop]).reduce((a, o) => a.concat(walkOwn(o) ? [{ id: 'walk:' + o.stop, name: 'Walk to ' + STOPS[o.stop].place }] : [], o.prayers), []);   // with a row for each walk of its own
 const melLabel = id => { const p = sheetPrayers().find(x => x.id === id); return p && p.mel ? melOf(p).t : ''; };
@@ -1877,18 +1918,34 @@ const IC = {
  ['adjReset', 'reset'], ['adjPlay', 'play'], ['godReset', 'reset'], ['godGo', 'go'], ['godHome', 'home'], ['dmRestart', 'reset'], ['dmExit', 'exit'], ['dmFull', 'full'], ['brDown', 'dim'], ['brUp', 'bright']].forEach(([id, ic]) => { const b = document.getElementById(id); if (b) { b.classList.add('bi'); b.insertAdjacentHTML('afterbegin', IC[ic]); } });
 let designName = saved.name || DEF.name || '';
 const listCount = () => 'Untick a prayer to skip it; untick a whole stop and we walk past it. The gold arrow on a row goes straight to that prayer. ' + (ROUTE.length) + ' stops, ' + STEPS.filter(s => s.k === 'slide').length + ' text slides, ' + (STEPS.length - 1 - (showScript ? 0 : STEPS.filter(s => s.k === 'turn').length)) + ' clicks.' + (designName ? ' Design: <b>' + esc(designName) + '</b>.' : '');
+// The Prayer List's first line: the preset in use (changing it opens that preset: the address says which one is showing), a note and a Reset
+// when this computer has changed it, how fast the walks go, and the switch for every move.
+function presetRow() {
+  const keys = Object.keys(PRESETS), q = v => esc(v || '').replace(/"/g, '&quot;'), nm = PRESET ? 'the ' + (PRESET.label || PKEY) + ' preset' : 'the full service';
+  return (keys.length ? '<label>Preset<select id="psPick" title="Services that come with the page. Choosing one opens it from its start.">' + '<option value=""' + (PKEY ? '' : ' selected') + '>Full service</option>' +
+      keys.map(k => '<option value="' + q(k) + '"' + (k === PKEY ? ' selected' : '') + '>' + esc(PRESETS[k].label || k) + '</option>').join('') + '</select></label>' : '') +
+    (!sheetOn && isChanged() ? '<span class="warn" title="Prayers, melodies, moves, views or text on this computer are not as ' + q(nm) + ' has them">● changed on this computer</span><button id="psReset" title="Put this computer back to ' + q(nm) + '">Reset</button>' : '') +
+    '<span class="gap"></span><span class="pc" title="How long the walks between stops take, against the planned time">Walk time<button id="pcDown" title="Quicker walks">−</button><button id="pcNow" title="Back to ' + q(nm) + '’s own pace">' + Math.round(pace * 100) + '%</button><button id="pcUp" title="Slower walks">+</button></span>' +
+    '<label title="The view moves with some prayers so the room can too: it bows, rises on tiptoe, or the scenery dims. Untick to keep the view still everywhere; each prayer’s own switch is on its row."><input type="checkbox" id="mvAll"' + (moveAll ? ' checked' : '') + '>Moves</label>';
+}
+function pickPreset(k) {                                  // another preset: the page opens again at its address, from the start
+  const rest = location.search.slice(1).split('&').filter(t => { let d = ''; try { d = decodeURIComponent(t.replace(/^(preset|service)=/, '')); } catch (e) {} return t && !Object.prototype.hasOwnProperty.call(PRESETS, d); });
+  if (k) rest.unshift(encodeURIComponent(k));
+  location.href = location.pathname + (rest.length ? '?' + rest.join('&') : '');
+}
 function drawPanel() {
   const q = v => esc(v || '').replace(/"/g, '&quot;');
+  const mvCell = p => MOVES[p.id] ? '<button class="mv' + (moves[p.id] === false ? ' off' : '') + (moveAll ? '' : ' all') + '" data-move="' + p.id + '" title="' + (moves[p.id] === false ? 'This prayer’s move is turned off. Click to turn it back on.' : 'The view makes this move with ' + q(p.name) + (moveAll ? '' : ' (every move is off just now, at the top of the list)') + '. Click to turn it off.') + '">' + MOVES[p.id].name + (moves[p.id] === false ? ' off' : '') + '</button>' : '';
   const tog = key => '<button class="ctog" data-cardoff="' + key + '" title="Turn this reading off: it leaves the script on screen and in print until it is turned back on here">' + IC.eye + '</button>';
   const melCell = p => p.mel && p.mel.length > 1 ? '<select data-mel="' + p.id + '" title="Melody for ' + q(p.name) + '">' + p.mel.map(m => '<option value="' + q(m.k) + '"' + (m === melOf(p) ? ' selected' : '') + '>' + esc(m.t) + '</option>').join('') + '</select>' : '<span></span>';
-  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">' + listCount() + '</div><div id="shr">' + sheetRow() + '</div>' +
+  panel.innerHTML = '<div class="x" id="btnX" title="Close">×</div><h2>Prayer List</h2><div class="sub">' + listCount() + '</div><div id="svr">' + presetRow() + '</div><div id="shr">' + sheetRow() + '</div>' +
     '<div class="sheet"><div class="srow shead"><span>Prayer</span><span title="Reads the guide’s script before this prayer; shown on the script on screen and in print">Guide</span><span title="Leads the prayer itself">Leader</span><span>Melody</span><span>Notes</span></div>' +
     ORDER.filter(o => !HIDDEN_STOPS[o.stop]).map(o => { const st = STOPS[o.stop], all = o.prayers.every(isOn), some = o.prayers.some(isOn);
       // only the checkbox itself ticks or unticks: the names are plain text, so a stray click on a row changes nothing
       const wk = walkOwn(o) ? 'walk:' + o.stop : '';           // a walk with its own reading: its guide's name goes on the stop's row
       return '<div class="srow sstop' + (wk ? ' walk' : '') + '"><div class="nm"><input type="checkbox" data-stop="' + o.stop + '"' + (some ? ' checked' : '') + (some && !all ? ' data-part="1"' : '') + ' title="Tick or untick the whole stop">' + esc(st.place.charAt(0).toUpperCase() + st.place.slice(1)) + '</div>' +
         (walkAlone(o) && cardOff['stop:' + o.stop] ? '<button class="coff" data-card="stop:' + o.stop + '" title="The reading for the walk here is turned off. Click to turn it back on.">reading off</button>' : '') + (wk ? '<div class="gc"><input type="text" data-g="' + wk + '" maxlength="40" placeholder="reads the walk" title="Who reads the script on the way to ' + q(st.place) + '" value="' + q(guides[wk]) + '">' + tog('stop:' + o.stop) + '</div><span class="wkn">the walk here has its own reading</span>' : '') + '</div>' +
-        o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><div class="nm pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + ' title="Tick or untick ' + q(p.name) + '"><span>' + esc(p.name) + '</span>' +
+        o.prayers.map(p => '<div class="srow' + (isOn(p) ? '' : ' off') + '"><div class="nm pr"><input type="checkbox" data-p="' + p.id + '"' + (isOn(p) ? ' checked' : '') + ' title="Tick or untick ' + q(p.name) + '"><span>' + esc(p.name) + '</span>' + mvCell(p) +
           (isOn(p) ? '<button class="go" data-go="' + p.id + '" title="Go to ' + q(p.name) + '">' + IC.go + '</button>' : '') + '</div>' +
           (c => { const more = c.own ? '<button class="coff' + (c.kind === 'own' || c.kind === 'off' ? ' mini' : '') + '" data-card="' + c.own + '" title="' + q(p.name) + ' has a reading of its own that is turned off. Click to turn it on.">' + (c.kind === 'own' || c.kind === 'off' ? '+' : 'reading off') + '</button>' : '';
             return c.kind === 'own' ? '<div class="gc"><input type="text" data-g="' + p.id + '" maxlength="40" placeholder="reads script" title="Who reads the script before ' + q(p.name) + '" value="' + q(guides[p.id]) + '">' + tog(c.key) + more + '</div>'
@@ -1930,7 +1987,7 @@ function jumpToPrayer(id) {
   const n = STEPS.findIndex(s => s.k === 'slide' && s.prayer.id === id); if (n < 0) return;
   togglePanel(false); enter(n, -1);
 }
-panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } const c = e.target.closest('[data-card]'); if (c) setCard(c.dataset.card, true); const f = e.target.closest('[data-cardoff]'); if (f) setCard(f.dataset.cardoff, false); });
+panel.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); jumpToPrayer(g.dataset.go); } const c = e.target.closest('[data-card]'); if (c) setCard(c.dataset.card, true); const f = e.target.closest('[data-cardoff]'); if (f) setCard(f.dataset.cardoff, false); const m = e.target.closest('[data-move]'); if (m) setMove(m.dataset.move, moves[m.dataset.move] === false); });
 panel.addEventListener('input', e => {                   // a guide's name: saved as it is typed, on screen at once
   const t = e.target, k = t.dataset.n || t.dataset.g || t.dataset.m; if (!k) return; const into = t.dataset.n ? names : t.dataset.g ? guides : notes;
   if (t.value.trim()) into[k] = t.value; else delete into[k]; if (sheetOn) sheetQueue(k, t.dataset.n ? 'C' : t.dataset.g ? 'F' : 'D', t.value.trim()); else save(); if (t.dataset.g) showGuide(STEPS[idx]);
@@ -1939,12 +1996,15 @@ panel.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.p) { sel[t.dataset.p] = t.checked; sheetPut(t.dataset.p); applyChoice(); }
   else if (t.id === 'shTab') { t.blur(); sheetPick(t.value); }
+  else if (t.id === 'psPick') pickPreset(t.value);
+  else if (t.id === 'mvAll') setMoveAll(t.checked);
   else if (t.dataset.mel) setMelody(t.dataset.mel, t.value);
   else if (t.dataset.stop) { ORDER.find(o => o.stop === t.dataset.stop).prayers.forEach(p => { sel[p.id] = t.checked; sheetPut(p.id); }); applyChoice(); }
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
   for (const k in sel) delete sel[k]; Object.assign(sel, d.sel); Object.assign(langs, LANG0, d.langs); langDraw(); for (const k in melody) delete melody[k]; Object.assign(melody, d.mel); for (const k in names) delete names[k]; Object.assign(names, d.names); for (const k in guides) delete guides[k]; Object.assign(guides, d.guides); for (const k in notes) delete notes[k]; Object.assign(notes, d.notes); for (const k in textEd) delete textEd[k]; Object.assign(textEd, d.text); for (const k in scriptEd) delete scriptEd[k]; Object.assign(scriptEd, d.lines); for (const k in readers) delete readers[k]; Object.assign(readers, d.readers); for (const k in cardOff) delete cardOff[k]; Object.assign(cardOff, d.off); for (const k in viewAdj) delete viewAdj[k]; Object.assign(viewAdj, d.views);
+  for (const k in moves) delete moves[k]; Object.assign(moves, d.moves); moveAll = 'moveAll' in d ? d.moveAll !== false : DEF.moveAll !== false; pace = +d.pace || +DEF.pace || 1;   // a design saved before moves and pace: as this service has them
   for (const k in guideBox) delete guideBox[k]; for (const k in (d.guide || {})) guideBox[k] = Object.assign({}, d.guide[k]);
   showScript = !!d.script; designName = name || ''; document.getElementById('tbScript').classList.toggle('act', showScript); applyChoice(); applyText(); if (editing) edRefresh(); if (sheetOn) sheetPull();
 }
@@ -1959,13 +2019,15 @@ let typedName = '', filing = false;
 const toolClick = e => {
   const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
   if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnNum') numberGuides(); else if (id === 'btnOutPdf') printOutline(); else if (id === 'btnOutXls') saveOutline(); else if (id === 'lgHe') toggleLang('he'); else if (id === 'lgTl') toggleLang('tl'); else if (id === 'lgTr') toggleLang('tr'); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(planBright()); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
+  else if (id === 'pcDown') setPace(pace - .1); else if (id === 'pcUp') setPace(pace + .1); else if (id === 'pcNow') setPace(+DEF.pace || 1);
   else if (id === 'btnOpen') document.getElementById('fileOpen').click();
   else if (id === 'btnSave') { typedName = designName;
     dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
-      '<label class="chk"><input type="checkbox" id="svDef">save as default</label>' +
-      '<p>The file goes to your Downloads folder. Open a named design later with Open. To make a default for every computer, move defaults.js into the Mountain Tefillah folder, replacing the one there.</p>' +
+      (PKEY ? '<p>The file goes to your Downloads folder. Open a named design later with Open. A preset itself is changed in presets.js, in the Mountain Tefillah folder.</p>'
+        : '<label class="chk"><input type="checkbox" id="svDef">save as default</label>' +
+      '<p>The file goes to your Downloads folder. Open a named design later with Open. To make a default for every computer, move defaults.js into the Mountain Tefillah folder, replacing the one there.</p>') +
       '<div class="row"><button id="dlgNo">Cancel</button><button class="main" id="svGo">Save</button></div>'); document.getElementById('svName').focus(); }
-  else if (id === 'btnReset') dlg('<h3>Reset this computer?</h3><p>Prayer choices, views and script box places changed on this computer will go back to the defaults. Saved design files are not touched.</p><div class="row"><button id="dlgNo">Cancel</button><button class="main" id="rsGo">Reset</button></div>');
+  else if (id === 'btnReset' || id === 'psReset') dlg('<h3>Reset this computer?</h3><p>Prayer choices, melodies, moves, names, views, text edits and script box places changed on this computer will go back to ' + (PRESET ? 'the ' + esc(PRESET.label || PKEY) + ' preset' : 'the defaults') + '. Saved design files are not touched.</p><div class="row"><button id="dlgNo">Cancel</button><button class="main" id="rsGo">Reset</button></div>');
   else if (id === 'shNew') { dlg('<h3>New service</h3><input type="text" id="nsName" maxlength="60" placeholder="Name it, e.g. Monday 11/23">' +
       '<label class="chk"><input type="checkbox" id="nsCopy" checked>start as a copy of ' + esc(sheetTab) + '</label>' +
       '<p>Each service is a tab in the school sheet. Unticked, the new one starts from the defaults, with no names. To rename or delete a service, do it on its tab in Google Sheets.</p>' +
@@ -1975,7 +2037,7 @@ const toolClick = e => {
     const copy = document.getElementById('nsCopy').checked; dlg(''); sheetNew(name, copy); }
   else if (id === 'dlgNo') dlg('');
   else if (id === 'rsGo') { dlg(''); loadDesign(DEF, DEF.name); }
-  else if (id === 'svGo') { const def = document.getElementById('svDef').checked, name = document.getElementById('svName').value.trim(); if (!def && !name) return document.getElementById('svName').focus(); saveDesign(name, def); dlg(''); if (panel.classList.contains('on')) drawPanel(); }
+  else if (id === 'svGo') { const dEl = document.getElementById('svDef'), def = !!(dEl && dEl.checked), name = document.getElementById('svName').value.trim(); if (!def && !name) return document.getElementById('svName').focus(); saveDesign(name, def); dlg(''); if (panel.classList.contains('on')) drawPanel(); }
 };
 const fileBar = document.getElementById('fileBar'), toolsBox = document.getElementById('tools');
 [panel, fileBar, toolsBox].forEach(n => n.addEventListener('click', toolClick));
@@ -2006,13 +2068,31 @@ stage.classList.toggle('barOff', barOff); document.getElementById('tbScript').cl
 const SPEED = 4.6;                                // world units per second while travelling
 let autoNext = false;                             // (arrivals wait for a click; kept so an automatic mode can be added later)
 let idx = 0, travelP = 0, travelling = false, travelDur = 12, todFrom = 0, tod = 0, todTarget = 0, glide = null;
-// A move a slide makes once, going forward, after its text is up: { slide id: kind }.
-// "bow": the knees bend and the view bows, then stands straight again (Aleinu, "Vaanachnu kor'im umishtachavim").
-// "tiptoe": the view rises a little and settles, three times (K'dushah, "Kadosh, kadosh, kadosh").
-const SLIDE_MOVES = { 's-aleinu-2': 'bow', 's-kedushah-2': 'tiptoe' }, BOW_SECS = 4.4, TOE = { wait: 1.2, each: 1.7, lift: .5, tilt: 2.2 };
+// Moves: what the view does with a prayer, so the room can do it too. Each belongs to a prayer and plays by itself, with no extra click.
+// "bow": once, going forward, after the text is up: the knees bend and the view bows, then stands straight again
+//        (Bar'chu; Aleinu at "Vaanachnu kor'im umishtachavim"). wait: seconds after the text comes up before it begins.
+// "tiptoe": once, going forward: the view rises a little and settles, three times (K'dushah, "Kadosh, kadosh, kadosh").
+// "dim": the scenery dims, the words stay bright, for as long as the prayer's text is up, and the light comes back as we move on (Sh'ma: eyes covered).
+// slides: the slides it plays on (left out: every slide of the prayer). A melody with other slides has no move unless its slides are listed.
+// Switches: "Moves" at the top of the Prayer List turns them all off (moveAll); the button on a prayer's row turns that one off (moves).
+const MOVES = {
+  barchu: { kind: 'bow', name: 'bow', slides: ['s-barchu-1'], wait: 1.4 },
+  shma: { kind: 'dim', name: 'dim' },
+  kedushah: { kind: 'tiptoe', name: 'tiptoe', slides: ['s-kedushah-2'] },
+  aleinu: { kind: 'bow', name: 'bow', slides: ['s-aleinu-2'] }
+};
+const BOW_SECS = 4.4, TOE = { wait: 1.2, each: 1.7, lift: .5, tilt: 2.2 }, DIM = { to: .2, down: 2.4, up: 1.6 };   // dim: the share of the light that is left, and the seconds to fade down and back up
+const moveOn = id => !!MOVES[id] && moveAll && moves[id] !== false;
+const moveOf = s => { if (!s || s.k !== 'slide' || !s.prayer || !moveOn(s.prayer.id)) return null; const m = MOVES[s.prayer.id]; return !m.slides || m.slides.indexOf(s.id) >= 0 ? m : null; };
 const toeAt = t => { const x = t - TOE.wait; if (x < 0 || x >= 3 * TOE.each) return 0; const y = x % TOE.each; return sstep(0, .5, y) * (1 - sstep(.85, 1.55, y)); };
-let bow = null;
-const startMove = s => { bow = s.k === 'slide' && SLIDE_MOVES[s.id] && !adjusting && !editing && !god ? { t: 0, s, kind: SLIDE_MOVES[s.id] } : null; };
+let bow = null, dimP = 0;                         // dimP: how far the scenery has dimmed, 0 to 1
+const startMove = s => { const m = moveOf(s); bow = m && m.kind !== 'dim' && !adjusting && !editing && !god ? { t: -(m.wait || 0), s, kind: m.kind } : null; };
+function setMove(id, on) {                        // one prayer's move, from its row in the Prayer List
+  moves[id] = !!on; bow = null; save(); panelKeep(); toastMsg(MOVES[id].name.charAt(0).toUpperCase() + MOVES[id].name.slice(1) + (on ? ' back on' : ' off'));
+}
+function setMoveAll(on) { moveAll = on; bow = null; save(); panelKeep(); toastMsg(on ? 'Moves on' : 'Moves off: the view stays still'); }
+function panelKeep() { if (!panel.classList.contains('on')) return; const sh = panel.querySelector('.sheet'), top = sh ? sh.scrollTop : 0; drawPanel(); const sh2 = panel.querySelector('.sheet'); if (sh2) sh2.scrollTop = top; }   // redraw the Prayer List where it is
+function setPace(v) { pace = Math.round(clamp(v, .5, 3) * 10) / 10; save(); panelKeep(); toastMsg('Walks take ' + Math.round(pace * 100) + '% of the planned time'); }   // takes effect from the next walk
 const titleEl = document.getElementById('title'), scrimEl = document.getElementById('scrim');
 function showText(id, stop) {
   document.querySelectorAll('.slide.on').forEach(e => e.classList.remove('on'));
@@ -2045,7 +2125,7 @@ function enter(i, dir) {
     showText(null);
     const was = STEPS[idx - 1];                            // after a slow walk (the bridge), carry on from wherever we have got to
     s.A = dir > 0 && was && was.drift && was.dp > 0 ? { u: was.du, ut: was.du, aim: { yaw: cur.yaw, pitch: cur.pitch }, zoom: cur.zoom, d: was.pose.d, dt: was.pose.d } : (s.A0 || s.A);
-    travelDur = clamp(Math.abs(s.B.ut - s.A.ut) * L / (STOPS[s.to].speed || SPEED), 9, 34);
+    travelDur = clamp(Math.abs(s.B.ut - s.A.ut) * L / (STOPS[s.to].speed || SPEED), 9, 34) * pace;   // pace: this service's walks, slower or quicker (More > Walks)
     todTarget = STOPS[s.to].tod[0];
     if (dir > 0 && was && was.stroll === s && stroll.on) {     // the readings are done: the text has gone and we keep walking from where we are (or are already there)
       travelP = strollAt(); travelling = travelP < .999; if (!travelling) travelP = 1; todFrom = tod; stroll.on = false;
@@ -2073,7 +2153,8 @@ function planBright() {
 let toastTimer = 0, brightShown = '';
 function applyBright() {                                   // every frame; touches the page only when the level changes
   bright = Math.round(clamp(planBright() + brightNudge, .5, 4) * 100) / 100;
-  const f = bright === 1 ? '' : 'brightness(' + bright + ')'; if (f === brightShown) return;
+  const shown = Math.round(bright * lerp(1, DIM.to, ease(dimP)) * 100) / 100;   // a "dim" move (Sh'ma) takes the scenery down; the words are not part of the picture, so they stay as they are
+  const f = shown === 1 ? '' : 'brightness(' + shown + ')'; if (f === brightShown) return;
   brightShown = f; renderer.domElement.style.filter = f; document.getElementById('brNow').textContent = Math.round(bright * 100) + '%';
 }
 function setBright(v, quiet) {                             // asked for a level: keep the difference from the plan as this room's nudge
@@ -2169,7 +2250,7 @@ function layout() {
 addEventListener('resize', layout); layout();
 
 const fpsEl = document.getElementById('fps'), tmpV = new THREE.Vector3(); let fAcc = 0, fN = 0, last = performance.now(), clock = 0;
-function frame(now) {
+function frame(now, once) {                              // once: a single frame asked for by a test (__mt.tick), which must not start a second loop
   const dt = Math.min((now - last) / 1000, .1); last = now; clock += dt; demoTick(dt);
   const s = STEPS[idx];
   if (god) godFrame(dt);
@@ -2200,13 +2281,15 @@ function frame(now) {
       if (bow.t >= TOE.wait + 3 * TOE.each) { bow = null; toPose(q); }
     }
     else if (bow && bow.s === s && !adjusting && !editing) {                 // a slight bow: knees bend, the view dips forward, holds, and stands up again
-      bow.t += dt; const t = bow.t, q = s.pose;
+      bow.t += dt; const t = Math.max(0, bow.t), q = s.pose;   // (a move with a wait starts below zero)
       const knee = sstep(0, .9, t) * (1 - sstep(2.8, BOW_SECS, t)), dip = sstep(.5, 1.9, t) * (1 - sstep(2.6, BOW_SECS - .2, t));
       tmpP.copy(q.pos); tmpP.y -= .45 * knee; setPose(tmpP, q.aim.yaw, q.aim.pitch - 11 * DEG * dip, q.zoom);
       if (t >= BOW_SECS) { bow = null; toPose(q); }
     }
     tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
   }
+  { const m = !god && !adjusting && !editing && !glide ? moveOf(s) : null;   // the Sh'ma dim: down while its text is up, back up as we move on
+    dimP = clamp(dimP + (m && m.kind === 'dim' ? dt / DIM.down : -dt / DIM.up), 0, 1); }
   applyBright();                                                // brightness by place (eases on the walks to the gate and the ridge)
   applyTOD(god ? (god.fly ? lerp(4, god.fly.tod, god.fly.u) : 4) : tod); animateWind(clock);
   sky.position.copy(camera.position); stars.position.copy(camera.position);
@@ -2215,14 +2298,14 @@ function frame(now) {
   sunLight.position.copy(camera.position).addScaledVector(tmpV, 500); sunLight.target.position.copy(camera.position);
   renderer.render(scene, camera);
   fAcc += dt; fN++; if (fAcc > .5) { fpsEl.textContent = Math.round(fN / fAcc) + ' fps'; fAcc = 0; fN = 0; }
-  requestAnimationFrame(frame);
+  if (!once) requestAnimationFrame(frame);
 }
 const startAt = parseInt((location.hash || '').slice(1), 10), startDemo = /^#demo/i.test(location.hash || '');
 enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length; i++) enter(i, -1);
 if (startDemo) setDemo(true);
 if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { sheetShow, sheetTest: t => { sheetTok = t; return sheetStart(); }, sheetPull, sheetPick, sheetNew, sel, scriptEd, names, stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { tick: (secs, n) => { for (let i = 0; i < (n || 1); i++) { last = performance.now() - secs * 1000; frame(performance.now(), true); } }, MOVES, moves, moveOf, setMove, setMoveAll, setPace, isChanged, PKEY, get dim() { return dimP; }, get pace() { return pace; }, get travelDur() { return travelDur; }, get shown() { return brightShown; }, get route() { return ROUTE; }, sheetShow, sheetTest: t => { sheetTok = t; return sheetStart(); }, sheetPull, sheetPick, sheetNew, sel, scriptEd, names, stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
