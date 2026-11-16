@@ -150,7 +150,7 @@
   #panel.on { display: flex; }
   #panel h2 { margin: 0; font-size: calc(var(--pt)*30); } #panel .sub { opacity: .8; margin: .2em 0 .8em; }
   #shr { display: flex; align-items: center; gap: .8em; margin: 0 0 .7em; font-size: .9em; min-height: 0; } #shr:empty { display: none; }
-  #shr .ok { color: #B6D77B; font-weight: 700; } #shr .warn { color: #FFC843; } #shr a { color: #74D2E7; } #shr button { padding: .25em .8em; }
+  #shr .ok { color: #B6D77B; font-weight: 700; } #shr .warn { color: #FFC843; } #shr a { color: #74D2E7; } #shr button { padding: .25em .8em; } #shr label { display: flex; align-items: center; gap: .45em; font-weight: 700; } #shr select { font: inherit; font-weight: 400; max-width: 15em; padding: .15em .3em; border: 0; border-radius: .4em; }
   #panel .sheet { flex: 1; min-height: 0; overflow-y: auto; border: 1px solid rgba(255,255,255,.22); border-radius: .5em; }
   #panel .srow { display: grid; grid-template-columns: minmax(13.5em, 1.3fr) minmax(6.5em, .75fr) minmax(6.5em, .75fr) minmax(9.5em, .95fr) minmax(8em, 1.4fr); gap: 0 .8em; align-items: center; padding: .12em .8em; border-bottom: 1px solid rgba(255,255,255,.1); }
   #panel .shead { position: sticky; top: 0; z-index: 1; background: #0a3a6e; font-weight: 700; color: #FFC843; font-size: .85em; letter-spacing: .03em; padding: .4em .8em; }
@@ -1051,7 +1051,7 @@ function numberGuides() {                                // Student 1, Student 2
   save(); if (panel.classList.contains('on')) panel.querySelectorAll(FIELDS).forEach(i => { i.value = fieldVal(i); }); showGuide(STEPS[idx]);
   toastMsg(n + ' readers numbered' + (slots.length > n ? ', ' + (slots.length - n) + ' names kept' : ''));
 }
-function setCard(key, on) { cardOff[key] = !on; rebuildKeep(false); showGuide(STEPS[idx]); toastMsg(on ? 'Reading back on' : 'Reading off. Turn it back on in the Prayer List.'); }
+function setCard(key, on) { cardOff[key] = !on; sheetPut(key); rebuildKeep(false); showGuide(STEPS[idx]); toastMsg(on ? 'Reading back on' : 'Reading off. Turn it back on in the Prayer List.'); }
 function guideFor(s) {
   if (s.k === 'hold') return { head: 'Welcome', lines: linesOf(SCRIPT.start) };
   if (s.k === 'travel') return { head: 'On the way to ' + STOPS[s.to].place, lines: linesOf((SCRIPT.stops || {})[s.to]) };
@@ -1085,7 +1085,8 @@ function setGuideEdit(on) {
 function guideTyped() {                                 // keep what was typed: lines for this box, and the name
   const s = guideStep, key = guideMode, g = guideFor(s); if (!g) return;
   const lines = [...guideEl.querySelectorAll('li')].map(li => { const t = li.textContent.replace(/\s+/g, ' ').trim(); return t && li.classList.contains('sub') ? '– ' + t : t; }).filter(Boolean);
-  if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
+  const was = wordsVal(key); if (!lines.length || sameAs(lines, g.lines)) delete scriptEd[key]; else scriptEd[key] = lines;
+  if (sheetOn && wordsVal(key) !== was) sheetQueue(key, 'H', wordsVal(key));
   const who = guideEl.querySelector('.who').textContent.replace(/\s+/g, ' ').trim();
   const ps = boxPrayers(s);
   if (s.k === 'slide' && isQuiet(s.prayer)) { /* a note to be seen: no name */ }
@@ -1133,7 +1134,7 @@ function placeGuide() {
     if (e.target.id === 'gClose') { setGuideEdit(false); guideEl.classList.remove('on'); return; }   // gone until the next script moment; nothing else stops
     if (e.target.id === 'gEdit') return guideEl.classList.contains('edit') ? showGuide(guideStep) : setGuideEdit(true);   // pencil off: redraw, in case the Sheet changed the name meanwhile
     if (e.target.id === 'gOff') return setCard(guideMode, false);
-    if (e.target.id === 'gUndo') { delete scriptEd[guideMode]; delete readers[guideMode]; save(); return showGuide(guideStep); }
+    if (e.target.id === 'gUndo') { delete scriptEd[guideMode]; delete readers[guideMode]; if (sheetOn) sheetQueue(guideMode, 'H', wordsVal(guideMode)); save(); return showGuide(guideStep); }
     if (e.target.id !== 'gSmaller' && e.target.id !== 'gBigger') return;
     const b = boxOf(boxKey(), true); b.fs = e.target.id === 'gSmaller' ? Math.max(16, b.fs - 2) : Math.min(48, b.fs + 2); placeGuide(); save();
   });
@@ -1661,31 +1662,71 @@ let sheetTok = null, sheetOn = false, sheetMsg = '', sheetWhen = '', sheetTimer 
 const sheetPrayers = () => ORDER.filter(o => !HIDDEN_STOPS[o.stop]).reduce((a, o) => a.concat(walkOwn(o) ? [{ id: 'walk:' + o.stop, name: 'Walk to ' + STOPS[o.stop].place }] : [], o.prayers), []);   // with a row for each walk of its own
 const melLabel = id => { const p = sheetPrayers().find(x => x.id === id); return p && p.mel ? melOf(p).t : ''; };
 const melNorm = v => String(v || '').trim().toLowerCase().replace(/[’‘`]/g, "'");
-async function sheetRules() {                           // a drop-down in the Melody column for each prayer that has a choice; best effort
-  const H = { Authorization: 'Bearer ' + sheetTok.t }, base = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET.id;
-  const meta = await fetch(base + '?fields=sheets.properties(sheetId,index)', { headers: H }); if (!meta.ok) return;
-  const tab = ((await meta.json()).sheets || []).map(s => s.properties).sort((a, b) => a.index - b.index)[0]; if (!tab) return;
-  const ids = ((await sheetCall('GET', 'A1:A400')).values || []).map(r => String(r[0] || '').trim()), requests = [];
-  ids.forEach((id, i) => { if (!i) return; const p = sheetPrayers().find(x => x.id === id);
-    requests.push({ setDataValidation: Object.assign({ range: { sheetId: tab.sheetId, startRowIndex: i, endRowIndex: i + 1, startColumnIndex: 4, endColumnIndex: 5 } },
-      p && p.mel && p.mel.length > 1 ? { rule: { condition: { type: 'ONE_OF_LIST', values: p.mel.map(m => ({ userEnteredValue: m.t })) }, showCustomUi: true, strict: true } } : {}) }); });
-  if (requests.length) { const r = await fetch(base + ':batchUpdate', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify({ requests }) }); if (r.ok) sheetRuled = true; }
-}
-async function sheetCall(method, range, body, query) {
-  const add = /:append$/.test(range), rg = add ? range.slice(0, -7) : range;
-  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET.id + '/values/' + encodeURIComponent(rg) + (add ? ':append' : '') + (query || ''),
-    { method, headers: Object.assign({ Authorization: 'Bearer ' + sheetTok.t }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined });
+/* Services: each tab of the Sheet is one service, picked from the Service menu in the Prayer List (this computer remembers which, under TAB_KEY).
+   Besides A to F, a tab holds G "In service" (a tick box: the prayer is ticked, or the reading is on) and H "Reading words" (a reading reworded
+   with the pencil, one line per bullet; empty is the default wording). Readings have rows of their own, with the card's key as the id
+   ("start", "stop:woods", "pop:shma", "turn:gvurot"). Like melodies, what G and H say is kept on this computer if the sign-in runs out. */
+let sheetTabs = [], sheetTab = ''; const TAB_KEY = LS_KEY + '-service', SHEET_HEAD = ['id', 'Prayer', 'Leader', 'Notes', 'Melody', 'Guide', 'In service', 'Reading words'];
+const sheetBase = () => 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET.id;
+async function sheetApi(url, method, body) {
+  const r = await fetch(url, { method: method || 'GET', headers: Object.assign({ Authorization: 'Bearer ' + sheetTok.t }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined });
   if (r.status === 401) { sheetSignOut('Your sign-in ran out. Sign in again to carry on.'); throw new Error('signed out'); }
   if (!r.ok) { const e = new Error('Sheet error ' + r.status); e.status = r.status; throw e; }
   return r.json();
 }
+async function sheetCall(method, range, body, query, tab) {   // values on one tab: the service in use, unless another is named
+  const add = /:append$/.test(range), rg = "'" + (tab || sheetTab).replace(/'/g, "''") + "'!" + (add ? range.slice(0, -7) : range);
+  return sheetApi(sheetBase() + '/values/' + encodeURIComponent(rg) + (add ? ':append' : '') + (query || ''), method, body);
+}
+async function sheetMeta() {                            // the tabs as they are now; a service renamed or deleted in Sheets falls back to the first tab
+  const m = await sheetApi(sheetBase() + '?fields=sheets.properties(sheetId,title,index)');
+  sheetTabs = (m.sheets || []).map(x => x.properties).sort((a, b) => a.index - b.index).map(x => ({ id: x.sheetId, title: x.title }));
+  if (!sheetTabs.some(t => t.title === sheetTab)) { let want = ''; try { want = localStorage.getItem(TAB_KEY) || ''; } catch (e) {} sheetTab = (sheetTabs.find(t => t.title === want) || sheetTabs[0] || { title: '' }).title; }
+}
+// Every row a service's tab holds, in the order of the service: each reading just before the prayer (or walk) it belongs to.
+function sheetItems() {
+  const out = [], has = (set, id) => ((set || {})[id] || []).length > 0;
+  ORDER.filter(o => !HIDDEN_STOPS[o.stop]).forEach(o => {
+    const first = o === ORDER[0], place = STOPS[o.stop].place;
+    if (first ? (SCRIPT.start || []).length : has(SCRIPT.stops, o.stop)) out.push({ id: walkKey(o), card: 1, name: first ? 'Reading: welcome' : 'Reading: on the way to ' + place });
+    if (walkOwn(o)) out.push({ id: 'walk:' + o.stop, name: 'Walk to ' + place });
+    o.prayers.forEach((p, i) => {
+      if (has(SCRIPT.pops, p.id)) out.push({ id: 'pop:' + p.id, card: 1, name: 'Reading: ' + p.name });
+      if (i > 0 && has(SCRIPT.turns, p.id)) out.push({ id: 'turn:' + p.id, card: 1, name: 'Reading: before ' + p.name });
+      out.push({ id: p.id, name: p.name, p });
+    });
+  });
+  return out;
+}
+const boolOf = v => { v = String(v == null ? '' : v).trim().toUpperCase(); return v === 'TRUE' ? true : v === 'FALSE' ? false : null; };
+const itemOn = it => it.card ? !cardOff[it.id] : isOn(it.p);
+// A reading's words as the Sheet holds them: empty for the default wording, "(original)" for the script's own words where the defaults reword them.
+const defLines = k => (DEF.lines || {})[k], wordsNorm = v => String(v || '').split(/\r\n?|\n/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+const wordsVal = k => sameAs(scriptEd[k], defLines(k)) ? '' : scriptEd[k] ? scriptEd[k].join('\n') : '(original)';
+function wordsSet(k, lines) { if (!lines.length) { if (defLines(k)) scriptEd[k] = defLines(k).slice(); else delete scriptEd[k]; } else if (lines.length === 1 && lines[0] === '(original)') delete scriptEd[k]; else scriptEd[k] = lines; }
+const itemRow = it => [it.id, it.name, it.p ? localNames[it.id] || '' : '', it.p ? localNotes[it.id] || '' : '', it.p ? melLabel(it.id) : '', it.card ? '' : localGuides[it.id] || ''].concat(it.card ? [itemOn(it), wordsVal(it.id)] : it.p ? [itemOn(it)] : []);
+function sheetPut(id) {                                 // a tick, or a reading switched or reworded, on this computer: on to the service's tab
+  if (!sheetOn) return; const it = sheetItems().find(x => x.id === id); if (!it || (!it.card && !it.p)) return;
+  sheetQueue(id, 'G', itemOn(it)); if (it.card) sheetQueue(id, 'H', wordsVal(id));
+}
+async function sheetRules() {                           // a drop-down in the Melody column for each prayer that has a choice, tick boxes in "In service"; best effort
+  const tab = sheetTabs.find(t => t.title === sheetTab); if (!tab) return;
+  const ids = ((await sheetCall('GET', 'A1:A400', null, null, tab.title)).values || []).map(r => String(r[0] || '').trim()), requests = [], items = sheetItems();
+  const at = (i, c) => ({ sheetId: tab.id, startRowIndex: i, endRowIndex: i + 1, startColumnIndex: c, endColumnIndex: c + 1 });
+  ids.forEach((id, i) => { if (!i) return; const it = items.find(x => x.id === id), p = it && it.p;
+    requests.push(Object.assign({ range: at(i, 4) }, p && p.mel && p.mel.length > 1 ? { rule: { condition: { type: 'ONE_OF_LIST', values: p.mel.map(m => ({ userEnteredValue: m.t })) }, showCustomUi: true, strict: true } } : {}));
+    if (it && (it.card || it.p)) requests.push({ range: at(i, 6), rule: { condition: { type: 'BOOLEAN' }, strict: true } }); });
+  if (requests.length) { await sheetApi(sheetBase() + ':batchUpdate', 'POST', { requests: requests.map(r => ({ setDataValidation: r })) }); if (tab.title === sheetTab) sheetRuled = true; }
+}
 function sheetRow() {                                   // the line under the Prayer List's title
   if (!SHEET) return '';
-  const link = '<a href="https://docs.google.com/spreadsheets/d/' + SHEET.id + '/edit" target="_blank" rel="noopener">Open the sheet</a>';
-  if (sheetOn) return '<span class="ok">● Shared sheet</span><span>Guides, leaders, melodies and notes are saved to the school sheet' + (sheetWhen ? ' · checked ' + sheetWhen : '') + '</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '') + link + '<button id="shOut">Sign out</button>';
-  return '<button id="shIn" class="main">Sign in with Google</button><span>to share guides, leaders, melodies and notes through the school sheet</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '');
+  const cur = sheetTabs.find(t => t.title === sheetTab), q = v => esc(v).replace(/"/g, '&quot;');
+  const link = '<a href="https://docs.google.com/spreadsheets/d/' + SHEET.id + '/edit' + (cur ? '#gid=' + cur.id : '') + '" target="_blank" rel="noopener">Open the sheet</a>';
+  if (sheetOn) return '<span class="ok">● Shared</span>' + (sheetTabs.length ? '<label>Service<select id="shTab" title="Each service is a tab in the school sheet. Choosing one loads its prayers, readings, names and melodies.">' + sheetTabs.map(t => '<option value="' + q(t.title) + '"' + (t.title === sheetTab ? ' selected' : '') + '>' + esc(t.title) + '</option>').join('') + '</select></label><button id="shNew" title="Make another service, as a copy of this one or from the defaults">New…</button>' : '') +
+    '<span>' + (sheetWhen ? 'saved as you go · checked ' + sheetWhen : 'opening…') + '</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '') + link + '<button id="shOut">Sign out</button>';
+  return '<button id="shIn" class="main">Sign in with Google</button><span>to share services through the school sheet: prayers, readings, guides, leaders, melodies and notes</span>' + (sheetMsg ? '<span class="warn">' + esc(sheetMsg) + '</span>' : '');
 }
-function sheetDraw() { const n = document.getElementById('shr'); if (n) n.innerHTML = sheetRow(); }
+function sheetDraw() { const n = document.getElementById('shr'); if (n && !(document.activeElement && document.activeElement.id === 'shTab')) n.innerHTML = sheetRow(); }   // not while the Service menu is open
 const FIELDS = 'input[data-n], input[data-g], input[data-m]', fieldVal = i => (i.dataset.n ? names[i.dataset.n] : i.dataset.g ? guides[i.dataset.g] : notes[i.dataset.m]) || '';
 function sheetShow() {                                  // put the sheet's values into the list without disturbing a box that is being typed in
   panel.querySelectorAll(FIELDS).forEach(i => { if (i !== document.activeElement) i.value = fieldVal(i); });
@@ -1695,47 +1736,83 @@ function sheetShow() {                                  // put the sheet's value
 async function sheetPull() {
   if (!sheetOn) return;
   try {
-    let rows = (await sheetCall('GET', 'A1:F400')).values || [];
-    if (rows.length && String(rows[0][0] || '').trim().toLowerCase() !== 'id') { sheetMsg = 'The sheet’s first tab has something else in it. Clear it, or put a blank tab first.'; return sheetDraw(); }
+    await sheetMeta(); const tab = sheetTab; if (!tab) return;
+    const put = (range, values) => sheetCall('PUT', range, { values }, '?valueInputOption=RAW', tab);
+    let rows = (await sheetCall('GET', 'A1:H400', null, null, tab)).values || [];
+    if (tab !== sheetTab) return;                          // another service was picked while this one was on its way
+    if (rows.length && String(rows[0][0] || '').trim().toLowerCase() !== 'id') { sheetMsg = 'The tab “' + tab + '” has something else in it. Pick another service, or clear that tab.'; sheetWhen = ''; return sheetDraw(); }
+    const items = sheetItems(), itemAt = r => items.find(x => x.id === String(r[0] || '').trim());
     if (rows.length && !String(rows[0][4] || '').trim()) {  // a sheet made before melodies: head column E and fill it with this computer's choices
       const col = rows.map((r, i) => [i ? melLabel(String(r[0] || '').trim()) : 'Melody']);
-      await sheetCall('PUT', 'E1:E' + rows.length, { values: col }, '?valueInputOption=RAW'); rows.forEach((r, i) => { r[4] = col[i][0]; });
-      if (String(rows[0][3] || '').trim() === 'Melody or notes') await sheetCall('PUT', 'D1', { values: [['Notes']] }, '?valueInputOption=RAW');
+      await put('E1:E' + rows.length, col); rows.forEach((r, i) => { r[4] = col[i][0]; });
+      if (String(rows[0][3] || '').trim() === 'Melody or notes') await put('D1', [['Notes']]);
     }
     if (rows.length && !String(rows[0][5] || '').trim()) {  // a sheet made before guides: head column F and fill it with this computer's guides
       const col = rows.map((r, i) => [i ? localGuides[String(r[0] || '').trim()] || '' : 'Guide']);
-      await sheetCall('PUT', 'F1:F' + rows.length, { values: col }, '?valueInputOption=RAW'); rows.forEach((r, i) => { r[5] = col[i][0]; });
+      await put('F1:F' + rows.length, col); rows.forEach((r, i) => { r[5] = col[i][0]; });
+    }
+    if (rows.length && !String(rows[0][6] || '').trim()) {  // a tab made before services: head G and H and fill them with this computer's ticks and readings
+      const col = rows.map((r, i) => { if (!i) return [SHEET_HEAD[6], SHEET_HEAD[7]]; const it = itemAt(r); return it && (it.card || it.p) ? [itemOn(it), it.card ? wordsVal(it.id) : ''] : ['', '']; });
+      await put('G1:H' + rows.length, col); rows.forEach((r, i) => { r[6] = col[i][0]; r[7] = col[i][1]; });
     }
     const have = {}; rows.forEach((r, i) => { if (i && r[0]) have[String(r[0]).trim()] = r; });
-    const missing = sheetPrayers().filter(p => !have[p.id]), row = p => [p.id, p.name, localNames[p.id] || '', localNotes[p.id] || '', melLabel(p.id), localGuides[p.id] || ''];
-    if (!rows.length || missing.length) {                 // first use, or a prayer that is new since then: add its row
-      const add = (rows.length ? [] : [['id', 'Prayer', 'Leader', 'Notes', 'Melody', 'Guide']]).concat(missing.map(row));
-      await sheetCall('POST', 'A1:F1:append', { values: add }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS');
-      missing.forEach(p => { have[p.id] = row(p); }); sheetRuled = false;
+    const missing = items.filter(it => !have[it.id]);
+    if (!rows.length || missing.length) {                 // first use, or a prayer or reading that is new since then: add its row
+      const add = (rows.length ? [] : [SHEET_HEAD]).concat(missing.map(itemRow));
+      await sheetCall('POST', 'A1:H1:append', { values: add }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS', tab);
+      missing.forEach(it => { have[it.id] = itemRow(it); }); sheetRuled = false;
     }
-    let melMoved = false;
+    if (tab !== sheetTab || !sheetOn) return;
+    let melMoved = false, moved = false;
     sheetPrayers().forEach(p => { const r = have[p.id] || [];
       if (!sheetWait[p.id + 'C']) { const v = String(r[2] || '').trim(); if (v) names[p.id] = v; else delete names[p.id]; }
       if (!sheetWait[p.id + 'D']) { const v = String(r[3] || '').trim(); if (v) notes[p.id] = v; else delete notes[p.id]; }
       if (!sheetWait[p.id + 'F']) { const v = String(r[5] || '').trim(); if (v) guides[p.id] = v; else delete guides[p.id]; }
       if (p.mel && !sheetWait[p.id + 'E']) { const v = melNorm(r[4]), m = v ? p.mel.find(x => melNorm(x.t) === v || x.k === v) : p.mel[0];   // a name the list does not know is left alone
         if (m && m !== melOf(p)) { melody[p.id] = m.k; melMoved = true; } } });
-    if (melMoved) rebuildKeep(true);
+    items.forEach(it => { if (!it.card && !it.p) return; const r = have[it.id] || [];
+      if (!sheetWait[it.id + 'G']) { const g = boolOf(r[6]);
+        if (g === null) sheetQueue(it.id, 'G', itemOn(it));   // an empty cell: this computer's choice fills it
+        else if (g !== itemOn(it)) { if (it.card) cardOff[it.id] = !g; else sel[it.id] = g; moved = true; } }
+      if (it.card && !sheetWait[it.id + 'H']) { const h = wordsNorm(r[7]); if (h.join('\n') !== wordsVal(it.id) && !sameAs(h, scriptEd[it.id])) { wordsSet(it.id, h); moved = true; } } });
+    if (melMoved || moved) rebuildKeep(true);
+    if (moved && panel.classList.contains('on')) {         // ticks and switches changed: redraw the list, unless a name is being typed in it
+      const a = document.activeElement;
+      if (a && panel.contains(a) && a.matches(FIELDS + ', select')) panel.querySelectorAll('input[data-p]').forEach(i => { const it = items.find(x => x.id === i.dataset.p); if (it) i.checked = itemOn(it); });
+      else { const sh = panel.querySelector('.sheet'), top = sh ? sh.scrollTop : 0; drawPanel(); const sh2 = panel.querySelector('.sheet'); if (sh2) sh2.scrollTop = top; }
+    }
     sheetMsg = ''; sheetWhen = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); sheetShow();
     if (!sheetRuled) sheetRules().catch(() => {});
   } catch (e) { if (sheetOn) { sheetMsg = e.status === 403 || e.status === 404 ? 'This account cannot open the sheet. Ask for it to be shared with you as an editor.' : 'Could not reach the sheet just now.'; sheetDraw(); } }
 }
-function sheetQueue(id, col, value) {                   // a typed change: written a moment after the typing stops
-  const k = id + col; clearTimeout((sheetWait[k] || {}).timer);
+function sheetQueue(id, col, value) {                   // a change made here: written a moment after the typing stops, to the service it was made in
+  const k = id + col, tab = sheetTab; clearTimeout((sheetWait[k] || {}).timer);
   sheetWait[k] = { timer: setTimeout(async () => {
     try {
-      const ids = ((await sheetCall('GET', 'A1:A400')).values || []).map(r => String(r[0] || '').trim()), at = ids.indexOf(id);     // find the row now, in case rows were moved
-      if (at > 0) await sheetCall('PUT', col + (at + 1), { values: [[value]] }, '?valueInputOption=RAW');
-      else { const p = sheetPrayers().find(x => x.id === id) || { name: id }; await sheetCall('POST', 'A1:F1:append', { values: [[id, p.name, col === 'C' ? value : '', col === 'D' ? value : '', col === 'E' ? value : '', col === 'F' ? value : '']] }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS'); sheetRuled = false; }
+      const ids = ((await sheetCall('GET', 'A1:A400', null, null, tab)).values || []).map(r => String(r[0] || '').trim()), at = ids.indexOf(id);     // find the row now, in case rows were moved
+      if (at > 0) await sheetCall('PUT', col + (at + 1), { values: [[value]] }, '?valueInputOption=RAW', tab);
+      else { const it = sheetItems().find(x => x.id === id) || { name: id }, row = [id, it.name, '', '', '', ''].concat(col > 'F' ? ['', ''] : []); row['ABCDEFGH'.indexOf(col)] = value;
+        await sheetCall('POST', 'A1:H1:append', { values: [row] }, '?valueInputOption=RAW&insertDataOption=INSERT_ROWS', tab); sheetRuled = false; }
       sheetMsg = '';
-    } catch (e) { if (sheetOn) sheetMsg = 'That change did not reach the sheet. Check the connection and type it again.'; }
+    } catch (e) { if (sheetOn) sheetMsg = 'That change did not reach the sheet. Check the connection and make it again.'; }
     delete sheetWait[k]; sheetDraw();
   }, 700) };
+}
+function sheetPick(title) {                             // another service: its tab takes over, and this computer remembers it
+  sheetTab = title; try { localStorage.setItem(TAB_KEY, title); } catch (e) {} sheetRuled = false; sheetWhen = ''; sheetMsg = ''; sheetDraw(); return sheetPull();
+}
+async function sheetNew(name, copy) {                   // a new tab: a copy of the service in use, or one that starts from the defaults with no names
+  const cur = sheetTabs.find(t => t.title === sheetTab), batch = requests => sheetApi(sheetBase() + ':batchUpdate', 'POST', { requests });
+  try {
+    if (copy && cur) await batch([{ duplicateSheet: { sourceSheetId: cur.id, insertSheetIndex: sheetTabs.length, newSheetName: name } }]);
+    else {
+      await batch([{ addSheet: { properties: { title: name, index: sheetTabs.length } } }]);
+      const defOn = it => it.card ? !(DEF.off || {})[it.id] : it.id in (DEF.sel || {}) ? !!DEF.sel[it.id] : !it.p.off;
+      const rows = [SHEET_HEAD].concat(sheetItems().map(it => [it.id, it.name, '', '', '', ''].concat(it.card || it.p ? [defOn(it)] : [])));
+      await sheetCall('PUT', 'A1:H' + rows.length, { values: rows }, '?valueInputOption=RAW', name);
+    }
+    await sheetPick(name); toastMsg('Service “' + name + '” is ready');
+  } catch (e) { if (sheetOn) { sheetMsg = e.status === 400 ? 'Google would not make that tab. Is there already a service with that name?' : 'Could not make the new service just now.'; sheetDraw(); } }
 }
 function sheetStart() {                                 // signed in: the sheet takes over from this computer's own names
   if (!sheetOn) { localNames = Object.assign({}, names); localGuides = Object.assign({}, guides); localNotes = Object.assign({}, notes); }
@@ -1860,9 +1937,10 @@ panel.addEventListener('input', e => {                   // a guide's name: save
 });
 panel.addEventListener('change', e => {
   const t = e.target;
-  if (t.dataset.p) { sel[t.dataset.p] = t.checked; applyChoice(); }
+  if (t.dataset.p) { sel[t.dataset.p] = t.checked; sheetPut(t.dataset.p); applyChoice(); }
+  else if (t.id === 'shTab') { t.blur(); sheetPick(t.value); }
   else if (t.dataset.mel) setMelody(t.dataset.mel, t.value);
-  else if (t.dataset.stop) { ORDER.find(o => o.stop === t.dataset.stop).prayers.forEach(p => { sel[p.id] = t.checked; }); applyChoice(); }
+  else if (t.dataset.stop) { ORDER.find(o => o.stop === t.dataset.stop).prayers.forEach(p => { sel[p.id] = t.checked; sheetPut(p.id); }); applyChoice(); }
   else if (t.id === 'optScript') setScript(t.checked);
 });
 function loadDesign(d, name) {                           // replace this computer's choices with a design (or the defaults)
@@ -1888,6 +1966,13 @@ const toolClick = e => {
       '<p>The file goes to your Downloads folder. Open a named design later with Open. To make a default for every computer, move defaults.js into the Mountain Tefillah folder, replacing the one there.</p>' +
       '<div class="row"><button id="dlgNo">Cancel</button><button class="main" id="svGo">Save</button></div>'); document.getElementById('svName').focus(); }
   else if (id === 'btnReset') dlg('<h3>Reset this computer?</h3><p>Prayer choices, views and script box places changed on this computer will go back to the defaults. Saved design files are not touched.</p><div class="row"><button id="dlgNo">Cancel</button><button class="main" id="rsGo">Reset</button></div>');
+  else if (id === 'shNew') { dlg('<h3>New service</h3><input type="text" id="nsName" maxlength="60" placeholder="Name it, e.g. Monday 11/23">' +
+      '<label class="chk"><input type="checkbox" id="nsCopy" checked>start as a copy of ' + esc(sheetTab) + '</label>' +
+      '<p>Each service is a tab in the school sheet. Unticked, the new one starts from the defaults, with no names. To rename or delete a service, do it on its tab in Google Sheets.</p>' +
+      '<div class="row"><button id="dlgNo">Cancel</button><button class="main" id="nsGo">Create</button></div>'); document.getElementById('nsName').focus(); }
+  else if (id === 'nsGo') { const n = document.getElementById('nsName'), name = n.value.replace(/[\[\]*?\/\\:]+/g, ' ').replace(/\s+/g, ' ').trim(); if (!name) return n.focus();
+    if (sheetTabs.some(t => t.title.toLowerCase() === name.toLowerCase())) { n.value = name; n.select(); return toastMsg('There is already a service with that name'); }
+    const copy = document.getElementById('nsCopy').checked; dlg(''); sheetNew(name, copy); }
   else if (id === 'dlgNo') dlg('');
   else if (id === 'rsGo') { dlg(''); loadDesign(DEF, DEF.name); }
   else if (id === 'svGo') { const def = document.getElementById('svDef').checked, name = document.getElementById('svName').value.trim(); if (!def && !name) return document.getElementById('svName').focus(); saveDesign(name, def); dlg(''); if (panel.classList.contains('on')) drawPanel(); }
@@ -2137,7 +2222,7 @@ enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length;
 if (startDemo) setDemo(true);
 if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { sheetShow, stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { sheetShow, sheetTest: t => { sheetTok = t; return sheetStart(); }, sheetPull, sheetPick, sheetNew, sel, scriptEd, names, stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
