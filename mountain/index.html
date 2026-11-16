@@ -981,7 +981,10 @@ function buildSteps() {
   STEPS.forEach(t => { if (t.k === 'travel' && STOPS[t.from].stroll) STEPS.forEach(x => { if (x.k === 'slide' && x.stop === t.from) x.stroll = t; }); });
   buildMap();
 }
-const stroll = { p: 0, on: false };                     // how far along that slow walk we are (0 to 1), and whether it has begun
+const stroll = { p: 0, on: false };                     // how much of that slow walk's time has gone (0 to 1), and whether it has begun
+// It sets off at a walking pace straight away and eases down toward the far end: quicker at first, slower as it arrives.
+// Returned as the progress value poseTravel() expects (it applies its own ease), so the walk that follows can carry on from it.
+const strollAt = () => { const f = 1 - Math.pow(1 - stroll.p, 1.7); return .5 - Math.sin(Math.asin(1 - 2 * f) / 3); };
 document.querySelectorAll('.slide').forEach(s => {       // which scrim each slide wants
   const body = [...s.querySelectorAll('.box')].filter(b => !b.classList.contains('h-en') && !b.classList.contains('h-he') && !b.classList.contains('dots'));
   let low = 0; body.forEach(b => { const m = /top:calc\(var\(--in\)\*([\d.]+)\)/.exec(b.getAttribute('style') || ''); if (m) low = Math.max(low, +m[1]); });
@@ -1904,8 +1907,8 @@ function enter(i, dir) {
     travelDur = clamp(Math.abs(s.B.ut - s.A.ut) * L / (STOPS[s.to].speed || SPEED), 9, 34);
     todTarget = STOPS[s.to].tod[0];
     if (dir > 0 && was && was.stroll === s && stroll.on) {     // the readings are done: the text has gone and we keep walking from where we are (or are already there)
-      travelP = stroll.p; travelling = travelP < 1; todFrom = tod; stroll.on = false;
-      if (travelling) travelDur = clamp(STOPS[s.from].stroll * (1 - travelP), 4, 14) / (1 - travelP);   // the rest of the way, a little quicker now there is nothing to read
+      travelP = strollAt(); travelling = travelP < .999; if (!travelling) travelP = 1; todFrom = tod; stroll.on = false;
+      if (travelling) travelDur = clamp(STOPS[s.from].stroll * (1 - stroll.p), 4, 14) / (1 - travelP);   // the rest of the way, a little quicker now there is nothing to read
     } else if (dir > 0) { travelP = 0; travelling = true; todFrom = tod; } else { travelP = 1; travelling = false; todFrom = tod = todTarget; }
   }
   showGuide(s); if (adjusting) document.getElementById('adjName').textContent = curPose().label; if (editing) edRefresh();
@@ -2029,7 +2032,7 @@ function frame(now) {
       if (glide.t >= 1) { const g = glide; glide = null; if (g.then) g.then(); }
     }
     else if (s.stroll && stroll.on && !adjusting && !editing) {               // the slow walk under the opening readings; at the far end it simply waits
-      stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); const e = poseTravel(s.stroll.A0, s.stroll.B, stroll.p); setMap(s.stroll.mi - 1, s.stroll.mi, e, false);
+      stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); const e = poseTravel(s.stroll.A0, s.stroll.B, strollAt()); setMap(s.stroll.mi - 1, s.stroll.mi, e, false);
     }
     else if (s.drift && !adjusting && !editing) {                             // the bridge: we walk slowly across while the words are up
       s.dp = Math.min(1, (s.dp || 0) + dt / s.drift.secs); const e = lerp(s.dp, ease(s.dp), .5), u = s.du = lerp(s.pose.u, s.drift.to, e);
@@ -2059,7 +2062,7 @@ enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length;
 if (startDemo) setDemo(true);
 if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, stroll.p); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
