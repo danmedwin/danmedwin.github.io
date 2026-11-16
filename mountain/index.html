@@ -236,7 +236,7 @@
   <div id="fileBar"><b>Script</b><button id="btnPrint" class="tbl" title="Print the guides’ script for the ticked prayers">Print</button><button id="btnTxt" class="tbl" title="Save the guides’ script as a text file">Text file</button><button id="btnNum" class="tbl" title="Number the readers in order: Student 1, Student 2… one for each card that is read aloud. Names you have typed are kept.">Number</button>
     <b>Outline</b><button id="btnOutPdf" class="tbl" title="The service outline for the ticked prayers: print it, or choose Save as PDF in the print window">PDF</button><button id="btnOutXls" class="tbl" title="Save the service outline as an Excel file">Excel</button>
     <b>Design</b><button id="btnOpen" class="tbl" title="Open a saved design file">Open</button><button id="btnSave" class="tbl" title="Save this design: prayer choices, names, views, slide and script edits">Save</button><button id="btnReset" class="tbl" title="Put this computer back to the defaults">Reset</button>
-    <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to normal brightness">100%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button>
+    <b>Picture</b><button id="brDown" class="tbl" title="Dimmer scene (Shift+B)">Dimmer</button><button id="brNow" title="Back to the planned brightness: 300% before dawn, 150% from the sunrise ridge">300%</button><button id="brUp" class="tbl" title="Brighter scene, for a dim projector (B)">Brighter</button>
     <b>Text</b><button id="lgHe" class="tbl" title="Show or hide the Hebrew on the prayer slides (L steps through the choices)">Hebrew</button><button id="lgTl" class="tbl" title="Show or hide the transliteration; hidden, the translation moves up beside the Hebrew (L)">Translit</button><button id="lgTr" class="tbl" title="Show or hide the translation at the bottom (L)">Translation</button><button id="fileDone" class="fx" title="Close">×</button></div>
   <div id="demoBar"><b>Demo</b><button id="dmPlay" class="tbl" title="Pause or play (Space)">Pause</button><button id="dmRestart" class="tbl" title="Back to the start">Restart</button><span id="dmWhere"></span><button id="dmFull" class="tbl" title="Full screen on or off (F)">Full</button><button id="dmExit" class="tbl" title="Leave the demo and lead it yourself (Esc)">Exit demo</button></div>
   <div id="toast"></div>
@@ -928,7 +928,7 @@ const melody = Object.assign({}, DEF.mel, saved.mel);                 // the mel
 const names = Object.assign({}, DEF.names, saved.names);              // who leads each prayer: { modeh: "Maya" }. In the Prayer List and the Sheet only
 const guides = Object.assign({}, DEF.guides, saved.guides);           // who reads the guide's script before each prayer: { modeh: "Sam" }. On the script, on screen and printed
 const viewAdj = Object.assign({}, DEF.views, saved.views);          // camera nudges: { "summit/avot": { y: yaw, p: pitch } }
-let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = +saved.bright || 1;   // bright: how much the scene is lifted for this room's projector
+let showScript = 'script' in saved ? !!saved.script : !!DEF.script, barOff = !!saved.barOff, bright = 1, brightNudge = +saved.brightNudge || 0;   // bright: the scene's brightness now (the plan by place, plus this room's nudge)
 const scriptEd = Object.assign({}, DEF.lines, saved.lines);          // script boxes reworded on screen: { "stop:tents": ["line", ...] }
 const cardOff = Object.assign({}, DEF.off, saved.off);                // script cards turned off, kept but not shown or printed: { "turn:gvurot": true }
 const readers = Object.assign({}, DEF.readers, saved.readers);        // a reader's name typed on a walk's box: { "stop:tents": "Maya" }
@@ -938,7 +938,7 @@ const settings = () => ({ name: designName, sel, mel: melody, langs, names: shee
 // This computer keeps only what differs from the defaults, so when the defaults change, everything not changed here follows them.
 const sameAs = (a, b) => JSON.stringify(a) === JSON.stringify(b), changed = (cur, def) => { const o = {}; for (const k in cur) if (!def || !sameAs(cur[k], def[k])) o[k] = cur[k]; return o; };
 const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify({ name: designName, sel: changed(sel, DEF.sel), mel: changed(melody, DEF.mel), langs: changed(langs, Object.assign({}, LANG0, DEF.langs)), names: changed(sheetOn ? localNames : names, DEF.names), guides: changed(sheetOn ? localGuides : guides, DEF.guides), notes: changed(sheetOn ? localNotes : notes, DEF.notes), text: changed(textEd, DEF.text), lines: changed(scriptEd, DEF.lines), readers: changed(readers, DEF.readers), off: changed(cardOff, DEF.off),
-  guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff, bright: bright !== 1 ? bright : undefined })); } catch (e) {} };
+  guide: changed(guideBox, DEF.guide), views: changed(viewAdj, DEF.views), script: showScript !== !!DEF.script ? showScript : undefined, barOff, brightNudge: brightNudge || undefined })); } catch (e) {} };
 // Stops left out of the Prayer List for now (the clearing: the stone garden is still to be designed). Their prayers stay off.
 const HIDDEN_STOPS = { garden: 1 }, hiddenP = {}; ORDER.forEach(o => { if (HIDDEN_STOPS[o.stop]) o.prayers.forEach(p => { hiddenP[p.id] = 1; }); });
 const isOn = p => !hiddenP[p.id] && ((p.id in sel) ? !!sel[p.id] : !p.off);
@@ -1878,7 +1878,7 @@ const dlg = html => { document.getElementById('dlg').innerHTML = html ? '<div cl
 let typedName = '', filing = false;
 const toolClick = e => {
   const b = e.target.closest('button, .x'), id = b && b.id; if (!id) return;
-  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnNum') numberGuides(); else if (id === 'btnOutPdf') printOutline(); else if (id === 'btnOutXls') saveOutline(); else if (id === 'lgHe') toggleLang('he'); else if (id === 'lgTl') toggleLang('tl'); else if (id === 'lgTr') toggleLang('tr'); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(1); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
+  if (id === 'btnPrint') printScript(); else if (id === 'btnTxt') downloadScript(); else if (id === 'btnNum') numberGuides(); else if (id === 'btnOutPdf') printOutline(); else if (id === 'btnOutXls') saveOutline(); else if (id === 'lgHe') toggleLang('he'); else if (id === 'lgTl') toggleLang('tl'); else if (id === 'lgTr') toggleLang('tr'); else if (id === 'btnX') togglePanel(false); else if (id === 'fileDone') setFile(false); else if (id === 'brUp') setBright(bright + .1); else if (id === 'brDown') setBright(bright - .1); else if (id === 'brNow') setBright(planBright()); else if (id === 'shIn') sheetSignIn(); else if (id === 'shOut') sheetSignOut('');
   else if (id === 'btnOpen') document.getElementById('fileOpen').click();
   else if (id === 'btnSave') { typedName = designName;
     dlg('<h3>Save this design</h3><input type="text" id="svName" maxlength="60" placeholder="Name it, e.g. Maya’s service" value="' + esc(designName).replace(/"/g, '&quot;') + '">' +
@@ -1972,14 +1972,26 @@ function enter(i, dir) {
 }
 function next() { const s = STEPS[idx]; if (s.k === 'travel' && travelling) { travelP = 1; return; } if (idx < STEPS.length - 1) enter(idx + 1, 1); }
 function prev() { if (idx > 0) enter(idx - 1, -1); }
-// Picture brightness, for a dim projector: lifts the scene only (the text is already white). Kept on this computer, not in a design.
-let toastTimer = 0;
-function setBright(v, quiet) {
-  bright = Math.round(clamp(v, .5, 3) * 10) / 10; renderer.domElement.style.filter = bright === 1 ? '' : 'brightness(' + bright + ')';
-  const pct = Math.round(bright * 100) + '%'; document.getElementById('brNow').textContent = pct;
-  if (!quiet) { save(); const t = document.getElementById('toast'); t.textContent = 'Brightness ' + pct; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 1300); }
+// Picture brightness: lifts the scene only (the text is already white). It follows the trail: 300% in the dark before dawn, easing down to
+// 150% on the walk up to the sunrise ridge (Yotzeir Or), then 150% to the end. B / Shift+B (or More > Picture) nudge it for this room's projector,
+// kept on this computer as brightNudge; the percentage button puts the nudge back to none.
+const BRIGHT_EARLY = 3, BRIGHT_LATE = 1.5, BRIGHT_AT = 'ridge';
+const stopRank = st => ORDER.findIndex(o => o.stop === st);
+function planBright() {
+  const s = STEPS[idx], at = stopRank(BRIGHT_AT); if (!s) return BRIGHT_EARLY;
+  if (s.k === 'travel') { const a = stopRank(s.from), b = stopRank(s.to); return a < at && b >= at ? lerp(BRIGHT_EARLY, BRIGHT_LATE, ease(clamp(travelP, 0, 1))) : b >= at ? BRIGHT_LATE : BRIGHT_EARLY; }
+  return stopRank(s.stop) >= at ? BRIGHT_LATE : BRIGHT_EARLY;
 }
-setBright(bright, true);
+let toastTimer = 0, brightShown = '';
+function applyBright() {                                   // every frame; touches the page only when the level changes
+  bright = Math.round(clamp(planBright() + brightNudge, .5, 4) * 100) / 100;
+  const f = bright === 1 ? '' : 'brightness(' + bright + ')'; if (f === brightShown) return;
+  brightShown = f; renderer.domElement.style.filter = f; document.getElementById('brNow').textContent = Math.round(bright * 100) + '%';
+}
+function setBright(v, quiet) {                             // asked for a level: keep the difference from the plan as this room's nudge
+  brightNudge = Math.round((clamp(v, .5, 4) - planBright()) * 10) / 10; applyBright();
+  if (!quiet) { save(); const t = document.getElementById('toast'); t.textContent = 'Brightness ' + Math.round(bright * 100) + '%' + (brightNudge ? '' : ' (as planned)'); t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 1300); }
+}
 // Full screen: the F key, the Full icon on the toolbar and the one on the Demo strip. It has to start from a tap or a key; a page cannot do it by itself.
 const fullEl = () => document.fullscreenElement || document.webkitFullscreenElement, canFull = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen) && (document.fullscreenEnabled !== false);
 function toggleFull() {
@@ -2107,6 +2119,7 @@ function frame(now) {
     }
     tod += (todTarget - tod) * (1 - Math.exp(-dt / 10));           // light keeps changing slowly while we pray
   }
+  applyBright();                                                // brightness by place (eases down on the walk to the ridge)
   applyTOD(god ? (god.fly ? lerp(4, god.fly.tod, god.fly.u) : 4) : tod); animateWind(clock);
   sky.position.copy(camera.position); stars.position.copy(camera.position);
   clouds.forEach(c => { const az = SUN_AZ + c.az + clock * 0.0009; c.s.position.set(camera.position.x + Math.cos(c.el) * Math.cos(az) * 6000, camera.position.y + Math.sin(c.el) * 6000, camera.position.z + Math.cos(c.el) * Math.sin(az) * 6000); });
