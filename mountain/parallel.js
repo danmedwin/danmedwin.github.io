@@ -271,6 +271,9 @@ window.PARALLEL = {
     "A song of ascents: when Adonai returned",
     "the exiles to Zion,",
     "we were like dreamers."],
+  "s-song-hava-1": [
+    "Come, let us sing",
+    "a song of Halleluyah!"],
   "s-song-ps126-1": [
     "A song of ascents.",
     "When Adonai returned the exiles to Zion,",
