@@ -10,7 +10,13 @@
 //   moves   a prayer's move turned off: { shma: false };  moveAll: false turns every move off
 //   sheet   false = led without the school Google Sheet (no names to share)
 // Also allowed, as in a saved design: sel, langs, off, lines, guide, views, text, notes.
+//   base    true = this is the service at the plain address (.../mountain/), defaults.js just as it is. It only names that service;
+//           to change what it holds, change defaults.js. One preset has it.
 window.PRESETS = {
+  ms: {
+    label: "Middle School",
+    base: true
+  },
   mk: {
     label: "Mechina & Kindergarten",
     only: ["mahtovu", "elohai", "barchu", "shma", "michamocha", "sfatai", "avot", "oseh", "song", "closing"],

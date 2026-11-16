@@ -922,8 +922,10 @@ const ORDER = window.ORDER, LS_BASE = 'mountain-tefillah-traditional';
 // Presets: services that ship with the page (presets.js), picked from the Preset menu at the top of the Prayer List. The address says which one is
 // showing ("?mk"); with none it is the full service, as defaults.js has it. A preset is a partial design laid over the defaults: whatever it does
 // not name stays as the defaults have it. "only" lists the prayers that are ticked; "start" is a stop the walk begins from even with no prayer there.
-const PRESETS = window.PRESETS || {}, PKEY = location.search.slice(1).split('&').map(t => { try { return decodeURIComponent(t.replace(/^(preset|service)=/, '')); } catch (e) { return ''; } }).find(k => k && Object.prototype.hasOwnProperty.call(PRESETS, k)) || '';
-const PRESET = PKEY ? PRESETS[PKEY] : null, LS_KEY = LS_BASE + (PKEY ? '~' + PKEY : '');   // each preset keeps its own changes on this computer
+const PRESETS = window.PRESETS || {}, PKEY = location.search.slice(1).split('&').map(t => { try { return decodeURIComponent(t.replace(/^(preset|service)=/, '')); } catch (e) { return ''; } }).find(k => k && Object.prototype.hasOwnProperty.call(PRESETS, k) && !PRESETS[k].base) || '';
+// The preset marked "base" is the service at the plain address, defaults.js just as it is (Middle School): it only gives that service its name.
+const BASE_LABEL = (Object.keys(PRESETS).map(k => PRESETS[k]).find(p => p && p.base) || {}).label || 'Full service';
+const PRESET = PKEY ? PRESETS[PKEY] : null, PNAME = PKEY ? PRESETS[PKEY].label || PKEY : BASE_LABEL, LS_KEY = LS_BASE + (PKEY ? '~' + PKEY : '');   // each preset keeps its own changes on this computer
 // Settings: defaults.js (travels with the folder) with the preset laid over it, then whatever this computer has saved on top.
 const DEF = (D => {
   const P = PRESET; if (!P) return D; const o = Object.assign({}, D);
@@ -1921,8 +1923,8 @@ const listCount = () => 'Untick a prayer to skip it; untick a whole stop and we 
 // The Prayer List's first line: the preset in use (changing it opens that preset: the address says which one is showing), a note and a Reset
 // when this computer has changed it, how fast the walks go, and the switch for every move.
 function presetRow() {
-  const keys = Object.keys(PRESETS), q = v => esc(v || '').replace(/"/g, '&quot;'), nm = PRESET ? 'the ' + (PRESET.label || PKEY) + ' preset' : 'the full service';
-  return (keys.length ? '<label>Preset<select id="psPick" title="Services that come with the page. Choosing one opens it from its start.">' + '<option value=""' + (PKEY ? '' : ' selected') + '>Full service</option>' +
+  const keys = Object.keys(PRESETS).filter(k => !PRESETS[k].base), q = v => esc(v || '').replace(/"/g, '&quot;'), nm = 'the ' + PNAME + ' preset';
+  return (keys.length ? '<label>Preset<select id="psPick" title="Services that come with the page. Choosing one opens it from its start.">' + '<option value=""' + (PKEY ? '' : ' selected') + '>' + esc(BASE_LABEL) + '</option>' +
       keys.map(k => '<option value="' + q(k) + '"' + (k === PKEY ? ' selected' : '') + '>' + esc(PRESETS[k].label || k) + '</option>').join('') + '</select></label>' : '') +
     (!sheetOn && isChanged() ? '<span class="warn" title="Prayers, melodies, moves, views or text on this computer are not as ' + q(nm) + ' has them">● changed on this computer</span><button id="psReset" title="Put this computer back to ' + q(nm) + '">Reset</button>' : '') +
     '<span class="gap"></span><span class="pc" title="How long the walks between stops take, against the planned time">Walk time<button id="pcDown" title="Quicker walks">−</button><button id="pcNow" title="Back to ' + q(nm) + '’s own pace">' + Math.round(pace * 100) + '%</button><button id="pcUp" title="Slower walks">+</button></span>' +
@@ -2027,7 +2029,7 @@ const toolClick = e => {
         : '<label class="chk"><input type="checkbox" id="svDef">save as default</label>' +
       '<p>The file goes to your Downloads folder. Open a named design later with Open. To make a default for every computer, move defaults.js into the Mountain Tefillah folder, replacing the one there.</p>') +
       '<div class="row"><button id="dlgNo">Cancel</button><button class="main" id="svGo">Save</button></div>'); document.getElementById('svName').focus(); }
-  else if (id === 'btnReset' || id === 'psReset') dlg('<h3>Reset this computer?</h3><p>Prayer choices, melodies, moves, names, views, text edits and script box places changed on this computer will go back to ' + (PRESET ? 'the ' + esc(PRESET.label || PKEY) + ' preset' : 'the defaults') + '. Saved design files are not touched.</p><div class="row"><button id="dlgNo">Cancel</button><button class="main" id="rsGo">Reset</button></div>');
+  else if (id === 'btnReset' || id === 'psReset') dlg('<h3>Reset this computer?</h3><p>Prayer choices, melodies, moves, names, views, text edits and script box places changed on this computer will go back to the ' + esc(PNAME) + ' preset. Saved design files are not touched.</p><div class="row"><button id="dlgNo">Cancel</button><button class="main" id="rsGo">Reset</button></div>');
   else if (id === 'shNew') { dlg('<h3>New service</h3><input type="text" id="nsName" maxlength="60" placeholder="Name it, e.g. Monday 11/23">' +
       '<label class="chk"><input type="checkbox" id="nsCopy" checked>start as a copy of ' + esc(sheetTab) + '</label>' +
       '<p>Each service is a tab in the school sheet. Unticked, the new one starts from the defaults, with no names. To rename or delete a service, do it on its tab in Google Sheets.</p>' +
