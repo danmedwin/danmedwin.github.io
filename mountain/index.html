@@ -1131,7 +1131,7 @@ function placeGuide() {
   guideEl.addEventListener('click', e => {
     e.stopPropagation();
     if (e.target.id === 'gClose') { setGuideEdit(false); guideEl.classList.remove('on'); return; }   // gone until the next script moment; nothing else stops
-    if (e.target.id === 'gEdit') return setGuideEdit(!guideEl.classList.contains('edit'));
+    if (e.target.id === 'gEdit') return guideEl.classList.contains('edit') ? showGuide(guideStep) : setGuideEdit(true);   // pencil off: redraw, in case the Sheet changed the name meanwhile
     if (e.target.id === 'gOff') return setCard(guideMode, false);
     if (e.target.id === 'gUndo') { delete scriptEd[guideMode]; delete readers[guideMode]; save(); return showGuide(guideStep); }
     if (e.target.id !== 'gSmaller' && e.target.id !== 'gBigger') return;
@@ -1689,7 +1689,8 @@ function sheetDraw() { const n = document.getElementById('shr'); if (n) n.innerH
 const FIELDS = 'input[data-n], input[data-g], input[data-m]', fieldVal = i => (i.dataset.n ? names[i.dataset.n] : i.dataset.g ? guides[i.dataset.g] : notes[i.dataset.m]) || '';
 function sheetShow() {                                  // put the sheet's values into the list without disturbing a box that is being typed in
   panel.querySelectorAll(FIELDS).forEach(i => { if (i !== document.activeElement) i.value = fieldVal(i); });
-  showGuide(STEPS[idx]); sheetDraw();
+  if (guideEl.classList.contains('on') && !guideEl.classList.contains('edit')) showGuide(STEPS[idx]);   // not while its words are being typed, and a box closed with × stays closed
+  sheetDraw();
 }
 async function sheetPull() {
   if (!sheetOn) return;
@@ -2136,7 +2137,7 @@ enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length;
 if (startDemo) setDemo(true);
 if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { sheetShow, stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
