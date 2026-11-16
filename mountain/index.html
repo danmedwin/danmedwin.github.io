@@ -393,7 +393,7 @@ function trailDist(x, z) { return nearest(x, z) ? nearD : 99; }
 const U_CAIRN = uNear(318, -212, 0, .3), U_TENTS = uNear(298, -180, 0, .3), U_GATE = uNear(228, -30, 0, .6), U_SUMMIT = uNear(0, 0, .4, .85);
 // tod: light on arrival and by the last slide (0 pre-dawn, 1 first light, 2 sunrise, 3 morning, 4 full day)
 const STOPS = {
-  woods:     { u: 3 / L,                         tod: [0, .06],    walk: 30, sa: .28, name: 'Opening Readings',  place: 'the dark woods' },
+  woods:     { u: 3 / L,                         tod: [0, .06],    walk: 0, stroll: 80, sa: .28, name: 'Opening Readings',  place: 'the dark woods' },
   cairn:     { u: U_CAIRN - 11 / L,              tod: [.1, .14],   sa: .3,  name: 'Rock Counting',      place: 'the cairn' },
   tents:     { u: U_TENTS - 17 / L,              tod: [.22, .34],  sa: .4,  name: 'Morning Blessings',  place: 'the tents' },
   garden:    { u: U_GARDEN - 15 / L,             tod: [.5, .6],    sa: .5,  name: 'Words of Torah',     place: 'the clearing', note: 'stone garden under construction' },
@@ -965,7 +965,7 @@ function buildSteps() {
     r.x = MAPXY[r.stop][0]; r.y = MAPXY[r.stop][1]; r.place = st.place; r.name = names && names.length <= 24 ? names : st.name;
     const list = []; r.prayers.forEach(p => slidesOf(p).forEach((id, k) => list.push({ p, id: slideId(id), first: k === 0 })));
     const n = list.length;
-    const poseOf = (j, p) => { const v = st.views && p && st.views[p.id], u = st.u + (st.walk && n > 1 ? st.walk * j / (n - 1) / L : 0) + ((v && v.du) || 0) / L; return fixPose({ u, key: p ? r.stop + '/' + p.id : r.stop, base: v ? v.aim : st.walk ? pathAim(u, 5) : st.aim, label: p ? p.name : st.place }); };
+    const poseOf = (j, p) => { const v = st.views && p && st.views[p.id], u = st.u + (st.walk && n > 1 ? st.walk * j / (n - 1) / L : 0) + ((v && v.du) || 0) / L; return fixPose({ u, key: p ? r.stop + '/' + p.id : r.stop, base: v ? v.aim : 'walk' in st ? pathAim(u, 5) : st.aim, label: p ? p.name : st.place }); };
     const first = poseOf(0, list[0] && list[0].p);
     STEPS.push(ri === 0 ? { k: 'hold', stop: r.stop, mi: 0, pose: first } : { k: 'travel', from: ROUTE[ri - 1].stop, to: r.stop, mi: ri, A: lastPose, A0: lastPose, B: first });
     lastPose = first;
@@ -976,8 +976,12 @@ function buildSteps() {
       lastPose = pose;
     });
   });
+  // A stop with "stroll" (the woods): once its second slide is up we walk slowly on toward the next stop while its slides are read.
+  // Each of its slides points at the walk that follows it, so the two share one path.
+  STEPS.forEach(t => { if (t.k === 'travel' && STOPS[t.from].stroll) STEPS.forEach(x => { if (x.k === 'slide' && x.stop === t.from) x.stroll = t; }); });
   buildMap();
 }
+const stroll = { p: 0, on: false };                     // how far along that slow walk we are (0 to 1), and whether it has begun
 document.querySelectorAll('.slide').forEach(s => {       // which scrim each slide wants
   const body = [...s.querySelectorAll('.box')].filter(b => !b.classList.contains('h-en') && !b.classList.contains('h-he') && !b.classList.contains('dots'));
   let low = 0; body.forEach(b => { const m = /top:calc\(var\(--in\)\*([\d.]+)\)/.exec(b.getAttribute('style') || ''); if (m) low = Math.max(low, +m[1]); });
@@ -1114,7 +1118,7 @@ function nudge(ch) {                                    // ch: { y, p } look, { 
 }
 function setAdjust(on) {
   adjusting = on; autoNext = false; document.body.classList.toggle('adjusting', on); document.getElementById('tbView').classList.toggle('act', on);
-  if (on) { if (filing) setFile(false); if (editing) setEdit(false); if (god) setGod(false); endGlide(); if (STEPS[idx].drift) { STEPS[idx].dp = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
+  if (on) { if (filing) setFile(false); if (editing) setEdit(false); if (god) setGod(false); endGlide(); if (STEPS[idx].drift) { STEPS[idx].dp = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].stroll) { stroll.on = false; stroll.p = 0; toPose(STEPS[idx].pose); } if (STEPS[idx].k === 'travel') { travelP = 1; travelling = false; } document.getElementById('adjName').textContent = curPose().label; }
 }
 (function () {
   let d = null;
@@ -1884,11 +1888,13 @@ function enter(i, dir) {
   if (s.k === 'slide' || s.k === 'turn') {
     // text fades out, the camera moves to this prayer's view, then the new text fades in
     const pose = s.pose; s.dp = 0; setMap(s.mi, s.mi, 0, true); if (s.k === 'slide') todTarget = s.tod;
-    const moved = pose.pos.distanceTo(cur.pos) > .5 || Math.abs(lerpAngle(cur.yaw, pose.aim.yaw, 1) - cur.yaw) > .02 || Math.abs(pose.aim.pitch - cur.pitch) > .02 || Math.abs(pose.zoom - cur.zoom) > .01;
+    const walking = !!s.stroll && dir > 0 && !!STEPS[idx - 1] && STEPS[idx - 1].stroll === s.stroll;   // clicked on from an earlier reading: the walk begins, or carries on
+    if (walking) stroll.on = true; else if (s.stroll) { stroll.on = false; stroll.p = 0; }
+    const moved = !walking && (pose.pos.distanceTo(cur.pos) > .5 || Math.abs(lerpAngle(cur.yaw, pose.aim.yaw, 1) - cur.yaw) > .02 || Math.abs(pose.aim.pitch - cur.pitch) > .02 || Math.abs(pose.zoom - cur.zoom) > .01);
     const go = dir > 0 && moved, after = s.k === 'slide' ? () => { showText(s.id, s.stop); showGuide(s); if (dir > 0) startMove(s); } : null;   // a turn, like an arrival, waits for a click so the guide can speak
     showText(s.k === 'slide' && !go ? s.id : null, s.stop);
     if (go) glide = { pos0: cur.pos.clone(), y0: cur.yaw, p0: cur.pitch, z0: cur.zoom, to: pose, t: 0, then: after, dur: Math.abs(pose.aim.pitch - cur.pitch) > .5 || pose.pos.distanceTo(cur.pos) > 14 ? 5 : 3.6 };
-    else { toPose(pose); if (dir <= 0 && s.k === 'slide') tod = s.tod; if (s.k === 'turn') post = after; if (dir > 0) startMove(s); }
+    else { if (!walking) toPose(pose); if (dir <= 0 && s.k === 'slide') tod = s.tod; if (s.k === 'turn') post = after; if (dir > 0) startMove(s); }
   } else if (s.k === 'hold') {
     showText(null); todTarget = tod = STOPS[s.stop].tod[0]; toPose(s.pose); setMap(s.mi, s.mi, 0, true);
   } else {
@@ -1897,7 +1903,10 @@ function enter(i, dir) {
     s.A = dir > 0 && was && was.drift && was.dp > 0 ? { u: was.du, ut: was.du, aim: { yaw: cur.yaw, pitch: cur.pitch }, zoom: cur.zoom, d: was.pose.d, dt: was.pose.d } : (s.A0 || s.A);
     travelDur = clamp(Math.abs(s.B.ut - s.A.ut) * L / (STOPS[s.to].speed || SPEED), 9, 34);
     todTarget = STOPS[s.to].tod[0];
-    if (dir > 0) { travelP = 0; travelling = true; todFrom = tod; } else { travelP = 1; travelling = false; todFrom = tod = todTarget; }
+    if (dir > 0 && was && was.stroll === s && stroll.on) {     // the readings are done: the text has gone and we keep walking from where we are (or are already there)
+      travelP = stroll.p; travelling = travelP < 1; todFrom = tod; stroll.on = false;
+      if (travelling) travelDur = clamp(STOPS[s.from].stroll * (1 - travelP), 4, 14) / (1 - travelP);   // the rest of the way, a little quicker now there is nothing to read
+    } else if (dir > 0) { travelP = 0; travelling = true; todFrom = tod; } else { travelP = 1; travelling = false; todFrom = tod = todTarget; }
   }
   showGuide(s); if (adjusting) document.getElementById('adjName').textContent = curPose().label; if (editing) edRefresh();
   if (post) post();
@@ -2019,6 +2028,9 @@ function frame(now) {
       setPose(tmpP, lerpAngle(glide.y0, glide.to.aim.yaw, e), lerp(glide.p0, glide.to.aim.pitch, e), lerp(glide.z0, glide.to.zoom, e));
       if (glide.t >= 1) { const g = glide; glide = null; if (g.then) g.then(); }
     }
+    else if (s.stroll && stroll.on && !adjusting && !editing) {               // the slow walk under the opening readings; at the far end it simply waits
+      stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); const e = poseTravel(s.stroll.A0, s.stroll.B, stroll.p); setMap(s.stroll.mi - 1, s.stroll.mi, e, false);
+    }
     else if (s.drift && !adjusting && !editing) {                             // the bridge: we walk slowly across while the words are up
       s.dp = Math.min(1, (s.dp || 0) + dt / s.drift.secs); const e = lerp(s.dp, ease(s.dp), .5), u = s.du = lerp(s.pose.u, s.drift.to, e);
       const a = viewAdj[s.pose.key] || {}, pa = pathAim(u, -2), w = sstep(0, .12, s.dp);
@@ -2047,7 +2059,7 @@ enter(0, -1); if (startAt > 0) for (let i = 1; i <= startAt && i < STEPS.length;
 if (startDemo) setDemo(true);
 if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, stroll.p); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
