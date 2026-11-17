@@ -5,7 +5,8 @@
 //   only    the prayers that are ticked, by id (the ids are listed in build.py's MANIFEST); every other prayer is unticked
 //   mel     the melody or version for a prayer, by its key in build.py's MELODIES ("first" = First line only)
 //   script  false = the guide's script starts off
-//   pace    how long the walks take against the planned time: 1.5 = half as long again (Walk time, in the Prayer List)
+//   pace    how long the walks take against the planned time: 2 = twice as long (Walk time, in the Prayer List)
+//   autoText  true = at the end of a walk the stop's first prayer comes up by itself, with no click (Text on arrival, in the Prayer List)
 //   start   the stop the service opens at and walks on from, though nothing is prayed there
 //   moves   a prayer's move turned off: { shma: false };  moveAll: false turns every move off
 //   sheet   false = led without the school Google Sheet (no names to share)
@@ -19,10 +20,11 @@ window.PRESETS = {
   },
   mk: {
     label: "Mechina & Kindergarten",
-    only: ["mahtovu", "elohai", "barchu", "shma", "michamocha", "sfatai", "avot", "oseh", "song", "closing"],
+    only: ["mahtovu", "elohai", "barchu", "shma", "michamocha", "sfatai", "avot", "silent", "oseh", "song", "closing"],
     mel: { avot: "first" },
     script: false,
-    pace: 1.5,
+    pace: 2,
+    autoText: true,
     start: "woods",
     sheet: false
   }
