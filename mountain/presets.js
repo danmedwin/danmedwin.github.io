@@ -9,6 +9,8 @@
 //           is quicker, a lower one slower (Walking pace, in the Prayer List)
 //   autoText  true = at the end of a walk the stop's first prayer comes up by itself, with no click (Text on arrival, in the Prayer List)
 //   start   the stop the service opens at and walks on from, though nothing is prayed there
+//   visit   stops we stop at though no prayer is ticked there: { cairn: true }. Nothing comes up on screen; the leader speaks, and a
+//           click walks on. (The pill on a stop's row in the Prayer List. The stop names are in build.py's MANIFEST.)
 //   moves   a prayer's move turned off: { shma: false };  moveAll: false turns every move off
 //   sheet   false = led without the school Google Sheet (no names to share)
 // Also allowed, as in a saved design: sel, langs, off, lines, guide, views, text, notes.
@@ -21,11 +23,12 @@ window.PRESETS = {
   },
   mk: {
     label: "Mechina & Kindergarten",
-    only: ["mahtovu", "elohai", "barchu", "shma", "michamocha", "sfatai", "avot", "silent", "oseh", "song", "closing"],
+    only: ["mahtovu", "elohai", "barchu", "shma", "michamocha", "sfatai", "avot", "silent", "oseh", "dvar", "song", "closing"],
     mel: { avot: "first", song: "chaverim" },
     script: false,
     autoText: true,
     start: "woods",
+    visit: { cairn: true },
     sheet: false
   }
 };
