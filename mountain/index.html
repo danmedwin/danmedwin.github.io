@@ -526,11 +526,11 @@ cairn(CAIRN_AT, 1.15);
 cairn(sideOf(U_SUMMIT, 6.5, 5), .8);
 (function buildTents() {
   [[11, -3, .3], [17, 5, -.5], [14, 12, 1.1]].forEach((t, i) => {
-    const at = sideOf(U_TENTS, t[0], t[1]), mat = flat(0xcdbb96, { emissive: 0xff9a45, emissiveIntensity: .8 });
+    const at = sideOf(U_TENTS, t[0], t[1]), mat = flat(0xcdbb96, { emissive: 0xffb458, emissiveIntensity: .34 });
     const m = new THREE.Mesh(new THREE.ConeGeometry(3.3, 3.7, 4), mat);
     m.position.set(at.x, at.y + 1.75, at.z); m.rotation.y = Math.PI / 4 + t[2]; m.scale.z = 1.35; scene.add(m);
     const pl = new THREE.PointLight(0xffa050, 1, 30, 2); pl.position.set(at.x, at.y + 2.4, at.z); scene.add(pl);
-    glows.push({ mat, light: pl, k: i === 0 ? 1 : .8 });
+    glows.push({ mat, light: pl, k: i === 0 ? .5 : .4, e: .34 });   // k: the lantern light it throws on the ground; e: how brightly the canvas itself glows. Both kept low (they were 1 and .85): the picture is shown at 300% here, and more than this burns the tents out to plain white. The glow's colour is a little yellower than a lantern's, or the dimmed canvas turns pink under the blue night light
   });
 })();
 (function buildGate() {
@@ -760,7 +760,7 @@ function applyTOD(t) {
   mixc(a.fog, b.fog, f, scene.fog.color);
   stars.material.opacity = lerp(a.st, b.st, f);
   const la = lerp(a.la, b.la, f);
-  glows.forEach(g => { g.light.intensity = g.k * la; if (g.basic) g.basic.color.setHex(0xffc070).multiplyScalar(.35 + .65 * la); if (g.mat) g.mat.emissiveIntensity = .85 * la; });
+  glows.forEach(g => { g.light.intensity = g.k * la; if (g.basic) g.basic.color.setHex(0xffc070).multiplyScalar(.35 + .65 * la); if (g.mat) g.mat.emissiveIntensity = (g.e != null ? g.e : .85) * la; });
   clouds.forEach(c => { mixc(a.cl, b.cl, f, c.s.material.color); c.s.material.opacity = lerp(a.co, b.co, f) * c.k; });
 }
 
@@ -2337,7 +2337,7 @@ if (startDemo) setDemo(true);
 if (window.__mtList) { panel.style.pointerEvents = ''; if (!startDemo) { togglePanel(true); const sh = panel.querySelector('.sheet'); if (sh) sh.scrollTop = window.__mtList.top || 0; } else panel.classList.remove('on'); }   // the Prayer List, kept up across a change of preset
 if (SHEET) try { const t = JSON.parse(sessionStorage.getItem('mt-sheet') || 'null'); if (t && t.t && t.exp > Date.now()) { sheetTok = t; sheetStart(); } } catch (e) {}
 addEventListener('hashchange', () => { if (/^#demo/i.test(location.hash || '') && !demo) setDemo(true); });   // #demo typed onto the address of a page that is already open
-window.__mt = { tick: (secs, n) => { for (let i = 0; i < (n || 1); i++) { last = performance.now() - secs * 1000; frame(performance.now(), true); } }, MOVES, moves, moveOf, setMove, setMoveAll, setPace, setAutoText, visit, setVisit, get eyes() { return eyes; }, get autoText() { return autoText; }, get idx() { return idx; }, isChanged, PKEY, get dim() { return dimP; }, get pace() { return walkPace; }, get travelDur() { return travelDur; }, get shown() { return brightShown; }, get route() { return ROUTE; }, sheetShow, sheetTest: t => { sheetTok = t; return sheetStart(); }, sheetPull, sheetPick, sheetNew, sel, scriptEd, names, stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
+window.__mt = { tick: (secs, n) => { for (let i = 0; i < (n || 1); i++) { last = performance.now() - secs * 1000; frame(performance.now(), true); } }, MOVES, moves, moveOf, setMove, setMoveAll, setPace, setAutoText, visit, setVisit, glows, get eyes() { return eyes; }, get autoText() { return autoText; }, get idx() { return idx; }, isChanged, PKEY, get dim() { return dimP; }, get pace() { return walkPace; }, get travelDur() { return travelDur; }, get shown() { return brightShown; }, get route() { return ROUTE; }, sheetShow, sheetTest: t => { sheetTok = t; return sheetStart(); }, sheetPull, sheetPick, sheetNew, sel, scriptEd, names, stroll, step: dt => { const s = STEPS[idx]; if (s.k === 'travel') { if (travelling) { travelP = Math.min(1, travelP + dt / travelDur); if (travelP >= 1) travelling = false; } poseTravel(s.A, s.B, travelP); return 'travel ' + travelP.toFixed(2); } if (s.stroll && stroll.on) { stroll.p = Math.min(1, stroll.p + dt / STOPS[s.stop].stroll); poseTravel(s.stroll.A0, s.stroll.B, strollAt()); } return (s.id || s.k) + ' stroll ' + stroll.p.toFixed(2); }, sheet: { start: t => { sheetTok = { t, exp: Date.now() + 3e6 }; return sheetStart(); }, pull: () => sheetPull(), get on() { return sheetOn; }, get msg() { return sheetMsg; } }, demoTick, get demo() { return demo; }, toeAt, readSlots, setCard, numberGuides, cardOff, guides, get bow() { return bow; }, godStep: dt => { if (god) godFrame(dt); return god ? (god.fly ? 'flying' : 'overview') : 'live'; }, godFlight, flightAt, curve, CAIRNS, height, heightRaw, BR, BT, BR_DOWN, WATER, enter, get STEPS() { return STEPS; }, STOPS, camera, L, cur, aimAt, pathAim, setPose, sel, apply: () => applyChoice(), sections: scriptSections,
   at: id => { const n = STEPS.findIndex(s => s.k === 'slide' && s.id === id); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   arrive: stop => { const n = STEPS.findIndex(s => s.k === 'travel' && s.to === stop); for (let j = 0; j <= n; j++) enter(j, -1); return n; },
   setTod: v => { tod = todTarget = v; }, seek: p => { travelP = p; travelling = false; }, fps: () => fpsEl.textContent };
