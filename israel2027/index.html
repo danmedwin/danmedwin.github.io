@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Israel 2027 · Davis Academy 8th Grade Trip</title>
+<meta name="description" content="A preview of the Davis Academy 8th grade trip to Israel, for Davis families and staff. Passphrase required.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#05305E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Davis Academy 8th Grade Trip to Israel 2027">
+<meta property="og:description" content="A preview of the trip as currently planned, for Davis families and staff. Passphrase required.">
+<meta property="og:url" content="https://techrabbi.org/israel2027/">
+<meta property="og:image" content="https://techrabbi.org/israel2027/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="img/davis-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
+<link href="app.css" rel="stylesheet">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#" aria-label="Back to the overview of the whole trip">
+    <img src="img/davis-mark.svg" alt="" class="brand-mark">
+    <span class="brand-text">
+      <span class="eyebrow">The Davis Academy</span>
+      <span class="brand-title">8th Grade Trip to Israel</span>
+    </span>
+  </a>
+  <div class="top-meta">
+    <span class="top-dates"></span>
+    <span class="top-run"></span>
+  </div>
+  <div class="top-actions">
+    <button class="btn btn-gold" id="btn-play" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg><span>Play the trip</span></button>
+    <button class="btn btn-icon" id="btn-about" type="button" aria-label="About this map"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 10.6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7.4" r="1.25" fill="currentColor"/></svg></button>
+    <button class="btn btn-icon" id="btn-full" type="button" aria-label="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+</header>
+
+<main id="stage">
+  <div id="map" aria-label="Map of the trip"></div>
+
+  <aside id="panel" class="panel" aria-label="Itinerary">
+    <button class="sheet-handle" id="sheet-handle" type="button" aria-label="Expand or collapse the itinerary"><span></span></button>
+    <div class="panel-scroll" id="panel-body"></div>
+  </aside>
+  <button id="panel-reopen" class="panel-reopen" type="button" hidden>Show itinerary</button>
+
+  <div id="banner" class="banner" hidden aria-live="polite"></div>
+  <div id="heading" class="heading-pill" hidden aria-hidden="true"></div>
+
+  <section id="tourcard" class="tourcard" hidden aria-live="polite" aria-label="Tour stop"></section>
+
+  <div id="intro" class="intro" hidden></div>
+  <div id="loading" class="loading"><div class="spinner"></div><p>Loading the map…</p></div>
+
+  <div id="lock" class="lock" hidden>
+    <form id="lock-form" class="lock-card" autocomplete="off">
+      <img src="img/davis-mark.svg" alt="" class="lock-mark">
+      <span class="eyebrow">The Davis Academy</span>
+      <h1>8th Grade Trip to Israel</h1>
+      <p>A preview of the trip as currently planned, for Davis families and staff. Enter the passphrase to open the map.</p>
+      <label for="lock-pass">Passphrase</label>
+      <input id="lock-pass" name="passphrase" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <label class="lock-rem"><input type="checkbox" id="lock-remember" checked> Remember on this device</label>
+      <p id="lock-err" class="lock-err" role="alert" hidden>That passphrase didn’t work. Please check it and try again.</p>
+      <button id="lock-go" class="btn btn-gold" type="submit">Open the map</button>
+    </form>
+  </div>
+</main>
+
+<nav id="days" class="days" aria-label="Days of the trip"></nav>
+
+<dialog id="dlg-play" class="dlg" aria-labelledby="dlg-play-title"></dialog>
+<dialog id="dlg-about" class="dlg dlg-wide" aria-labelledby="dlg-about-title"></dialog>
+
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
