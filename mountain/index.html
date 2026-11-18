@@ -949,7 +949,7 @@ const DEF = (D => {
   return o;
 })(window.DEFAULTS || {});
 let saved = {}; try { saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; } catch (e) {}
-if (PRESET && PRESET.label) { const t2 = document.querySelector('#title .t2'); t2.innerHTML = esc(PRESET.label) + (t2.innerHTML ? ' · ' + t2.innerHTML : ''); }   // under the title, so the room's computer shows which service is up
+if (PRESET && (PRESET.subtitle || PRESET.label)) { const t2 = document.querySelector('#title .t2'); t2.innerHTML = esc(PRESET.subtitle || PRESET.label) + (t2.innerHTML ? ' · ' + t2.innerHTML : ''); }   // under the title, so the room's computer shows which service is up ("subtitle" when it should read differently from the menu)
 let room = saved; if (PKEY) { room = {}; try { room = JSON.parse(localStorage.getItem(LS_BASE) || '{}') || {}; } catch (e) {} }   // this room's own settings (projector brightness, toolbar tucked away) are the same under every preset
 const sel = Object.assign({}, DEF.sel, saved.sel);
 const GUIDE0 = { walk: { x: 7.35, y: .45, w: 12.2, fs: 30 }, start: { x: 7.35, y: 6.3, w: 12.2, fs: 25 }, pop: { x: 4.5, y: 8, yb: 9.45, w: 11, fs: 24 } };   // pop: a note beside a prayer, just above the translation

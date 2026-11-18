@@ -2,6 +2,7 @@
 // Each has its own address, so a bookmark opens straight into it:  .../mountain/?mk
 // A preset names only what it changes; everything else (views, text edits, script box places) is as defaults.js has it.
 //   label   the name in the menu, and under the title on the opening screen
+//   subtitle  what the opening screen shows under the title instead of the label, when the two should differ
 //   only    the prayers that are ticked, by id (the ids are listed in build.py's MANIFEST); every other prayer is unticked
 //   mel     the melody or version for a prayer, by its key in build.py's MELODIES ("first" = First line only)
 //   script  false = the guide's script starts off
@@ -35,8 +36,10 @@ window.PRESETS = {
   // Middle School defaults turn off. Dan's edits the same day ("5th grade - v2"): no Opening Readings, Rock Counting, Mourner's Kaddish or
   // Announcements; a stop at the cairn with no text; Shalom Chaverim to close. It opens in the dark woods (Dan), as mk does. Also left out: the Conversation, and La'asok and Eilu D'varim
   // (the stone garden stop is hidden in every service until it is built: HIDDEN_STOPS in index.html).
+  // Later on 11/18 Dan made it the service for 4th and 5th grades: the opening screen says so (subtitle); the menu and address stay "5th".
   "5th": {
     label: "5th Grade",
+    subtitle: "4th & 5th Grades",     // Dan, 11/18: the service is now for 4th and 5th grades; the menu keeps "5th Grade" and the ?5th address
     only: ["modeh", "mahtovu", "asher", "elohai", "psalm150", "barchu", "yotzeir", "shma", "vahavta",
            "michamocha", "sfatai", "avot", "gvurot", "kedushah", "silent", "oseh", "dvar", "aleinu", "song", "closing"],
     mel: { modeh: "trad", mahtovu: "trad", asher: "trad", elohai: "trad", psalm150: "trad", barchu: "trad", yotzeir: "trad",
