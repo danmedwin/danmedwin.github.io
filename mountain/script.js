@@ -19,7 +19,7 @@ window.SCRIPT = {
       "– You are on the right path.",
       "– Others have been here before you.",
       "Each hiker that passes may add a stone. It is always in process and involves others you do not know.",
-      "Let's add our stone to the pile, through our counting."
+      { if: "rocks", t: "Let's add our stone to the pile, through our counting." }
     ],
     tents: [
       "Looks like there are lights on in those tents up ahead. People are waking up.",

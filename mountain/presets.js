@@ -33,7 +33,7 @@ window.PRESETS = {
   },
   // 5th grade (11/18/2026): the prayers in their traditional settings, and every reading of the guide's script on, including the four the
   // Middle School defaults turn off. Dan's edits the same day ("5th grade - v2"): no Opening Readings, Rock Counting, Mourner's Kaddish or
-  // Announcements; a stop at the cairn with no text; Shalom Chaverim to close. Also left out: the Conversation, and La'asok and Eilu D'varim
+  // Announcements; a stop at the cairn with no text; Shalom Chaverim to close. It opens in the dark woods (Dan), as mk does. Also left out: the Conversation, and La'asok and Eilu D'varim
   // (the stone garden stop is hidden in every service until it is built: HIDDEN_STOPS in index.html).
   "5th": {
     label: "5th Grade",
@@ -43,6 +43,7 @@ window.PRESETS = {
            vahavta: "trad", michamocha: "trad", avot: "trad", oseh: "trad", song: "chaverim" },
     script: true,
     off: { "turn:gvurot": false, "turn:kedushah": false, "pop:shma": false, "pop:vahavta": false },
+    start: "woods",
     visit: { cairn: true },
     sheet: false
   }
