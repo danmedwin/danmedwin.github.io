@@ -31,17 +31,19 @@ window.PRESETS = {
     visit: { cairn: true },
     sheet: false
   },
-  // 5th grade (11/18/2026): every prayer on the trail in its traditional setting, and every reading of the guide's script on, including the
-  // four the Middle School defaults turn off. A starting point for Dan to trim. Left out: the Conversation, and La'asok and Eilu D'varim
+  // 5th grade (11/18/2026): the prayers in their traditional settings, and every reading of the guide's script on, including the four the
+  // Middle School defaults turn off. Dan's edits the same day ("5th grade - v2"): no Opening Readings, Rock Counting, Mourner's Kaddish or
+  // Announcements; a stop at the cairn with no text; Shalom Chaverim to close. Also left out: the Conversation, and La'asok and Eilu D'varim
   // (the stone garden stop is hidden in every service until it is built: HIDDEN_STOPS in index.html).
   "5th": {
     label: "5th Grade",
-    only: ["opening", "rocks", "modeh", "mahtovu", "asher", "elohai", "psalm150", "barchu", "yotzeir", "shma", "vahavta",
-           "michamocha", "sfatai", "avot", "gvurot", "kedushah", "silent", "oseh", "dvar", "aleinu", "kaddish", "announcements", "song", "closing"],
+    only: ["modeh", "mahtovu", "asher", "elohai", "psalm150", "barchu", "yotzeir", "shma", "vahavta",
+           "michamocha", "sfatai", "avot", "gvurot", "kedushah", "silent", "oseh", "dvar", "aleinu", "song", "closing"],
     mel: { modeh: "trad", mahtovu: "trad", asher: "trad", elohai: "trad", psalm150: "trad", barchu: "trad", yotzeir: "trad",
-           vahavta: "trad", michamocha: "trad", avot: "trad", oseh: "trad", song: "trad" },
+           vahavta: "trad", michamocha: "trad", avot: "trad", oseh: "trad", song: "chaverim" },
     script: true,
     off: { "turn:gvurot": false, "turn:kedushah": false, "pop:shma": false, "pop:vahavta": false },
+    visit: { cairn: true },
     sheet: false
   }
 };
