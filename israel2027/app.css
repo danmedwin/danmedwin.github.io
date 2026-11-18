@@ -17,6 +17,10 @@
   --panel-w: 390px;
   --radius: 16px;
   --shadow: 0 10px 30px rgba(3, 31, 63, .28), 0 2px 6px rgba(3, 31, 63, .18);
+  /* cards that float over the satellite photo: a navy edge plus a deep shadow, so a card's own
+     photo never runs into the satellite imagery behind it */
+  --card-shadow: 0 0 0 2px rgba(3, 31, 63, .9), 0 0 0 3.5px rgba(255, 255, 255, .28),
+    0 22px 50px -10px rgba(0, 8, 20, .75), 0 6px 16px rgba(0, 8, 20, .4);
   --he: "Arial Hebrew", Arial, "Noto Sans Hebrew", sans-serif;
   color-scheme: light;
 }
@@ -116,7 +120,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ---------- side panel / bottom sheet ---------- */
 .panel {
   position: absolute; z-index: 10; left: 14px; top: 14px; bottom: 14px; width: var(--panel-w);
-  background: var(--off); border-radius: var(--radius); box-shadow: var(--shadow);
+  background: var(--off); border-radius: var(--radius); box-shadow: var(--card-shadow);
   display: flex; flex-direction: column; overflow: hidden;
   transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease;
 }
@@ -284,7 +288,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tourcard {
   position: absolute; z-index: 13; left: 18px; bottom: 18px; width: min(450px, calc(100% - 36px));
   max-height: calc(100% - 100px); display: flex; flex-direction: column;
-  background: var(--off); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+  background: var(--off); border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden;
   transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1);
 }
 .tourcard.hide { opacity: 0; transform: translateY(14px); pointer-events: none; }
@@ -367,6 +371,35 @@ body.locked .top-actions, body.locked .top-meta, body.locked .days > * { visibil
 .choice .ic svg { width: 20px; height: 20px; }
 .choice b { display: block; color: var(--navy); font-size: 16px; }
 .choice span span { font-size: 13.5px; color: #6b6a66; }
+.pace { font-size: 13.5px !important; margin: 10px 0 6px !important; }
+.pace b { color: var(--teal-dark); }
+.linkish { border: 0; background: none; padding: 0; color: var(--teal-dark); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+/* settings */
+.set { border: 0; padding: 0; margin: 16px 0 0; min-width: 0; }
+.set legend { padding: 0; margin-bottom: 8px; font-weight: 700; font-size: 14.5px; color: var(--navy); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg label { position: relative; flex: 1 1 0; min-width: 76px; }
+.seg input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.seg span {
+  display: block; padding: 9px 8px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff;
+  text-align: center; white-space: nowrap; font-weight: 600; font-size: 14px; color: var(--navy);
+  transition: background-color .12s ease, border-color .12s ease;
+}
+.seg label:hover span { border-color: var(--teal-dark); }
+.seg input:checked + span { background: var(--navy); border-color: var(--navy); color: #fff; }
+.seg input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+.dlg .note { margin-top: 8px; }
+.est { margin: 12px 0 4px !important; font-size: 14px !important; font-weight: 700; color: var(--teal-dark); }
+.check { display: flex; gap: 10px; align-items: flex-start; margin: 2px 0 14px; font-size: 14.5px; line-height: 1.45; cursor: pointer; }
+.check input { flex: none; width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--teal-dark); }
+.pl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.pl .btn[disabled] { opacity: .5; cursor: default; }
+.pl-status { flex: 1 1 200px; font-size: 13.5px; line-height: 1.4; }
+.pl-status b { color: var(--teal-dark); }
+.pl-bar { height: 6px; margin-bottom: 5px; border-radius: 3px; background: #e2e0d8; overflow: hidden; }
+.pl-bar i { display: block; height: 100%; background: var(--teal-dark); transition: width .3s ease; }
+/* the hidden map that loads tiles ahead of the camera */
+#scout { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
 .credits { font-size: 12.5px; line-height: 1.5; columns: 2 260px; column-gap: 24px; padding: 0; list-style: none; }
 .credits li { break-inside: avoid; margin: 0 0 6px; }
 .credits a { color: var(--teal-dark); }
@@ -411,6 +444,9 @@ body.locked .top-actions, body.locked .top-meta, body.locked .days > * { visibil
   .banner .btag { display: none; }
   .heading-pill { bottom: auto; top: 62px; font-size: 13px; }
   .maplibregl-ctrl-top-right { display: none; }
+}
+@media (max-width: 460px) {
+  .seg label { flex: 1 1 calc(50% - 3px); }
 }
 
 /* ---------- big screens / projectors ---------- */

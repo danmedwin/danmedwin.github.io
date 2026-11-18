@@ -19,6 +19,30 @@
   const SPEED = clampSpeed(+new URLSearchParams(location.search).get('speed') || 1);
   function clampSpeed(v) { return Math.max(0.25, Math.min(20, v)); }
 
+  // Viewer settings (Settings dialog), saved on this device only. "x" multiplies durations.
+  // Fast travel is the original pace; it felt rushed, so Medium (1.5×) is the default.
+  const SET_STORE = 'israel2027-settings';
+  const TRAVEL = [
+    { k: 'slowest', label: 'Slowest', x: 2.8 }, { k: 'slow', label: 'Slow', x: 2.1 },
+    { k: 'medium', label: 'Medium', x: 1.5 }, { k: 'fast', label: 'Fast', x: 1 },
+  ];
+  const READ = [
+    { k: 'short', label: 'Short', x: 0.75 }, { k: 'medium', label: 'Medium', x: 1 },
+    { k: 'long', label: 'Long', x: 1.5 }, { k: 'manual', label: 'Wait for me', x: 1 },
+  ];
+  const settings = { travel: 'medium', read: 'medium', preload: true };
+  try {
+    const s = JSON.parse(localStorage.getItem(SET_STORE) || '{}');
+    if (TRAVEL.some((t) => t.k === s.travel)) settings.travel = s.travel;
+    if (READ.some((t) => t.k === s.read)) settings.read = s.read;
+    if (typeof s.preload === 'boolean') settings.preload = s.preload;
+  } catch (_) { /* storage blocked: use the defaults */ }
+  const saveSettings = () => { try { localStorage.setItem(SET_STORE, JSON.stringify(settings)); } catch (_) { /* fine */ } };
+  const travelX = () => TRAVEL.find((t) => t.k === settings.travel).x;
+  const readX = () => READ.find((t) => t.k === settings.read).x;
+  const manualRead = () => settings.read === 'manual';
+  let readGen = 0; // bumps when the card-time setting changes, so a running card restarts its count
+
   // ---------------------------------------------------------------- helpers
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -195,6 +219,21 @@
   areaCenter.telaviv = [34.7745, 32.0700];
 
   // ---------------------------------------------------------------- map
+  // the same tile sources feed the visible map and the hidden preloading map
+  const tileSources = () => ({
+    sat: {
+      // 18, not 19: Esri has no level-19 imagery over parts of Israel (it serves "Map data not yet
+      // available" tiles), so deeper zooms stretch level 18 instead
+      type: 'raster', tileSize: 256, maxzoom: 18,
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      attribution: 'Imagery © <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community',
+    },
+    dem: {
+      type: 'raster-dem', tileSize: 256, maxzoom: 14, encoding: 'terrarium',
+      tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+      attribution: 'Terrain: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a>',
+    },
+  });
   const map = new maplibregl.Map({
     container: 'map',
     style: {
@@ -203,18 +242,7 @@
         'sky-color': '#0b3a6e', 'sky-horizon-blend': 0.55, 'horizon-color': '#cfe8f0', 'horizon-fog-blend': 0.6,
         'fog-color': '#d9ecf2', 'fog-ground-blend': 0.75, 'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 5, 0.9, 9, 0.2],
       },
-      sources: {
-        sat: {
-          type: 'raster', tileSize: 256, maxzoom: 19,
-          tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-          attribution: 'Imagery © <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community',
-        },
-        dem: {
-          type: 'raster-dem', tileSize: 256, maxzoom: 14, encoding: 'terrarium',
-          tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-          attribution: 'Terrain: <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a>',
-        },
-      },
+      sources: tileSources(),
       layers: [
         { id: 'bg', type: 'background', paint: { 'background-color': '#0b2a42' } },
         { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-saturation': -0.05, 'raster-contrast': 0.06, 'raster-fade-duration': 200 } },
@@ -298,11 +326,11 @@
   const panelBody = $('#panel-body');
   const tourcard = $('#tourcard');
   let panelHidden = false;
-  function pad() {
+  function pad(touring = tour.on) {
     const w = stage.clientWidth, h = stage.clientHeight;
-    if (tour.on) {
+    if (touring) {
       if (isMobile()) return { top: 70, bottom: Math.round(h * 0.4), left: 24, right: 24 };
-      const cw = tourcard.offsetWidth || 450;
+      const cw = tourcard.offsetWidth || (innerWidth >= 1600 ? 540 : 450);
       return { top: 80, bottom: 50, left: Math.min(cw + 40, w * 0.45), right: 50 };
     }
     if (panelHidden) return { top: 50, bottom: 50, left: 50, right: 50 };
@@ -333,31 +361,16 @@
       map.triggerRepaint();
       return Promise.resolve(true);
     }
-    const s = { zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), elev: map.transform.elevation, pad: map.getPadding() };
-    const c0 = maplibregl.MercatorCoordinate.fromLngLat(map.getCenter()), c1 = maplibregl.MercatorCoordinate.fromLngLat(target.center);
-    const dMerc = Math.hypot(c1.x - c0.x, c1.y - c0.y);
-    const vw = Math.max(320, map.getCanvas().clientWidth);
-    const zFit = dMerc > 1e-9 ? Math.log2((0.75 * vw) / (512 * dMerc)) : 99;
-    const hopAmt = hop === 'auto' ? Math.max(0, Math.min(s.zoom, z1) - zFit) : hop;
-    const b1 = target.bearing ?? s.bearing;
-    const db = ((((b1 - s.bearing) % 360) + 540) % 360) - 180;
-    const lp = (k, e) => lerp(s.pad[k] || 0, padding[k] || 0, e);
+    const elev0 = map.transform.elevation;
+    const f = flightPlan(hereCam(), { center: target.center, zoom: z1, pitch: p1, bearing: target.bearing, padding }, hop);
     camAnim.on = true;
     map._elevationFreeze = true;
     return new Promise((res) => {
       const t0 = performance.now();
       const frame = (now) => {
         if (id !== camAnim.id) return res(false);
-        const t = clamp((now - t0) / duration, 0, 1), e = ease(t), arcT = Math.sin(Math.PI * t);
-        const c = new maplibregl.MercatorCoordinate(lerp(c0.x, c1.x, e), lerp(c0.y, c1.y, e)).toLngLat();
-        map.jumpTo({
-          center: c,
-          zoom: lerp(s.zoom, z1, e) - hopAmt * arcT,
-          pitch: clamp(lerp(s.pitch, p1, e) - Math.min(28, hopAmt * 9) * arcT, 0, 72),
-          bearing: s.bearing + db * e,
-          padding: { top: lp('top', e), bottom: lp('bottom', e), left: lp('left', e), right: lp('right', e) },
-          elevation: lerp(s.elev, groundAt(target.center), e),
-        });
+        const t = clamp((now - t0) / duration, 0, 1);
+        map.jumpTo({ ...flightCamAt(f, t), elevation: lerp(elev0, groundAt(target.center), ease(t)) });
         if (t < 1) { camAnim.raf = requestAnimationFrame(frame); return; }
         camAnim.on = false;
         map._elevationFreeze = false;
@@ -367,11 +380,52 @@
       camAnim.raf = requestAnimationFrame(frame);
     });
   }
-  function fitTo(points, { pitch = 0, bearing = 0, maxZoom = 16, duration = 1600 } = {}) {
+  // A flight between two far-apart places climbs out (zooms out) mid-way so both ends fit on screen.
+  function hopAmount(c0, c1, z0, z1) {
+    const dMerc = Math.hypot(c1.x - c0.x, c1.y - c0.y);
+    const vw = Math.max(320, map.getCanvas().clientWidth);
+    const zFit = dMerc > 1e-9 ? Math.log2((0.75 * vw) / (512 * dMerc)) : 99;
+    return Math.max(0, Math.min(z0, z1) - zFit);
+  }
+  const turn = (b0, b1) => ((((b1 - b0) % 360) + 540) % 360) - 180; // shortest way round
+  const hereCam = () => ({ center: map.getCenter().toArray(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), padding: map.getPadding() });
+  // A flight from camera a to camera b. fly() animates it, and the preloader samples it ahead of time,
+  // so both use exactly the same path.
+  function flightPlan(a, b, hop = 'auto') {
+    const c0 = maplibregl.MercatorCoordinate.fromLngLat(a.center), c1 = maplibregl.MercatorCoordinate.fromLngLat(b.center);
+    const z1 = b.zoom ?? a.zoom, p1 = b.pitch ?? a.pitch;
+    return {
+      a, c0, c1, z1, p1, pad0: a.padding || {}, pad1: b.padding || {},
+      db: turn(a.bearing, b.bearing ?? a.bearing),
+      hopAmt: hop === 'auto' ? hopAmount(c0, c1, a.zoom, z1) : hop,
+    };
+  }
+  function flightCamAt(f, t) {
+    const e = ease(t), arcT = Math.sin(Math.PI * t), a = f.a;
+    const lp = (k) => lerp(f.pad0[k] || 0, f.pad1[k] || 0, e);
+    return {
+      center: new maplibregl.MercatorCoordinate(lerp(f.c0.x, f.c1.x, e), lerp(f.c0.y, f.c1.y, e)).toLngLat().toArray(),
+      zoom: lerp(a.zoom, f.z1, e) - f.hopAmt * arcT,
+      pitch: clamp(lerp(a.pitch, f.p1, e) - Math.min(28, f.hopAmt * 9) * arcT, 0, 72),
+      bearing: a.bearing + f.db * e,
+      padding: { top: lp('top'), bottom: lp('bottom'), left: lp('left'), right: lp('right') },
+    };
+  }
+  // cameras to preload for a flight, most important first: where it lands, then back along the way.
+  // The start needs nothing (it's on screen already), and a short hop needs only its end.
+  function flightSamples(a, b, ts = [0.85, 0.7, 0.55, 0.4, 0.25]) {
+    const f = flightPlan(a, b);
+    const short = f.hopAmt < 0.5 && Math.hypot(f.c1.x - f.c0.x, f.c1.y - f.c0.y) < 2e-5; // under about 700 m here
+    return [b, ...(short ? [] : ts.map((t) => flightCamAt(f, t)))];
+  }
+  function fitTo(points, opts = {}) {
+    if (!points.length) return Promise.resolve();
+    return fly(fitCam(points, opts), { duration: opts.duration ?? 1600 });
+  }
+  function fitCam(points, { pitch = 0, bearing = 0, maxZoom = 16, padding } = {}) {
     // Our own "fit bounds": MapLibre's cameraForBounds adds the map's current padding on top of
     // ours, which on phones (tall bottom sheet) makes the fit fail.
-    if (!points.length) return Promise.resolve();
-    const p = pad();
+    const p = padding || pad();
     const cv = map.getCanvas(), W = cv.clientWidth, H = cv.clientHeight;
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     points.forEach((pt) => {
@@ -383,14 +437,15 @@
     let zoom = Math.log2(Math.min(aw / (dx * 512), ah / (dy * 512)));
     if (pitch > 30) zoom -= 0.35; // tilted views foreshorten the far side
     zoom = clamp(Math.min(zoom, maxZoom), 1, 18);
-    const center = new maplibregl.MercatorCoordinate((x0 + x1) / 2, (y0 + y1) / 2).toLngLat();
-    return fly({ center, zoom, pitch, bearing, padding: p }, { duration });
+    const center = new maplibregl.MercatorCoordinate((x0 + x1) / 2, (y0 + y1) / 2).toLngLat().toArray();
+    return { center, zoom, pitch, bearing, padding: p };
   }
   const camTo = (opts) => fly(opts, { duration: opts.duration ?? 1500, hop: opts.hop ?? 'auto' });
   // the whole country, used for Day 1, the tour's opening and its ending
   function wideView(duration = 2400, pitch = 20) {
     return fitTo(israelPts, { pitch, maxZoom: 8.6, duration });
   }
+  const wideCam = (pitch, padding) => fitCam(israelPts, { pitch, maxZoom: 8.6, padding });
   map.on('moveend', () => { if (!camAnim.on && !map.isMoving()) map._elevationFreeze = false; });
 
   // ---------------------------------------------------------------- markers
@@ -784,12 +839,12 @@
     if (start) pts.push(start);
     fitTo(pts, { pitch: 45, bearing: 0, maxZoom: 14.5, duration: 1800 });
   }
-  function camForStop(it, from) {
+  function camForStop(it, from, keepBearing = map.getBearing()) {
     const c = it.cam || {};
     let bearing = c.bearing;
     if (bearing == null && c.bearingTo) bearing = bearingOf(it.pos, c.bearingTo);
     if (bearing == null && from && hav(from, it.pos) > 0.3) bearing = bearingOf(from, it.pos);
-    if (bearing == null) bearing = map.getBearing();
+    if (bearing == null) bearing = keepBearing;
     return {
       center: it.pos,
       zoom: c.zoom ?? (it.pin ? DEF_ZOOM[it.kind] ?? 15 : 13.2),
@@ -854,24 +909,25 @@
     const txt = mode === 'highlights' ? it.short || it.text : it.text;
     const w = words(txt);
     const ms = mode === 'highlights' ? clamp(1800 + w * 300, 4300, 7800) : clamp(2600 + w * 265, 5000, 18000);
-    return (ms + (it.solemn ? 1500 : 0)) / SPEED;
+    return ((ms + (it.solemn ? 1500 : 0)) * readX()) / SPEED;
   }
   function flyMs(a, b, it) {
     if (REDUCED) return 500;
-    if (!a || !b) return 3000;
+    if (!a || !b) return (3000 * travelX()) / SPEED;
     const km = hav(a, b);
-    if (km < 0.05) return 1200;
+    if (km < 0.05) return 1200 / SPEED;
     let ms = km < 2 ? 2400 : clamp(2600 + km * 20, 2800, 6200);
     if (it && it.solemn) ms *= 1.2;
-    return ms / SPEED;
+    return (ms * travelX()) / SPEED;
   }
+  // tour length in minutes; with "Wait for me" this counts the flying only
   function estimateMin(mode) {
     let ms = 0, prev = null;
     for (const s of buildSteps(mode, 1)) {
-      if (s.type !== 'item') { ms += 3500; continue; }
+      if (s.type !== 'item') { ms += 3500 * travelX(); continue; }
       const it = s.it;
-      ms += readMs(it, mode) + 400 + (it.kind === 'flight' ? 0 : flyMs(prev, it.pos, it));
-      prev = it.pos;
+      ms += (manualRead() ? 0 : readMs(it, mode)) + 400 + (it.kind === 'flight' ? 2600 * travelX() : flyMs(prev, it.pos, it));
+      prev = it.kind === 'flight' ? null : it.pos;
     }
     return Math.max(1, Math.round(ms / 60000));
   }
@@ -925,6 +981,7 @@
     const token = ++tour.token;
     tour.i = i;
     tour.hold = false;
+    tour.reading = false;
     cancelAnimationFrame(tour.raf);
     cancelAnimationFrame(tour.readRaf);
     cancelCam();
@@ -938,7 +995,9 @@
       showIntro();
       // start high over the eastern Mediterranean, then settle over Israel while the title shows
       map.jumpTo({ center: [34.2, 31.8], zoom: isMobile() ? 4.6 : 5.4, pitch: 0, bearing: 0, padding: pad() });
-      await Promise.all([wideView(REDUCED ? 0 : 3400 / SPEED, 0), wait(3600 / SPEED, token)]);
+      preloadAhead(i);
+      const introMs = (3400 * travelX()) / SPEED;
+      await Promise.all([wideView(REDUCED ? 0 : introMs, 0), wait(introMs + 200 / SPEED, token)]);
       if (token !== tour.token) return;
       hideIntro();
       return runStep(i + 1);
@@ -966,7 +1025,7 @@
       // Day 1 departure and Day 12 return: no flight drawn, just a wide view of the country
       tourCardShow(it, i);
       const t0 = performance.now();
-      await wideView(REDUCED ? 0 : 2600 / SPEED, it.day === 1 ? 30 : 15);
+      await wideView(REDUCED ? 0 : (2600 * travelX()) / SPEED, it.day === 1 ? 30 : 15);
       credit = performance.now() - t0;
       tour.lastPos = null;
     } else {
@@ -979,17 +1038,21 @@
     setNowPin(it.pin ? it.id : null);
     if (it.kind !== 'flight') tourCardShow(it, i);
     readTimer(it, token, credit);
+    preloadAhead(i);
   }
   function readTimer(it, token, credit = 0) {
-    const total = Math.max(2500, readMs(it, tour.mode) - credit);
-    let el = 0, last = performance.now();
+    let el = 0, last = performance.now(), gen = readGen;
     const bar = $('.tc-bar i', tourcard);
+    tour.reading = true;
     const tick = (now) => {
       if (token !== tour.token) return;
+      if (gen !== readGen) { gen = readGen; el = 0; credit = 0; } // card time changed in Settings: count again
       if (!tour.paused && !tour.hold) el += now - last;
       last = now;
-      if (bar) bar.style.width = Math.min(100, (el / total) * 100) + '%';
-      if (el >= total) {
+      const manual = manualRead();
+      const total = Math.max(2500, readMs(it, tour.mode) - credit); // read live, so a new setting applies right away
+      if (bar) bar.style.width = manual ? '0%' : Math.min(100, (el / total) * 100) + '%';
+      if (!manual && el >= total) {
         tourcard.classList.add('hide');
         setTimeout(() => token === tour.token && runStep(tour.i + 1), REDUCED ? 0 : 380);
         return;
@@ -1071,6 +1134,7 @@
     if (!st) return;
     const txt = tour.paused ? '<span class="paused-note">Paused. Press play to continue.</span>'
       : tour.hold ? '<span class="paused-note">Holding while you read</span>'
+      : tour.reading && manualRead() ? '<span class="paused-note">Press next to go on</span>'
       : tour.mode === 'highlights' ? 'Highlights tour' : 'Full tour';
     if (st.innerHTML !== txt) st.innerHTML = txt;
   }
@@ -1108,7 +1172,7 @@
     const el = $('#intro');
     el.innerHTML = `<div><span class="eyebrow">Day 12 · Until we meet again</span>
       <h1>L’hitraot, <span class="acc">Israel!</span></h1>
-      <p>Twelve days, three home bases, and a lifetime of connections.</p>
+      <p>Twelve days, three home bases, and a lifetime of memories.</p>
       <div class="btns"><button type="button" class="btn btn-gold" data-o="explore">Explore the map</button>
       <button type="button" class="btn btn-ghost" data-o="again">${ICON.play}Watch again</button></div></div>`;
     el.hidden = false;
@@ -1153,6 +1217,9 @@
     if (!tour.on) return;
     tour.on = false;
     tour.token++;
+    tour.reading = false;
+    pre.urgent = [];
+    if (!pre.running && !pre.bulkOn) scoutRelease();
     cancelAnimationFrame(tour.raf);
     cancelAnimationFrame(tour.readRaf);
     cancelCam();
@@ -1167,23 +1234,165 @@
     if (d && d !== 12) showDay(d); else showOverview();
   }
 
+  // ---------------------------------------------------------------- map preloading
+  // The satellite map arrives in tiles as the camera moves, and on a slow connection they lag
+  // behind a flight. A hidden second map, the same size as the real one, jumps ahead to where
+  // the camera is going (and to the top of the flight's climb) and loads those tiles. The browser
+  // caches them (Esri allows a day, AWS terrain longer), so the real map finds them ready.
+  const pre = { map: null, el: null, ready: null, failed: false, urgent: [], bulk: [], running: false, bulkOn: false, bulkDone: 0, bulkTotal: 0, bulkEnd: '' };
+  function scoutMap() {
+    if (pre.map || pre.failed) return pre.map;
+    const el = document.createElement('div');
+    el.id = 'scout';
+    el.setAttribute('aria-hidden', 'true');
+    stage.insertBefore(el, mapEl);
+    try {
+      pre.map = new maplibregl.Map({
+        container: el,
+        style: { version: 8, sources: tileSources(), layers: [{ id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-fade-duration': 0 } }] },
+        interactive: false, attributionControl: false, pixelRatio: 1, fadeDuration: 0, maxPitch: 72,
+        center: map.getCenter(), zoom: map.getZoom(),
+      });
+    } catch (e) {
+      console.warn('preloading off:', e && e.message);
+      pre.failed = true; el.remove(); return null;
+    }
+    pre.el = el;
+    pre.map.on('error', () => {}); // a missing tile is not worth a console message here
+    pre.ready = new Promise((res) => pre.map.once('load', () => {
+      try { pre.map.setTerrain({ source: 'dem', exaggeration: 1.35 }); } catch (_) { /* flat is fine */ }
+      res();
+    }));
+    return pre.map;
+  }
+  function scoutRelease() {
+    if (!pre.map) return;
+    try { pre.map.remove(); } catch (_) { /* already gone */ }
+    pre.el && pre.el.remove();
+    pre.map = pre.el = pre.ready = null;
+  }
+  function settle(m, maxMs) {
+    return new Promise((res) => {
+      let done = false;
+      const fin = () => { if (!done) { done = true; clearTimeout(t); res(); } };
+      const t = setTimeout(fin, maxMs);
+      m.once('idle', fin);
+      m.triggerRepaint();
+    });
+  }
+  // give the visible map first claim on the connection
+  async function mainSettled(maxMs = 4000) {
+    const t0 = performance.now();
+    while (performance.now() - t0 < maxMs && (camAnim.on || !map.areTilesLoaded())) await new Promise((r) => setTimeout(r, 200));
+  }
+  async function scoutView(cam) {
+    const m = scoutMap();
+    if (!m) return;
+    await pre.ready;
+    if (pre.map !== m) return;
+    m.jumpTo({ center: cam.center, zoom: cam.zoom, pitch: cam.pitch, bearing: cam.bearing, padding: cam.padding });
+    await settle(m, 10000); // terrain arrives first and can shift the view, so this waits for both
+  }
+  async function preloadRun() {
+    if (pre.running) return;
+    pre.running = true;
+    try {
+      for (;;) {
+        const fromBulk = !pre.urgent.length;
+        const cam = fromBulk ? pre.bulk.shift() : pre.urgent.shift();
+        if (!cam) break;
+        await mainSettled();
+        await scoutView(cam);
+        if (fromBulk && pre.bulkOn) {
+          pre.bulkDone++;
+          if (!pre.bulk.length) { pre.bulkOn = false; pre.bulkEnd = 'done'; }
+          renderPreloadStatus();
+        }
+      }
+    } finally {
+      pre.running = false;
+      if (!tour.on && !pre.bulkOn) scoutRelease();
+    }
+  }
+  // during the tour: while a card is showing, load the next stop
+  function preloadAhead(i) {
+    pre.urgent = [];
+    if (!settings.preload || REDUCED) return;
+    const s = tour.steps[i + 1];
+    if (!s || s.type !== 'item') return;
+    const it = s.it, tp = pad(true), here = hereCam();
+    const cam = it.kind === 'flight' || !it.pos ? wideCam(it.day === 1 ? 30 : 15, tp) : { ...camForStop(it, tour.lastPos || here.center), padding: tp };
+    pre.urgent = flightSamples(here, cam);
+    preloadRun();
+  }
+  // every camera both tours will use, in order, without duplicates
+  function allTourCams() {
+    const out = [], seen = new Set(), tp = pad(true);
+    const add = (c) => {
+      const key = [c.center[0].toFixed(3), c.center[1].toFixed(3), c.zoom.toFixed(1), Math.round((((c.bearing % 360) + 360) % 360) / 20)].join();
+      if (!seen.has(key)) { seen.add(key); out.push(c); }
+    };
+    for (const mode of ['highlights', 'full']) {
+      let prevPos = null, prevCam = null;
+      for (const s of buildSteps(mode, 1)) {
+        if (s.type !== 'item') continue;
+        const it = s.it;
+        let cam;
+        if (it.kind === 'flight' || !it.pos) { cam = wideCam(it.day === 1 ? 30 : 15, tp); prevPos = null; }
+        else {
+          const from = prevPos || (prevCam && prevCam.center);
+          cam = { ...camForStop(it, from, prevCam ? prevCam.bearing : 0), padding: tp };
+          prevPos = it.pos;
+        }
+        (prevCam ? flightSamples(prevCam, cam, [0.75, 0.5]) : [cam]).forEach(add);
+        prevCam = cam;
+      }
+    }
+    return out;
+  }
+  function preloadWholeTrip() {
+    pre.bulk = allTourCams();
+    pre.bulkTotal = pre.bulk.length;
+    pre.bulkDone = 0;
+    pre.bulkOn = true;
+    pre.bulkEnd = '';
+    renderPreloadStatus();
+    preloadRun();
+  }
+  function stopWholeTrip() {
+    pre.bulk = [];
+    pre.bulkOn = false;
+    pre.bulkEnd = 'stopped';
+    renderPreloadStatus();
+  }
+
   // ---------------------------------------------------------------- dialogs
-  const dlgPlay = $('#dlg-play'), dlgAbout = $('#dlg-about');
-  [dlgPlay, dlgAbout].forEach((dl) => dl.addEventListener('click', (e) => { if (e.target === dl) dl.close(); }));
-  function openPlayDialog(fromDay = 1) {
+  const dlgPlay = $('#dlg-play'), dlgAbout = $('#dlg-about'), dlgSet = $('#dlg-settings');
+  [dlgPlay, dlgAbout, dlgSet].forEach((dl) => dl.addEventListener('click', (e) => { if (e.target === dl) dl.close(); }));
+  const optLabel = (list, k) => list.find((o) => o.k === k).label;
+  const minutes = (n) => `${n} minute${n === 1 ? '' : 's'}`;
+  function playLength(mode) {
+    const n = estimateMin(mode);
+    return manualRead() ? `About ${minutes(n)} of flying, plus the time you spend on each card` : `About ${minutes(n)} for the whole trip`;
+  }
+  function renderPlayDialog(fromDay = 1) {
     const from = fromDay > 1 ? days[fromDay - 1] : null;
     dlgPlay.innerHTML = `<div class="pane">
       <div class="pane-top"><span class="eyebrow">${from ? `Starting from Day ${from.day} · ${esc(shortDate(from))}` : 'Fly through the whole trip'}</span>
       <button type="button" class="close-x" data-p="close" aria-label="Close">${ICON.close}</button></div>
       <h2 id="dlg-play-title">Play the trip</h2>
-      <p>Sit back and fly from stop to stop through the trip as it is planned today. Each stop pops up and moves on by itself. Pause any time, hover over a card to keep reading, or use the arrows to skip.</p>
+      <p>Sit back and fly from stop to stop through the trip as it is planned today. ${manualRead() ? 'Each card waits for you to press the next arrow.' : 'Each stop pops up and moves on by itself.'} Pause any time, hover over a card to keep reading, or use the arrows to skip.</p>
       <div class="choice">
-        <button type="button" data-p="highlights"><span class="ic">${ICON.star}</span><span><b>Highlights</b><span>About ${estimateMin('highlights')} minutes for the whole trip: two or three moments from each day.</span></span></button>
-        <button type="button" data-p="full"><span class="ic">${ICON.route}</span><span><b>Full tour</b><span>About ${estimateMin('full')} minutes for the whole trip: every stop, in order, with J²’s full descriptions.</span></span></button>
+        <button type="button" data-p="highlights"><span class="ic">${ICON.star}</span><span><b>Highlights</b><span>Two or three moments from each day. ${playLength('highlights')}.</span></span></button>
+        <button type="button" data-p="full"><span class="ic">${ICON.route}</span><span><b>Full tour</b><span>Every stop, in order, with J²’s full descriptions. ${playLength('full')}.</span></span></button>
       </div>
+      <p class="pace">Travel between stops: <b>${optLabel(TRAVEL, settings.travel)}</b> · Time on each card: <b>${optLabel(READ, settings.read)}</b> · <button type="button" class="linkish" data-p="settings">Change</button></p>
       <p class="note">Keyboard: space bar pauses, arrow keys skip, Esc exits.${isMobile() ? '' : ' Showing it on a big screen? Use the full-screen button at the top right.'}</p>
     </div>`;
     dlgPlay.dataset.from = fromDay;
+  }
+  function openPlayDialog(fromDay = 1) {
+    renderPlayDialog(fromDay);
     dlgPlay.showModal();
   }
   dlgPlay.addEventListener('click', (e) => {
@@ -1191,8 +1400,77 @@
     if (!b) return;
     const p = b.dataset.p;
     if (p === 'close') return dlgPlay.close();
+    if (p === 'settings') return openSettings(); // opens on top; the Play dialog refreshes when it closes
     dlgPlay.close();
     startTour(p, +dlgPlay.dataset.from || 1);
+  });
+
+  // Settings: tour pace and smoother playback (this device only)
+  function segHTML(name, list, cur) {
+    return `<div class="seg">${list.map((o) => `<label><input type="radio" name="${name}" value="${o.k}"${o.k === cur ? ' checked' : ''}><span>${esc(o.label)}</span></label>`).join('')}</div>`;
+  }
+  function estimateText() {
+    const h = estimateMin('highlights'), f = estimateMin('full');
+    return manualRead()
+      ? `Flying time: about ${minutes(h)} for Highlights and ${minutes(f)} for the Full tour, plus the time you spend on each card.`
+      : `Highlights takes about ${minutes(h)}. The Full tour takes about ${minutes(f)}.`;
+  }
+  function renderPreloadStatus() {
+    const box = $('#pl-status', dlgSet), btn = $('[data-s="load-all"], [data-s="stop-all"]', dlgSet);
+    if (!box || !btn) return;
+    const pct = pre.bulkTotal ? Math.round((pre.bulkDone / pre.bulkTotal) * 100) : 0;
+    if (pre.bulkOn) {
+      box.innerHTML = `<div class="pl-bar"><i style="width:${pct}%"></i></div>Loading the map for the whole trip: ${pct}%`;
+      btn.dataset.s = 'stop-all'; btn.textContent = 'Stop loading';
+    } else {
+      box.innerHTML = pre.bulkEnd === 'done' ? '<b>Done.</b> The whole trip’s map is loaded on this device.'
+        : pre.bulkEnd === 'stopped' ? `Stopped at ${pct}%. Press the button to pick up from the start.`
+        : pre.failed ? 'This browser can’t run a second map, so preloading is off.' : '';
+      btn.dataset.s = 'load-all'; btn.textContent = pre.bulkEnd === 'done' ? 'Load it again' : 'Load the whole trip now';
+    }
+    btn.disabled = pre.failed;
+  }
+  let setWasPaused = false;
+  function openSettings() {
+    dlgSet.innerHTML = `<div class="pane">
+      <div class="pane-top"><span class="eyebrow">Settings</span><button type="button" class="close-x" data-s="close" aria-label="Close">${ICON.close}</button></div>
+      <h2 id="dlg-settings-title">Playing the trip</h2>
+      <fieldset class="set"><legend>Travel between stops</legend>${segHTML('travel', TRAVEL, settings.travel)}</fieldset>
+      <fieldset class="set"><legend>Time on each card</legend>${segHTML('read', READ, settings.read)}</fieldset>
+      <p class="note">“Wait for me” keeps each card up until you press the next arrow, which works well when presenting.</p>
+      <p class="est" id="set-est">${estimateText()}</p>
+      <h3>Smoother playback</h3>
+      <p>The satellite map arrives in small pieces as the camera moves. On a slow connection the pieces can fall behind the flight, so the map can fetch them ahead of time.</p>
+      <label class="check"><input type="checkbox" id="set-preload"${settings.preload ? ' checked' : ''}><span>Load the next stop’s map while each card is showing</span></label>
+      <div class="pl"><button type="button" class="btn btn-navy" data-s="load-all">Load the whole trip now</button><div class="pl-status" id="pl-status" aria-live="polite"></div></div>
+      <p class="note">Loading the whole trip takes two or three minutes and downloads about 80 MB on a laptop (less on a phone), so it’s best on Wi-Fi. Your browser keeps the map for about a day.</p>
+      <p class="note">These settings are saved on this device only.</p>
+    </div>`;
+    renderPreloadStatus();
+    setWasPaused = tour.paused;
+    if (tour.on) setPaused(true);
+    if (!dlgSet.open) dlgSet.showModal();
+  }
+  dlgSet.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.name === 'travel') settings.travel = t.value;
+    else if (t.name === 'read') { settings.read = t.value; readGen++; }
+    else if (t.id === 'set-preload') { settings.preload = t.checked; if (!t.checked) pre.urgent = []; }
+    saveSettings();
+    const est = $('#set-est', dlgSet);
+    if (est) est.textContent = estimateText();
+  });
+  dlgSet.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-s]');
+    if (!b) return;
+    if (b.dataset.s === 'close') dlgSet.close();
+    else if (b.dataset.s === 'load-all') preloadWholeTrip();
+    else if (b.dataset.s === 'stop-all') stopWholeTrip();
+  });
+  dlgSet.addEventListener('close', () => {
+    if (tour.on && !setWasPaused) setPaused(false);
+    if (dlgPlay.open) renderPlayDialog(+dlgPlay.dataset.from || 1);
+    updateTourState();
   });
   function openAbout() {
     const photoCredits = items.filter((it) => photos[it.id]).map((it) => {
@@ -1225,6 +1503,7 @@
   // ---------------------------------------------------------------- global controls
   $('#btn-play').addEventListener('click', () => (tour.on ? setPaused(!tour.paused) : openPlayDialog(1)));
   $('#btn-about').addEventListener('click', () => { if (tour.on) setPaused(true); openAbout(); });
+  $('#btn-settings').addEventListener('click', openSettings);
   $('#btn-full').addEventListener('click', () => {
     if (document.fullscreenElement) document.exitFullscreen();
     else document.documentElement.requestFullscreen?.().catch(() => {});
@@ -1251,7 +1530,7 @@
     else if (e.key === 'Escape' && view.kind !== 'all') showOverview();
   });
   let rz;
-  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => map.resize(), 120); });
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { map.resize(); pre.map && pre.map.resize(); }, 120); });
 
   function setHash(h) { history.replaceState(null, '', h ? '#' + h : location.pathname + location.search); }
   function route() {
@@ -1267,5 +1546,5 @@
   // ---------------------------------------------------------------- go
   route();
   setTimeout(() => $('#loading').classList.add('done'), 300);
-  window.__trip = { map, tour, items, legs, startTour, showDay, openStop }; // handy for debugging
+  window.__trip = { map, tour, items, legs, startTour, showDay, openStop, pre, settings, allTourCams, scoutView, camForStop, camTo, pad }; // handy for debugging
 })();
