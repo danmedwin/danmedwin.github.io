@@ -8,7 +8,6 @@ window.SCRIPT = {
   start: [
     "Our tefillah practice is supposed to bring us on a spiritual adventure. When it works well, we are different people on the other side, with a different perspective or insight.",
     "It has been taught that our tefillah experience can be thought of as a hike up a mountain. We start off slow and warm up.",
-    "Our momentum and energy builds as we reach the real beginning of the climb, the Barchu.",
     "The ancient words guide us along this well worn path, that we can see anew each time.",
     "Before each of our prayers on our journey, a guide will share some insight or perspective."
   ],
