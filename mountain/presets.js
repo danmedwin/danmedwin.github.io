@@ -37,15 +37,17 @@ window.PRESETS = {
   // Announcements; a stop at the cairn with no text; Shalom Chaverim to close. It opens in the dark woods (Dan), as mk does. Also left out: the Conversation, and La'asok and Eilu D'varim
   // (the stone garden stop is hidden in every service until it is built: HIDDEN_STOPS in index.html).
   // Later on 11/18 Dan made it the service for 4th and 5th grades: the opening screen says so (subtitle); the menu and address stay "5th".
+  // 11/19 ("5th grade - v3"): no Asher Yatzar; Halleluyah is Kol HaN'shamah only; the Welcome and the walk-to-the-stones cards are off
+  // (Dan says those himself).
   "5th": {
     label: "5th Grade",
     subtitle: "4th & 5th Grades",     // Dan, 11/18: the service is now for 4th and 5th grades; the menu keeps "5th Grade" and the ?5th address
-    only: ["modeh", "mahtovu", "asher", "elohai", "psalm150", "barchu", "yotzeir", "shma", "vahavta",
+    only: ["modeh", "mahtovu", "elohai", "psalm150", "barchu", "yotzeir", "shma", "vahavta",
            "michamocha", "sfatai", "avot", "gvurot", "kedushah", "silent", "oseh", "dvar", "aleinu", "song", "closing"],
-    mel: { modeh: "trad", mahtovu: "trad", asher: "trad", elohai: "trad", psalm150: "trad", barchu: "trad", yotzeir: "trad",
+    mel: { modeh: "trad", mahtovu: "trad", elohai: "trad", psalm150: "kolhan", barchu: "trad", yotzeir: "trad",
            vahavta: "trad", michamocha: "trad", avot: "trad", oseh: "trad", song: "chaverim" },
     script: true,
-    off: { "turn:gvurot": false, "turn:kedushah": false, "pop:shma": false, "pop:vahavta": false },
+    off: { "turn:gvurot": false, "turn:kedushah": false, "pop:shma": false, "pop:vahavta": false, start: true, "stop:cairn": true },
     start: "woods",
     visit: { cairn: true },
     sheet: false
