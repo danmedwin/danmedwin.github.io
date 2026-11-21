@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Renew the Old and Sanctify the New: Sermon Highlights | Tech Rabbi</title>
+<meta name="description" content="Five minutes from Rabbi Dan Medwin’s sermon on the dance between Judaism and technology, with his slides and a transcript that follows along. Reform Temple of Rockland, November 20, 2026.">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+
+<meta property="og:type" content="video.other">
+<meta property="og:title" content="Renew the Old and Sanctify the New">
+<meta property="og:description" content="Five minutes on the dance between Judaism and technology, with slides and a transcript that follows along.">
+<meta property="og:image" content="https://techrabbi.org/rtr/sermon/slides/slide-01.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* One player, three arrangements.
+   Narrow:           slide, video, caption, controls, chapters, transcript, stacked.
+   Wide (900px+):    slide beside video, transcript beside chapters below.
+   Phone sideways:   slide and video fill the screen, one caption line, slim controls. */
+:root {
+  --navy:      #0f1b2d;
+  --navy-deep: #0b1422;
+  --navy-up:   #17273f;
+  --gold:      #d4a853;
+  --gold-soft: #e8c97a;
+  --cream:     #eee8db;
+  --slate:     #9aa3b4;
+  --line:      rgba(255, 255, 255, 0.08);
+  --track:     #2a3d5c;
+
+  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:  'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--navy); color: var(--cream); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.site-header { display: flex; align-items: center; padding: 14px var(--gutter-r) 14px var(--gutter-l); border-bottom: 1px solid var(--line); }
+.site-header .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.site-header .logo img { height: 32px; width: auto; }
+.logo-text { font-family: var(--serif); font-size: 1.3rem; font-weight: 700; color: var(--gold); }
+.logo-text span { color: var(--cream); font-weight: 400; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 22px var(--gutter-r) 40px var(--gutter-l); display: flex; flex-direction: column; gap: 12px; }
+
+/* ---- heading ---- */
+.p-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px 32px; margin-bottom: 4px; }
+.p-titles { min-width: 0; }
+.eyebrow { margin: 0 0 8px; font: 500 0.74rem/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif); text-wrap: balance; }
+.p-sub { margin: 0; color: var(--slate); font-size: 0.95rem; }
+.p-sub em { font-family: var(--serif); font-style: italic; color: var(--cream); font-size: 1.05em; }
+.p-links { display: none; gap: 18px; font-size: 0.92rem; }
+.wide-only { display: none; }
+@media (max-width: 899px) { .p-sub { font-size: 0.88rem; } .p-sub em { display: block; } }
+.p-links a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(212, 168, 83, 0.35); padding-bottom: 1px; white-space: nowrap; }
+.p-links a:hover { color: var(--gold-soft); border-color: var(--gold-soft); }
+
+/* ---- slide and video ---- */
+.stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.slide { margin: 0; aspect-ratio: 16 / 9; max-width: 100%; background: var(--navy-deep); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.speaker { position: relative; aspect-ratio: 3 / 2; max-width: 100%; background: #000; border-radius: 8px; overflow: hidden; }
+.speaker video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; cursor: pointer; }
+.bigplay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(11, 20, 34, 0.28); transition: opacity 0.2s; }
+.bigplay i { width: 68px; height: 68px; border-radius: 50%; background: var(--gold); position: relative; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); }
+.bigplay i::after { content: ''; position: absolute; left: 27px; top: 20px; border-left: 22px solid var(--navy); border-top: 14px solid transparent; border-bottom: 14px solid transparent; }
+[data-state="playing"] .bigplay { opacity: 0; pointer-events: none; }
+.notice { position: absolute; inset: auto 0 0 0; margin: 0; padding: 10px 14px; background: rgba(11, 20, 34, 0.9); font-size: 0.9rem; }
+.caption { margin: 0; min-height: 3em; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 1.02rem; line-height: 1.35; font-weight: 500; text-wrap: balance; }
+[data-cc="off"] .caption { display: none; }
+
+/* ---- controls ---- */
+.controls { display: flex; align-items: center; gap: 12px; }
+.btn-play { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--gold); position: relative; }
+.btn-play::before { content: ''; position: absolute; left: 16px; top: 12px; border-left: 13px solid var(--navy); border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+[data-state="playing"] .btn-play::before { left: 13px; top: 12px; width: 4px; height: 16px; border: 0; background: var(--navy); box-shadow: 10px 0 0 var(--navy); }
+.time { font: 400 0.8rem/1 var(--mono); color: var(--slate); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.time b { color: var(--cream); font-weight: 500; }
+.bar { position: relative; flex: 1; min-width: 60px; height: 30px; display: flex; align-items: center; }
+.bar input { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; margin: 0; background: transparent; cursor: pointer; --pct: 0%; }
+.bar input::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--gold) var(--pct), var(--track) var(--pct)); }
+.bar input::-moz-range-track { height: 4px; border-radius: 2px; background: var(--track); }
+.bar input::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--gold); }
+.bar input::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: var(--gold-soft); border: 0; }
+.bar input::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--gold-soft); border: 0; }
+.ticks { position: absolute; left: 7px; right: 7px; top: 50%; height: 0; pointer-events: none; }
+.ticks i { position: absolute; top: -7px; width: 2px; height: 14px; margin-left: -1px; border-radius: 1px; background: rgba(238, 232, 219, 0.38); }
+.chip { flex: none; padding: 6px 9px; border: 1px solid var(--track); border-radius: 6px; font: 500 0.74rem/1 var(--mono); color: var(--slate); white-space: nowrap; }
+.chip:hover { color: var(--cream); border-color: var(--slate); }
+.chip[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); }
+
+/* ---- chapters and transcript ---- */
+.lower { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.chapters { list-style: none; margin: 0; padding: 0 0 4px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; position: relative; }
+.chapters li { flex: none; }
+.chapters button { display: block; padding: 7px 12px; border: 1px solid var(--track); border-radius: 999px; font-size: 0.86rem; line-height: 1.2; color: var(--slate); white-space: nowrap; }
+.chapters button:hover { color: var(--cream); border-color: var(--slate); }
+.chapters button[aria-current="true"] { background: var(--navy-up); border-color: var(--gold); color: var(--cream); }
+.chapters img, .chapters .ch-time { display: none; }
+.transcript { list-style: none; margin: 0; padding: 0; max-height: 52vh; min-height: 180px; overflow-y: auto; scrollbar-width: thin; position: relative; }
+.line button { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 8px; width: 100%; text-align: left; padding: 7px 8px; border-radius: 6px; color: var(--slate); }
+.line button:hover { background: rgba(255, 255, 255, 0.04); }
+.line .t { font: 400 0.75rem/2 var(--mono); font-variant-numeric: tabular-nums; }
+.line .x { font-size: 1rem; line-height: 1.45; min-width: 0; }
+.line.is-past button { color: #b9bcc2; }
+.line.is-current button { background: var(--navy-up); color: #8f98a8; }
+.line.is-current .t { color: var(--gold); }
+.line.is-current .w.said { color: var(--cream); }
+
+.site-footer { border-top: 1px solid var(--line); margin-top: 8px; }
+.fine { max-width: 1180px; margin: 0 auto; padding: 18px var(--gutter-r) 28px var(--gutter-l); display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; font-size: 0.82rem; color: var(--slate); }
+.fine a { color: var(--slate); }
+
+/* ---- wide ---- */
+@media (min-width: 900px) {
+  .p-links { display: flex; }
+  .wide-only { display: inline; }
+  .wrap { gap: 14px; padding-top: 30px; }
+  .stage { grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); gap: 10px; }
+  .speaker { aspect-ratio: auto; min-height: 0; }
+  .caption { grid-column: 1 / -1; }
+  .lower { grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); gap: 10px 26px; }
+  .transcript, .chapters { max-height: 330px; }
+  .chapters { order: 2; flex-direction: column; overflow-x: hidden; overflow-y: auto; gap: 4px; padding: 0; }
+  .chapters li { flex: none; }
+  .chapters button { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 12px; align-items: center; width: 100%; text-align: left; padding: 5px; border-radius: 8px; border-color: transparent; white-space: normal; }
+  .chapters button:hover { border-color: var(--track); }
+  .chapters button[aria-current="true"] { border-color: var(--track); }
+  .chapters img { display: block; width: 88px; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; }
+  .chapters .ch-name { display: block; font-weight: 500; font-size: 0.9rem; line-height: 1.25; }
+  .chapters .ch-time { display: block; font: 400 0.74rem/1.6 var(--mono); color: var(--slate); font-variant-numeric: tabular-nums; }
+  .chapters button[aria-current="true"] .ch-time { color: var(--gold); }
+}
+
+/* ---- phone held sideways ---- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .site-header, .p-head, .lower, .site-footer { display: none; }
+  html, body { height: 100%; }
+  .wrap { max-width: none; height: 100dvh; padding: 0; gap: 0; }
+  .stage { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 0; }
+  .slide { aspect-ratio: auto; height: 100%; border: 0; border-radius: 0; }
+  .slide img { object-fit: contain; }
+  .speaker { aspect-ratio: auto; height: 100%; border-radius: 0; }
+  .caption { grid-column: 1 / -1; min-height: 2.7em; font-size: 0.98rem; padding: 2px var(--gutter-r) 2px var(--gutter-l); }
+  .controls { padding: 2px var(--gutter-r) max(4px, env(safe-area-inset-bottom, 0px)) var(--gutter-l); border-top: 1px solid var(--line); }
+  .btn-play { width: 30px; height: 30px; }
+  .btn-play::before { left: 12px; top: 8px; border-left-width: 10px; border-top-width: 7px; border-bottom-width: 7px; }
+  [data-state="playing"] .btn-play::before { left: 10px; top: 8px; width: 3px; height: 14px; box-shadow: 7px 0 0 var(--navy); }
+  .bigplay i { width: 52px; height: 52px; }
+  .bigplay i::after { left: 21px; top: 15px; border-left-width: 17px; border-top-width: 11px; border-bottom-width: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .bigplay { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="logo">
+    <img src="/apps/logo.png" alt="">
+    <span class="logo-text">Tech<span>Rabbi</span></span>
+  </a>
+</header>
+
+<main class="wrap" id="player" data-state="paused" data-cc="on">
+  <header class="p-head">
+    <div class="p-titles">
+      <p class="eyebrow">Sermon highlights · 5 minutes</p>
+      <h1>Renew the Old and Sanctify the New</h1>
+      <p class="p-sub"><em>The Dance between Judaism and Technology</em><span class="wide-only"> · </span><span class="p-by">Rabbi Dan Medwin <span class="wide-only">· Reform Temple of Rockland </span>· November 20, 2026</span></p>
+    </div>
+    <nav class="p-links" aria-label="Related pages">
+      <a href="/rtr/">The Scholar-in-Residence weekend</a>
+    </nav>
+  </header>
+
+  <section class="stage" aria-label="Slides and video">
+    <figure class="slide">
+      <img id="slideImg" src="slides/slide-01.jpg" width="1600" height="900" alt="">
+    </figure>
+    <div class="speaker">
+      <video id="video" playsinline preload="metadata" poster="poster.jpg" src="highlight.mp4">
+        <track kind="captions" src="captions.vtt" srclang="en" label="English">
+      </video>
+      <button type="button" class="bigplay" id="bigplay" aria-label="Play"><i aria-hidden="true"></i></button>
+      <p class="notice" id="notice" hidden>The video could not load. The slides and transcript still work.</p>
+    </div>
+    <p class="caption" id="caption" aria-hidden="true"></p>
+  </section>
+
+  <div class="controls" role="group" aria-label="Playback">
+    <button type="button" class="btn-play" id="play" aria-label="Play"></button>
+    <span class="time"><b id="now">0:00</b> / <span id="dur">5:16</span></span>
+    <div class="bar">
+      <input type="range" id="seek" min="0" max="316" step="0.05" value="0" aria-label="Position in the video">
+      <div class="ticks" id="ticks" aria-hidden="true"></div>
+    </div>
+    <button type="button" class="chip" id="cc" aria-pressed="true" aria-label="Captions">CC</button>
+    <button type="button" class="chip" id="speed" aria-label="Playback speed">1×</button>
+  </div>
+
+  <section class="lower" aria-label="Chapters and transcript">
+    <ol class="chapters" id="chapters" aria-label="Chapters"></ol>
+    <ol class="transcript" id="transcript" aria-label="Transcript"></ol>
+  </section>
+
+  <noscript><p>This page needs JavaScript to play the highlights with their slides and transcript.</p></noscript>
+</main>
+
+<footer class="site-footer">
+  <div class="fine">
+    <span>&copy; 2026 Tech Rabbi · Rabbi Dan Medwin</span>
+    <a href="/rtr/">The Scholar-in-Residence weekend</a>
+    <a href="/">techrabbi.org</a>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var S = window.SERMON;
+  if (!S) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var v = $('video'), player = $('player'), seek = $('seek'), tr = $('transcript'), ch = $('chapters');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function clock(t) { t = Math.max(0, Math.floor(t)); var s = t % 60; return Math.floor(t / 60) + ':' + (s < 10 ? '0' : '') + s; }
+  function slideSrc(n, thumb) { return 'slides/' + (thumb ? 'thumb-' : 'slide-') + (n < 10 ? '0' : '') + n + '.jpg'; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function lastAtOrBefore(list, key, t) {            // index of the last item whose start is <= t
+    var lo = 0, hi = list.length - 1, ans = 0;
+    while (lo <= hi) { var mid = (lo + hi) >> 1; if (list[mid][key] <= t) { ans = mid; lo = mid + 1; } else { hi = mid - 1; } }
+    return ans;
+  }
+  function go(t) { v.currentTime = Math.min(Math.max(0, t), S.duration - 0.05); render(v.currentTime, true); }
+
+  // ---- build ----
+  $('dur').textContent = clock(S.duration);
+  seek.max = S.duration;
+  S.slides.forEach(function (s) { new Image().src = slideSrc(s.n); });
+
+  var lineEls = S.lines.map(function (ln, i) {
+    var li = el('li', 'line'), b = el('button'); b.type = 'button';
+    b.appendChild(el('span', 't', clock(ln.s)));
+    var x = el('span', 'x');
+    ln.w.forEach(function (w, k) { if (k) x.appendChild(document.createTextNode(' ')); x.appendChild(el('span', 'w', w[0])); });
+    b.appendChild(x);
+    b.addEventListener('click', function () { go(ln.s); if (v.paused) v.play(); });
+    li.appendChild(b); tr.appendChild(li);
+    return li;
+  });
+  var chapterEls = S.passages.map(function (p, i) {
+    var li = el('li'), b = el('button'); b.type = 'button';
+    var img = el('img'); img.src = slideSrc(p.slide, true); img.alt = ''; img.loading = 'lazy'; img.width = 320; img.height = 180;
+    var txt = el('span'); txt.appendChild(el('span', 'ch-name', p.name)); txt.appendChild(el('span', 'ch-time', clock(p.s)));
+    b.appendChild(img); b.appendChild(txt);
+    b.addEventListener('click', function () { go(p.s); if (v.paused) v.play(); });
+    li.appendChild(b); ch.appendChild(li);
+    if (i) { var tick = el('i'); tick.style.left = (p.s / S.duration * 100) + '%'; $('ticks').appendChild(tick); }
+    return b;
+  });
+
+  // ---- keep slide, caption, transcript and chapters in step with the video ----
+  var cur = { line: -1, passage: -1, slide: -1, said: -1 }, userScrolled = 0, dragging = false;
+  function scrollInside(box, item, horizontal) {
+    if (horizontal) { box.scrollTo({ left: Math.max(0, item.offsetLeft - 16), behavior: reduce ? 'auto' : 'smooth' }); return; }
+    if (box.scrollHeight <= box.clientHeight) return;
+    box.scrollTo({ top: Math.max(0, item.offsetTop - (box.clientHeight - item.offsetHeight) / 2), behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function render(t, jumped) {
+    var li = lastAtOrBefore(S.lines, 's', t), ln = S.lines[li];
+    if (t < S.lines[0].s) li = -1;
+    if (li !== cur.line) {
+      lineEls.forEach(function (e, i) { e.className = 'line' + (i === li ? ' is-current' : i < li ? ' is-past' : ''); });
+      if (cur.line >= 0) [].forEach.call(lineEls[cur.line].querySelectorAll('.said'), function (w) { w.classList.remove('said'); });
+      cur.line = li; cur.said = -1;
+      if (li >= 0 && (jumped || Date.now() - userScrolled > 4000)) scrollInside(tr, lineEls[li], false);
+    }
+    if (li >= 0) {
+      var words = lineEls[li].querySelectorAll('.w'), n = -1;
+      for (var k = 0; k < ln.w.length; k++) { if (ln.w[k][1] <= t + 0.05) n = k; else break; }
+      if (n !== cur.said) { for (var q = 0; q < words.length; q++) words[q].classList.toggle('said', q <= n); cur.said = n; }
+      $('caption').textContent = t <= ln.e + 1.2 ? ln.w.map(function (w) { return w[0]; }).join(' ') : '';
+    } else { $('caption').textContent = ''; }
+
+    var pi = lastAtOrBefore(S.passages, 's', t);
+    if (pi !== cur.passage) {
+      chapterEls.forEach(function (b, i) { if (i === pi) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+      cur.passage = pi;
+      var row = getComputedStyle(ch).flexDirection === 'row';
+      if (row) scrollInside(ch, chapterEls[pi].parentNode, true); else scrollInside(ch, chapterEls[pi].parentNode, false);
+    }
+    var si = S.slides[lastAtOrBefore(S.slides, 't', t)].n;
+    if (si !== cur.slide) { $('slideImg').src = slideSrc(si); $('slideImg').alt = 'Slide: ' + (S.alt[si] || ''); cur.slide = si; }
+
+    $('now').textContent = clock(t);
+    if (!dragging) { seek.value = t; }
+    seek.style.setProperty('--pct', (Math.min(1, t / S.duration) * 100) + '%');
+    seek.setAttribute('aria-valuetext', clock(t) + ' of ' + clock(S.duration) + ', ' + S.passages[pi].name);
+  }
+  function loop() { if (!v.paused && !v.ended) { render(v.currentTime); requestAnimationFrame(loop); } }
+
+  // ---- controls ----
+  function toggle() { if (v.paused || v.ended) { if (v.ended) v.currentTime = 0; v.play(); } else { v.pause(); } }
+  function setState(s) {
+    player.dataset.state = s;
+    var label = s === 'playing' ? 'Pause' : s === 'ended' ? 'Play again' : 'Play';
+    $('play').setAttribute('aria-label', label); $('bigplay').setAttribute('aria-label', label);
+  }
+  $('play').addEventListener('click', toggle);
+  $('bigplay').addEventListener('click', toggle);
+  v.addEventListener('click', toggle);
+  v.addEventListener('play', function () { setState('playing'); requestAnimationFrame(loop); });
+  v.addEventListener('pause', function () { if (!v.ended) setState('paused'); });
+  v.addEventListener('ended', function () { setState('ended'); render(S.duration); });
+  v.addEventListener('timeupdate', function () { if (v.paused) render(v.currentTime); });
+  v.addEventListener('seeked', function () { render(v.currentTime, true); });
+  v.addEventListener('error', function () { $('notice').hidden = false; });
+
+  seek.addEventListener('pointerdown', function () { dragging = true; });
+  window.addEventListener('pointerup', function () { dragging = false; });
+  seek.addEventListener('input', function () { go(parseFloat(seek.value)); });
+
+  var cc = $('cc');
+  function setCC(on) { player.dataset.cc = on ? 'on' : 'off'; cc.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  var saved = null; try { saved = localStorage.getItem('sermon-cc'); } catch (e) {}
+  setCC(saved ? saved === 'on' : !window.matchMedia('(min-width: 900px) and (min-height: 521px)').matches);
+  cc.addEventListener('click', function () {
+    var on = player.dataset.cc !== 'on'; setCC(on);
+    try { localStorage.setItem('sermon-cc', on ? 'on' : 'off'); } catch (e) {}
+  });
+  for (var i = 0; i < v.textTracks.length; i++) v.textTracks[i].mode = 'hidden';   // the page shows its own caption line
+
+  var speeds = [1, 1.25, 1.5], sp = 0;
+  $('speed').addEventListener('click', function () {
+    sp = (sp + 1) % speeds.length; v.playbackRate = speeds[sp];
+    this.textContent = speeds[sp] + '×'; this.setAttribute('aria-pressed', sp ? 'true' : 'false');
+  });
+
+  ['wheel', 'touchstart', 'pointerdown'].forEach(function (ev) { tr.addEventListener(ev, function () { userScrolled = Date.now(); }, { passive: true }); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (e.key === 'k' || (e.key === ' ' && tag !== 'button' && tag !== 'input' && tag !== 'a')) { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight' && tag !== 'input') { e.preventDefault(); go(v.currentTime + 5); }
+    else if (e.key === 'ArrowLeft' && tag !== 'input') { e.preventDefault(); go(v.currentTime - 5); }
+  });
+
+  render(0);
+})();
+</script>
+</body>
+</html>
