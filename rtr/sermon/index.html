@@ -72,7 +72,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
 .stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .slide { margin: 0; aspect-ratio: 16 / 9; max-width: 100%; background: var(--navy-deep); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.speaker { position: relative; aspect-ratio: 3 / 2; max-width: 100%; background: #000; border-radius: 8px; overflow: hidden; }
+.speaker { position: relative; aspect-ratio: 3 / 2; max-width: 100%; background: #000 url(poster.jpg) 50% 22% / cover no-repeat; border-radius: 8px; overflow: hidden; }
 .speaker video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; cursor: pointer; }
 .bigplay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(11, 20, 34, 0.28); transition: opacity 0.2s; }
 .bigplay i { width: 68px; height: 68px; border-radius: 50%; background: var(--gold); position: relative; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); }
@@ -202,9 +202,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
       <img id="slideImg" src="slides/slide-01.jpg" width="1600" height="900" alt="">
     </figure>
     <div class="speaker">
-      <video id="video" playsinline preload="metadata" poster="poster.jpg" src="highlight.mp4">
-        <track kind="captions" src="captions.vtt" srclang="en" label="English">
-      </video>
+      <video id="video" playsinline preload="metadata" poster="poster.jpg" src="highlight.mp4"></video>
       <button type="button" class="bigplay" id="bigplay" aria-label="Play"><i aria-hidden="true"></i></button>
       <span class="spin" aria-hidden="true"></span>
       <p class="notice" id="notice" role="status" hidden></p>
@@ -265,7 +263,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
     if (!dbg) return;
     var b = v.buffered && v.buffered.length ? v.buffered.end(v.buffered.length - 1).toFixed(1) : '-';
     dbg.textContent += ((Date.now() - t0) / 1000).toFixed(1) + 's  ' + msg + '  [ready ' + v.readyState + ' net ' + v.networkState +
-      ' t ' + v.currentTime.toFixed(1) + ' buf ' + b + (v.error ? ' err ' + v.error.code : '') + ']\n';
+      ' t ' + v.currentTime.toFixed(1) + ' buf ' + b + (v.muted ? ' muted' : '') + (v.error ? ' err ' + v.error.code : '') + ']\n';
   }
   if (/[?&]debug\b/.test(location.search)) {
     dbg = el('pre', 'dbg'); player.insertBefore(dbg, player.querySelector('.lower'));
@@ -278,26 +276,34 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
     v.addEventListener('playing', function () {
       [1000, 3000, 6000].forEach(function (ms) { setTimeout(function () { log('+' + ms / 1000 + 's after playing, paused ' + v.paused); }, ms); });
     });
-    // Does this device load other video files? Each line below answers for one file.
-    var probe = function (name, url) {
+    // On an iPhone this file loaded in a bare test player and failed in the page's own. These test players each add
+    // one thing the page's player had, to show which one the device objects to.
+    var mainSrc = v.getAttribute('src');
+    var probe = function (name, opts) {
       var q = document.createElement('video'), at = Date.now(), done = false;
-      q.muted = true; q.playsInline = true; q.preload = 'metadata';
+      q.setAttribute('playsinline', ''); q.playsInline = true; q.preload = 'metadata'; q.muted = !opts.sound;
+      if (opts.poster) q.poster = 'poster.jpg';
+      if (opts.track) {
+        var tr0 = document.createElement('track'); tr0.kind = 'captions'; tr0.src = 'captions.vtt'; tr0.srclang = 'en'; tr0.label = 'English';
+        q.appendChild(tr0);
+      }
       q.style.cssText = 'position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none';
       q.addEventListener('loadedmetadata', function () {
         if (done) return; done = true;
-        log('probe, ' + name + ': LOADS in ' + (Date.now() - at) + ' ms');
+        log('test player, ' + name + ': LOADS in ' + (Date.now() - at) + ' ms');
         q.removeAttribute('src'); q.load();
       });
       q.addEventListener('error', function () {
         if (done) return; done = true;
-        log('probe, ' + name + ': FAILS in ' + (Date.now() - at) + ' ms, code ' + (q.error ? q.error.code + ' ' + (q.error.message || '') : '?'));
+        log('test player, ' + name + ': FAILS in ' + (Date.now() - at) + ' ms, code ' + (q.error ? q.error.code + ' ' + (q.error.message || '') : '?'));
       });
-      document.body.appendChild(q); q.src = url; q.load();
+      document.body.appendChild(q); q.src = mainSrc + '?test=' + name.replace(/\W+/g, '') + Date.now(); q.load();
     };
-    var mainSrc = v.getAttribute('src');
-    probe('same file at a new address', mainSrc + '?probe=' + Date.now());
-    probe('4-second clip, same encoder', 'probe-a.mp4');
-    probe('4-second clip, Apple encoder', 'probe-b.mp4');
+    probe('bare', {});
+    probe('with sound on', { sound: true });
+    probe('with a poster image', { poster: true });
+    probe('with a captions track', { track: true });
+    probe('with all three', { sound: true, poster: true, track: true });
     if (window.fetch) {
       fetch(mainSrc, { headers: { Range: 'bytes=0-1' }, cache: 'no-store' }).then(function (r) {
         log('fetch of the first bytes: HTTP ' + r.status + ', ' + r.headers.get('Content-Type') + ', ' + r.headers.get('Content-Range'));
@@ -398,6 +404,20 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
   //   step 2  the same file at a fresh address, in case a stale cached copy is the trouble
   //   step 3  download the whole file with fetch() and play that copy, which bypasses the video loader altogether
   var SRC = v.getAttribute('src'), step = 0, wanting = false, fetching = false, blobUrl = null;
+
+  // The second report from that iPhone: the file loads in a bare, muted test player and fails in the page's own player
+  // whatever address it is given, even a downloaded copy. So before trying other addresses, a failed load strips the
+  // page's player down to match the bare one: sound off first, then the poster image. Sound comes back on once the
+  // file has loaded and play has been pressed; if the player then fails, it plays muted with captions and says so.
+  var quiet = false, soundRefused = false;
+  function simplify() {
+    if (!v.muted) { quiet = true; v.muted = true; log('loading again with the sound off'); return true; }
+    if (v.hasAttribute('poster')) { v.removeAttribute('poster'); log('loading again without the poster image'); return true; }
+    return false;
+  }
+  function soundOn() {
+    if (quiet && v.muted && !soundRefused && v.readyState >= 1) { v.muted = false; log('sound back on'); }
+  }
   function nextSource() {
     step++; wait(true); log('trying another way to load, step ' + step);
     if (step === 1) { v.load(); startPlay(); }
@@ -449,6 +469,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
     if (fetching) return;                             // the download is under way; it starts playing when it is done
     wanting = true;
     if (v.error) { nextSource(); return; }            // an earlier load failed; try again now that play has been pressed
+    soundOn();
     if (v.ended) v.currentTime = 0;
     startPlay();
   }
@@ -498,7 +519,8 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
   v.addEventListener('play', function () { setState('playing'); if (v.readyState < 3) wait(true); requestAnimationFrame(loop); });
   v.addEventListener('waiting', function () { if (!v.paused) wait(true); });
   ['playing', 'canplay', 'pause', 'ended', 'error'].forEach(function (ev) { v.addEventListener(ev, function () { if (!nudging) wait(false); }); });
-  v.addEventListener('playing', function () { clearTimeout(startTimer); say(''); checkClock(); });
+  v.addEventListener('playing', function () { clearTimeout(startTimer); if (!soundRefused) say(''); checkClock(); });
+  v.addEventListener('loadedmetadata', function () { if (wanting) soundOn(); });
   v.addEventListener('pause', function () { if (!v.ended && !nudging) setState('paused'); });
   v.addEventListener('ended', function () { setState('ended'); render(S.duration); });
   v.addEventListener('timeupdate', function () {
@@ -509,7 +531,16 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
   v.addEventListener('playing', function () { wanting = false; });
   v.addEventListener('error', function () {
     log('load failed at step ' + step + ': code ' + (v.error ? v.error.code + ' ' + (v.error.message || '') : '?'));
-    if (wanting || !v.paused) nextSource();           // otherwise it failed while preloading: say nothing, and try again when play is pressed
+    var going = wanting || !v.paused;                 // false when it failed while preloading: then say nothing
+    if (quiet && !v.muted && !soundRefused) {         // it loaded with the sound off and failed once the sound came on
+      soundRefused = true; v.muted = true; setCC(true);
+      say('Playing without sound: this device refused the video with its sound on. Captions are on.');
+      setTimeout(function () { say(''); }, 9000);
+      v.load(); startPlay();                          // the sound only comes on after play has been pressed, so carry on playing
+      return;
+    }
+    if (simplify()) { v.load(); if (going) startPlay(); return; }
+    if (going) nextSource();
   });
 
   seek.addEventListener('pointerdown', function () { dragging = true; });
