@@ -162,6 +162,26 @@ h1 em { font-style: italic; color: var(--gold); }
   text-wrap: pretty;
 }
 
+/* After the weekend, the one thing to do on this page. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: var(--space-lg);
+  padding: 0.85rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--navy);
+  background: var(--gold);
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.cta svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
+.cta:hover { background: var(--gold-soft); transform: translateY(-1px); }
+.cta:hover svg { transform: translateX(3px); }
+
 /* The line the weekend's title comes from, set the way the Jacob's Dream page sets sulam. */
 .source {
   margin: 0;
@@ -456,6 +476,7 @@ h2 {
       </p>
       <p class="credits">With scholar Rabbi Dan Medwin&nbsp;· Sponsored by the RTR Adult Ed Committee</p>
       <p class="lede">Explore how Jewish wisdom and modern technology intersect to deepen our tradition and shape our future. All are welcome: bring your curiosity, your questions, and your love of learning. This page gathers the texts, slides, and tools for the weekend, so they’re easy to find before we meet and after.</p>
+      <a class="cta" href="/rtr/feedback/">Share your feedback on the weekend <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
     </div>
     <figure class="source">
       <blockquote lang="he" dir="rtl">הַיָּשָׁן יִתְחַדֵּשׁ<br>וְהֶחָדָשׁ יִתְקַדֵּשׁ</blockquote>

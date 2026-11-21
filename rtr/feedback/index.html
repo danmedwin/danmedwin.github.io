@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Stayed With You | RTR Scholar-in-Residence | Tech Rabbi</title>
+<meta name="description" content="Feedback on the Scholar-in-Residence Weekend at the Reform Temple of Rockland, November 20–22, 2026.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="What stayed with you?">
+<meta property="og:description" content="Feedback on the Scholar-in-Residence Weekend at the Reform Temple of Rockland. About five minutes, every question optional.">
+<meta property="og:image" content="https://techrabbi.org/rtr/img/dan-medwin.jpg">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Frank+Ruhl+Libre:wght@500&display=swap" rel="stylesheet">
+
+<style>
+/* Same tokens as /rtr/. */
+:root {
+  --navy:      #0f1b2d;
+  --navy-deep: #0b1422;
+  --gold:      #d4a853;
+  --gold-soft: #e8c97a;
+  --gold-ink:  #8a6516;   /* gold dark enough for small text on paper, 4.7:1 */
+  --cream:     #eee8db;
+  --paper:     #f5f0e8;
+  --slate:     #9aa3b4;
+  --ink-soft:  #4b5565;
+  --error:     #a3361f;
+
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+  --space-2xl: 64px;
+
+  --radius-md: 12px;
+
+  --line: rgba(255, 255, 255, 0.08);
+  --line-ink: rgba(15, 27, 45, 0.12);
+  --line-field: rgba(15, 27, 45, 0.28);
+
+  --serif:  'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:   'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:   'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --hebrew: 'Frank Ruhl Libre', 'Times New Roman', serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--navy);
+  color: var(--cream);
+  font-family: var(--sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+[lang="he"] { font-family: var(--hebrew); font-weight: 500; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.7;
+  margin: 0 0 var(--space-md);
+}
+
+/* ------------------------------------------------------------- header ---- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
+  border-bottom: 1px solid var(--line);
+}
+.site-header .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.site-header .logo img { height: 36px; width: auto; }
+.logo-text { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+.logo-text span { color: var(--cream); font-weight: 400; }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--slate);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.back svg { width: 14px; height: 14px; }
+.back:hover { color: var(--gold); }
+
+/* --------------------------------------------------------------- hero ---- */
+
+.hero { position: relative; overflow: hidden; }
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(212, 168, 83, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(26, 45, 74, 0.6) 0%, transparent 50%);
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image:
+    linear-gradient(rgba(212, 168, 83, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 168, 83, 0.5) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-xl) var(--space-xl);
+  animation: rise 0.8s ease-out both;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.12;
+  margin: 0 0 var(--space-md);
+  text-wrap: balance;
+}
+h1 em { font-style: italic; color: var(--gold); }
+
+.lede {
+  margin: 0;
+  color: var(--slate);
+  font-size: clamp(1.05rem, 1.6vw, 1.15rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+.lede strong { color: var(--cream); font-weight: 600; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+
+/* --------------------------------------------------------------- form ---- */
+
+.paper { background: var(--paper); color: var(--navy); }
+.paper .eyebrow { color: var(--gold-ink); }
+
+.form-wrap { max-width: 760px; margin: 0 auto; padding: var(--space-xl) var(--space-xl) var(--space-2xl); }
+
+form { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+/* Each part of the weekend is a card, like the cards on /rtr/. */
+.part {
+  margin: 0;
+  padding: var(--space-lg) var(--space-lg) var(--space-xl);
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--line-ink);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(15, 27, 45, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+.part.reveal { animation: rise 0.4s ease-out both; }
+
+.part-head { display: flex; flex-direction: column; gap: var(--space-xs); }
+.kicker {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.part h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.55rem;
+  line-height: 1.25;
+}
+.part-note { margin: 0; color: var(--ink-soft); font-size: 1rem; line-height: 1.6; text-wrap: pretty; }
+
+.q { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+.q-label, .q legend {
+  padding: 0;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--navy);
+}
+.q legend { margin-bottom: var(--space-sm); }
+.hint { margin: -4px 0 var(--space-xs); color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; }
+
+textarea, input[type="text"] {
+  width: 100%;
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--navy);
+  background: var(--paper);
+  border: 1px solid var(--line-field);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+textarea { min-height: 7.5rem; resize: vertical; line-height: 1.55; }
+textarea:focus, input[type="text"]:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--gold-ink);
+  box-shadow: 0 0 0 3px rgba(138, 101, 22, 0.2);
+}
+::placeholder { color: #8a8f99; }
+
+/* Choices: a real radio or checkbox inside a tappable row. */
+.choices { display: flex; flex-direction: column; gap: var(--space-sm); }
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line-field);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.choice:hover { border-color: var(--gold-ink); }
+.choice:has(input:checked) { background: #fbf5e6; border-color: var(--gold-ink); }
+.choice:has(input:focus-visible) { outline: 2px solid var(--gold-ink); outline-offset: 2px; }
+.choice input {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0.2rem 0 0;
+  accent-color: var(--gold-ink);
+}
+.choice-text { display: flex; flex-direction: column; line-height: 1.4; }
+.choice-text strong { font-weight: 600; }
+.choice-text small { color: var(--ink-soft); font-size: 0.88rem; margin-top: 2px; }
+
+.choices.row { flex-direction: row; flex-wrap: wrap; }
+.choices.row .choice { flex: 1 1 9rem; }
+
+/* One to five, as five buttons with the ends named underneath. */
+.scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-sm); max-width: 26rem; }
+.scale label { position: relative; display: block; }
+.scale input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.scale span {
+  display: grid;
+  place-items: center;
+  height: 3rem;
+  border: 1px solid var(--line-field);
+  border-radius: 8px;
+  background: var(--paper);
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 500;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.scale label:hover span { border-color: var(--gold-ink); }
+.scale input:checked + span { background: var(--navy); border-color: var(--navy); color: var(--gold); }
+.scale input:focus-visible + span { outline: 2px solid var(--gold-ink); outline-offset: 2px; }
+.scale-ends {
+  display: flex;
+  justify-content: space-between;
+  max-width: 26rem;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.field-error { margin: 0; color: var(--error); font-size: 0.95rem; font-weight: 500; }
+input[aria-invalid="true"] { border-color: var(--error); }
+
+/* ------------------------------------------------------------- submit ---- */
+
+.send { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-md); padding-top: var(--space-sm); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.6rem;
+  font: inherit;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--navy);
+  background: var(--gold);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(138, 101, 22, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+}
+.btn svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
+.btn:hover { background: var(--gold-soft); transform: translateY(-1px); box-shadow: 0 10px 26px rgba(138, 101, 22, 0.3); }
+.btn:hover svg { transform: translateX(3px); }
+.btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; }
+.btn[disabled] { opacity: 0.6; cursor: progress; transform: none; }
+
+.privacy { margin: 0; color: var(--ink-soft); font-size: 0.9rem; max-width: 34em; }
+.send-error {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--error);
+  background: #fbecea;
+  color: var(--navy);
+  border-radius: 0 8px 8px 0;
+}
+
+/* ---------------------------------------------------------- thank you ---- */
+
+.thanks {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  animation: rise 0.6s ease-out both;
+}
+.thanks [lang="he"] { display: block; font-size: 2.6rem; color: var(--gold-ink); line-height: 1.2; margin-bottom: var(--space-sm); }
+.thanks h2 { font-family: var(--serif); font-size: clamp(1.9rem, 4vw, 2.5rem); margin: 0 0 var(--space-md); }
+.thanks p { margin: 0 auto var(--space-xl); max-width: 30em; color: var(--ink-soft); font-size: 1.1rem; text-wrap: pretty; }
+
+/* ------------------------------------------------------------- footer ---- */
+
+.fine {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-xl) var(--space-xl);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--slate);
+}
+.fine a { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+.fine a:hover { color: var(--gold); }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.paper :focus-visible { outline-color: var(--gold-ink); }
+
+@media (max-width: 760px) {
+  .site-header { padding: var(--space-md); }
+  .hero-inner { padding: var(--space-xl) var(--space-md) var(--space-lg); }
+  .form-wrap { padding: var(--space-lg) var(--space-md) var(--space-xl); }
+  .part { padding: var(--space-lg) var(--space-md) var(--space-xl); }
+  .fine { padding: var(--space-lg) var(--space-md) var(--space-xl); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="logo">
+    <img src="/apps/logo.png" alt="">
+    <span class="logo-text">Tech<span>Rabbi</span></span>
+  </a>
+  <a class="back" href="/rtr/"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg>The weekend</a>
+</header>
+
+<main>
+
+<section class="hero" aria-labelledby="title">
+  <div class="hero-inner">
+    <p class="eyebrow">The Reform Temple of Rockland&nbsp;· Scholar-in-Residence Weekend</p>
+    <h1 id="title">What <em>stayed</em> with you?</h1>
+    <p class="lede">Thank you for spending the weekend learning with me. I’d like to hear what worked, what didn’t, and what you’re still thinking about, because your answers will shape the next time I teach these programs. <strong>It takes about five minutes, and every question is optional.</strong></p>
+  </div>
+</section>
+
+<section class="paper">
+  <div class="form-wrap">
+
+    <!-- Without JavaScript the form posts straight to the Google Form behind it.
+         With JavaScript it posts in the background and shows the thank-you below. -->
+    <form id="survey" action="https://docs.google.com/forms/d/e/1FAIpQLScqugGHKQbcj_7Oia1xxwR1Xi0CDnVH5cIblJlti5eplsqjQw/formResponse" method="POST" novalidate>
+
+      <fieldset class="part" id="part-attended">
+        <div class="part-head">
+          <p class="kicker">To begin</p>
+          <h2>Which parts of the weekend did you attend?</h2>
+          <p class="part-note">Check all that apply, and I’ll ask about those.</p>
+        </div>
+        <div class="choices">
+          <label class="choice">
+            <input type="checkbox" name="entry.1587910639" value="Friday night sermon" data-part="sermon">
+            <span class="choice-text"><strong>The sermon</strong><small>Friday night, at Shabbat services</small></span>
+          </label>
+          <label class="choice">
+            <input type="checkbox" name="entry.1587910639" value="Saturday Torah study" data-part="torah">
+            <span class="choice-text"><strong>Torah study on Jacob’s dream</strong><small>Saturday morning, over brunch</small></span>
+          </label>
+          <label class="choice">
+            <input type="checkbox" name="entry.1587910639" value="Saturday AI program" data-part="ai">
+            <span class="choice-text"><strong>Understanding and Using AI</strong><small>Saturday afternoon, AI for beginners</small></span>
+          </label>
+          <label class="choice">
+            <input type="checkbox" name="entry.1587910639" value="Sunday Family Program" data-part="sunday">
+            <span class="choice-text"><strong>Sunday Family Program</strong><small>Voices of the Ladder, Sunday morning</small></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="part" id="part-sermon" data-part-section="sermon">
+        <div class="part-head">
+          <p class="kicker">Friday night</p>
+          <h2>The sermon</h2>
+        </div>
+        <fieldset class="q">
+          <legend>How meaningful was the sermon for you?</legend>
+          <div class="scale">
+            <label><input type="radio" name="entry.549078552" value="1"><span>1</span></label>
+            <label><input type="radio" name="entry.549078552" value="2"><span>2</span></label>
+            <label><input type="radio" name="entry.549078552" value="3"><span>3</span></label>
+            <label><input type="radio" name="entry.549078552" value="4"><span>4</span></label>
+            <label><input type="radio" name="entry.549078552" value="5"><span>5</span></label>
+          </div>
+          <div class="scale-ends" aria-hidden="true"><span>Not very</span><span>Very</span></div>
+        </fieldset>
+        <div class="q">
+          <label class="q-label" for="sermon-text">What from the sermon are you still thinking about?</label>
+          <p class="hint" id="sermon-hint">An idea, a slide, or a question you’re still carrying.</p>
+          <textarea id="sermon-text" name="entry.956983502" aria-describedby="sermon-hint"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset class="part" id="part-torah" data-part-section="torah">
+        <div class="part-head">
+          <p class="kicker">Saturday morning</p>
+          <h2>Torah study: Jacob’s dream</h2>
+        </div>
+        <fieldset class="q">
+          <legend>How meaningful was the Torah study for you?</legend>
+          <div class="scale">
+            <label><input type="radio" name="entry.1047202450" value="1"><span>1</span></label>
+            <label><input type="radio" name="entry.1047202450" value="2"><span>2</span></label>
+            <label><input type="radio" name="entry.1047202450" value="3"><span>3</span></label>
+            <label><input type="radio" name="entry.1047202450" value="4"><span>4</span></label>
+            <label><input type="radio" name="entry.1047202450" value="5"><span>5</span></label>
+          </div>
+          <div class="scale-ends" aria-hidden="true"><span>Not very</span><span>Very</span></div>
+        </fieldset>
+        <div class="q">
+          <label class="q-label" for="torah-text">What from our study are you still thinking about?</label>
+          <p class="hint" id="torah-hint">A translation, an image, or something someone at your table said.</p>
+          <textarea id="torah-text" name="entry.889492440" aria-describedby="torah-hint"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset class="part" id="part-ai" data-part-section="ai">
+        <div class="part-head">
+          <p class="kicker">Saturday afternoon · AI for beginners</p>
+          <h2>Understanding and Using AI</h2>
+        </div>
+        <fieldset class="q">
+          <legend>Before Saturday, how often had you used AI?</legend>
+          <div class="choices row">
+            <label class="choice"><input type="radio" name="entry.1367956197" value="Never"><span class="choice-text"><strong>Never</strong></span></label>
+            <label class="choice"><input type="radio" name="entry.1367956197" value="Once or twice"><span class="choice-text"><strong>Once or twice</strong></span></label>
+            <label class="choice"><input type="radio" name="entry.1367956197" value="Now and then"><span class="choice-text"><strong>Now and then</strong></span></label>
+            <label class="choice"><input type="radio" name="entry.1367956197" value="Often"><span class="choice-text"><strong>Often</strong></span></label>
+          </div>
+        </fieldset>
+        <fieldset class="q">
+          <legend>How confident do you feel using AI on your own now?</legend>
+          <div class="scale">
+            <label><input type="radio" name="entry.121740454" value="1"><span>1</span></label>
+            <label><input type="radio" name="entry.121740454" value="2"><span>2</span></label>
+            <label><input type="radio" name="entry.121740454" value="3"><span>3</span></label>
+            <label><input type="radio" name="entry.121740454" value="4"><span>4</span></label>
+            <label><input type="radio" name="entry.121740454" value="5"><span>5</span></label>
+          </div>
+          <div class="scale-ends" aria-hidden="true"><span>Not at all</span><span>Very</span></div>
+        </fieldset>
+        <div class="q">
+          <label class="q-label" for="ai-text">What was most useful, and what do you wish we had covered?</label>
+          <textarea id="ai-text" name="entry.830543371"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset class="part" id="part-sunday" data-part-section="sunday">
+        <div class="part-head">
+          <p class="kicker">Sunday morning · Grades K–7 and parents</p>
+          <h2>Family program: Voices of the Ladder</h2>
+        </div>
+        <fieldset class="q">
+          <legend>How meaningful was the family program for your family?</legend>
+          <div class="scale">
+            <label><input type="radio" name="entry.1781881859" value="1"><span>1</span></label>
+            <label><input type="radio" name="entry.1781881859" value="2"><span>2</span></label>
+            <label><input type="radio" name="entry.1781881859" value="3"><span>3</span></label>
+            <label><input type="radio" name="entry.1781881859" value="4"><span>4</span></label>
+            <label><input type="radio" name="entry.1781881859" value="5"><span>5</span></label>
+          </div>
+          <div class="scale-ends" aria-hidden="true"><span>Not very</span><span>Very</span></div>
+        </fieldset>
+        <div class="q">
+          <label class="q-label" for="sunday-text">What from the family program are you still thinking about?</label>
+          <p class="hint" id="sunday-hint">A character, a question, or something your child said on the way home.</p>
+          <textarea id="sunday-text" name="entry.2008738895" aria-describedby="sunday-hint"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset class="part" id="part-other">
+        <div class="part-head">
+          <p class="kicker">The whole weekend</p>
+          <h2>Anything else?</h2>
+        </div>
+        <div class="q">
+          <label class="q-label" for="other-text">Is there anything else you’d like me to know?</label>
+          <p class="hint" id="other-hint">Friday night’s service, or the weekend as a whole.</p>
+          <textarea id="other-text" name="entry.34988664" aria-describedby="other-hint"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset class="part" id="part-quote">
+        <div class="part-head">
+          <p class="kicker">Your words</p>
+          <h2>May I quote you?</h2>
+          <p class="part-note">When I describe this weekend to other congregations and on techrabbi.org, I’d like to share a few of your comments. Please tell me how I may use what you wrote. If you leave this blank, I won’t quote you.</p>
+        </div>
+        <fieldset class="q">
+          <legend class="sr-only">May I quote you?</legend>
+          <div class="choices">
+            <label class="choice">
+              <input type="radio" name="entry.1245128741" value="Yes, with my name">
+              <span class="choice-text"><strong>Yes, with my name</strong></span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="entry.1245128741" value="Yes, without my name">
+              <span class="choice-text"><strong>Yes, without my name</strong><small>I’ll credit it to “an RTR member.”</small></span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="entry.1245128741" value="No, please don't quote me">
+              <span class="choice-text"><strong>No, please don’t quote me</strong></span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="q">
+          <label class="q-label" for="name">Your name, as you’d like it to appear</label>
+          <p class="hint" id="name-hint">Needed only if you’d like to be quoted by name.</p>
+          <input type="text" id="name" name="entry.948771971" autocomplete="name" placeholder="First Last" aria-describedby="name-hint">
+          <p class="field-error" id="name-error" hidden>Please add your name, or choose “Yes, without my name.”</p>
+        </div>
+      </fieldset>
+
+      <div class="send">
+        <button class="btn" type="submit" id="send">Send my feedback <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+        <p class="privacy">Your answers come straight to me, Rabbi Dan Medwin.</p>
+        <p class="send-error" id="send-error" role="alert" hidden>Your feedback didn’t go through, probably a dropped connection. Your answers are still here, so please try again in a moment.</p>
+      </div>
+    </form>
+
+    <div class="thanks" id="thanks" hidden tabindex="-1">
+      <span lang="he" dir="rtl">תּוֹדָה רַבָּה</span>
+      <h2>Thank you</h2>
+      <p>I read every response, and I’m grateful you took the time to write. I hope to learn with you again soon.</p>
+      <a class="btn" href="/rtr/">Back to the weekend page <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer class="fine">
+  <span>&copy; 2026 Tech Rabbi · Rabbi Dan Medwin</span>
+  <a href="/rtr/">techrabbi.org/rtr</a>
+</footer>
+
+<script>
+(function () {
+  var form = document.getElementById('survey');
+  var thanks = document.getElementById('thanks');
+  var sendBtn = document.getElementById('send');
+  var sendError = document.getElementById('send-error');
+  var nameInput = document.getElementById('name');
+  var nameError = document.getElementById('name-error');
+
+  // Show only the parts someone attended. A hidden part's fieldset is disabled,
+  // so nothing typed there before unchecking it gets sent.
+  var boxes = form.querySelectorAll('input[data-part]');
+  function syncParts(changed) {
+    boxes.forEach(function (box) {
+      var part = form.querySelector('[data-part-section="' + box.dataset.part + '"]');
+      part.hidden = !box.checked;
+      part.disabled = !box.checked;
+      if (box === changed && box.checked) {
+        part.classList.remove('reveal');
+        void part.offsetWidth;
+        part.classList.add('reveal');
+      }
+    });
+  }
+  boxes.forEach(function (box) {
+    box.addEventListener('change', function () { syncParts(box); });
+  });
+  syncParts();
+
+  function quoteChoice() {
+    var picked = form.querySelector('input[name="entry.1245128741"]:checked');
+    return picked ? picked.value : '';
+  }
+  function checkName() {
+    var missing = quoteChoice() === 'Yes, with my name' && !nameInput.value.trim();
+    nameError.hidden = !missing;
+    nameInput.setAttribute('aria-invalid', missing ? 'true' : 'false');
+    return !missing;
+  }
+  nameInput.addEventListener('input', function () { if (!nameError.hidden) checkName(); });
+  form.querySelectorAll('input[name="entry.1245128741"]').forEach(function (r) {
+    r.addEventListener('change', function () { if (!nameError.hidden) checkName(); });
+  });
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    sendError.hidden = true;
+    if (!checkName()) { nameInput.focus(); return; }
+
+    var body = new URLSearchParams(new FormData(form));
+    sendBtn.disabled = true;
+
+    // Google Forms sends no CORS headers, so the reply is unreadable ("opaque").
+    // A rejected fetch means the request never left; anything else means it arrived.
+    fetch(form.action, { method: 'POST', mode: 'no-cors', body: body })
+      .then(function () {
+        form.hidden = true;
+        thanks.hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        thanks.focus({ preventScroll: true });
+      })
+      .catch(function () {
+        sendError.hidden = false;
+        sendBtn.disabled = false;
+      });
+  });
+})();
+</script>
+</body>
+</html>
