@@ -78,7 +78,16 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
 .bigplay i { width: 68px; height: 68px; border-radius: 50%; background: var(--gold); position: relative; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); }
 .bigplay i::after { content: ''; position: absolute; left: 27px; top: 20px; border-left: 22px solid var(--navy); border-top: 14px solid transparent; border-bottom: 14px solid transparent; }
 [data-state="playing"] .bigplay { opacity: 0; pointer-events: none; }
+.spin { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; border: 4px solid rgba(238, 232, 219, 0.28); border-top-color: var(--gold); display: none; pointer-events: none; animation: spin 0.9s linear infinite; }
+[data-wait="yes"] .spin { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .notice { position: absolute; inset: auto 0 0 0; margin: 0; padding: 10px 14px; background: rgba(11, 20, 34, 0.9); font-size: 0.9rem; }
+.notice button { margin-left: 10px; padding: 3px 12px; border: 1px solid var(--gold); border-radius: 999px; color: var(--gold); font-weight: 500; }
+/* "plain" hands playback to the device's own video controls when the page's controls cannot start it */
+.plain .bigplay, .plain .spin { display: none; }
+.plain .notice { inset: 0 0 auto 0; }
+.nodata .controls, .nodata .lower, .nodata .caption { display: none; }
+.dbg { margin: 0; padding: 8px 10px; border: 1px dashed var(--track); border-radius: 6px; font: 11px/1.45 var(--mono); color: var(--slate); white-space: pre-wrap; overflow-wrap: anywhere; }
 .caption { margin: 0; min-height: 3em; padding: 2px 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 1.02rem; line-height: 1.35; font-weight: 500; text-wrap: balance; }
 [data-cc="off"] .caption { display: none; }
 
@@ -147,7 +156,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
 
 /* ---- phone held sideways ---- */
 @media (orientation: landscape) and (max-height: 520px) {
-  .site-header, .p-head, .lower, .site-footer { display: none; }
+  .site-header, .p-head, .lower, .site-footer, .dbg { display: none; }
   html, body { height: 100%; }
   .wrap { max-width: none; height: 100dvh; padding: 0; gap: 0; }
   .stage { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 0; }
@@ -163,7 +172,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
   .bigplay i::after { left: 21px; top: 15px; border-left-width: 17px; border-top-width: 11px; border-bottom-width: 11px; }
 }
 
-@media (prefers-reduced-motion: reduce) { .bigplay { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .bigplay { transition: none; } .spin { animation-duration: 2.4s; } }
 </style>
 </head>
 <body>
@@ -196,7 +205,8 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
         <track kind="captions" src="captions.vtt" srclang="en" label="English">
       </video>
       <button type="button" class="bigplay" id="bigplay" aria-label="Play"><i aria-hidden="true"></i></button>
-      <p class="notice" id="notice" hidden>The video could not load. The slides and transcript still work.</p>
+      <span class="spin" aria-hidden="true"></span>
+      <p class="notice" id="notice" role="status" hidden></p>
     </div>
     <p class="caption" id="caption" aria-hidden="true"></p>
   </section>
@@ -232,10 +242,45 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
 <script>
 (function () {
   var S = window.SERMON;
-  if (!S) return;
   var $ = function (id) { return document.getElementById(id); };
   var v = $('video'), player = $('player'), seek = $('seek'), tr = $('transcript'), ch = $('chapters');
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- when playback goes wrong: say so on the page, and hand over to the device's own video controls ----
+  function say(text, retry) {
+    var n = $('notice'); n.textContent = text || ''; n.hidden = !text;
+    if (text && retry) {
+      var b = el('button', null, 'Try again'); b.type = 'button';
+      b.addEventListener('click', function () { say(''); v.load(); tryPlay(); });
+      n.appendChild(b);
+    }
+  }
+  function plain() { v.controls = true; player.classList.add('plain'); }
+  function wait(on) { player.dataset.wait = on ? 'yes' : 'no'; }
+
+  // ---- add ?debug to the address to list on the page what the video element reports ----
+  var dbg = null, t0 = Date.now();
+  function log(msg) {
+    if (!dbg) return;
+    var b = v.buffered && v.buffered.length ? v.buffered.end(v.buffered.length - 1).toFixed(1) : '-';
+    dbg.textContent += ((Date.now() - t0) / 1000).toFixed(1) + 's  ' + msg + '  [ready ' + v.readyState + ' net ' + v.networkState +
+      ' t ' + v.currentTime.toFixed(1) + ' buf ' + b + (v.error ? ' err ' + v.error.code : '') + ']\n';
+  }
+  if (/[?&]debug\b/.test(location.search)) {
+    dbg = el('pre', 'dbg'); player.insertBefore(dbg, player.querySelector('.lower'));
+    dbg.textContent = navigator.userAgent + '\ndata ' + (S ? 'loaded' : 'MISSING') + ', mp4 ' +
+      (v.canPlayType('video/mp4; codecs="avc1.64001F, mp4a.40.2"') || 'no') + ', ' + window.innerWidth + 'x' + window.innerHeight + '\n';
+    ['loadstart', 'loadedmetadata', 'loadeddata', 'canplay', 'canplaythrough', 'play', 'playing', 'waiting', 'stalled', 'suspend',
+      'abort', 'emptied', 'pause', 'seeking', 'seeked', 'ended', 'error'].forEach(function (ev) { v.addEventListener(ev, function () { log(ev); }); });
+    document.addEventListener('click', function (e) { var t = e.target; log('tap on ' + (t.id || t.className || t.tagName)); }, true);
+    window.addEventListener('error', function (e) { log('script error: ' + e.message); });
+  }
+
+  if (!S) {                                          // data.js did not arrive: leave a video that still plays
+    plain(); player.classList.add('nodata');
+    say('The slides and transcript could not load. The video still plays on its own.');
+    return;
+  }
 
   function clock(t) { t = Math.max(0, Math.floor(t)); var s = t % 60; return Math.floor(t / 60) + ':' + (s < 10 ? '0' : '') + s; }
   function slideSrc(n, thumb) { return 'slides/' + (thumb ? 'thumb-' : 'slide-') + (n < 10 ? '0' : '') + n + '.jpg'; }
@@ -258,7 +303,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
     var x = el('span', 'x');
     ln.w.forEach(function (w, k) { if (k) x.appendChild(document.createTextNode(' ')); x.appendChild(el('span', 'w', w[0])); });
     b.appendChild(x);
-    b.addEventListener('click', function () { go(ln.s); if (v.paused) v.play(); });
+    b.addEventListener('click', function () { go(ln.s); if (v.paused) tryPlay(); });
     li.appendChild(b); tr.appendChild(li);
     return li;
   });
@@ -267,7 +312,7 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
     var img = el('img'); img.src = slideSrc(p.slide, true); img.alt = ''; img.loading = 'lazy'; img.width = 320; img.height = 180;
     var txt = el('span'); txt.appendChild(el('span', 'ch-name', p.name)); txt.appendChild(el('span', 'ch-time', clock(p.s)));
     b.appendChild(img); b.appendChild(txt);
-    b.addEventListener('click', function () { go(p.s); if (v.paused) v.play(); });
+    b.addEventListener('click', function () { go(p.s); if (v.paused) tryPlay(); });
     li.appendChild(b); ch.appendChild(li);
     if (i) { var tick = el('i'); tick.style.left = (p.s / S.duration * 100) + '%'; $('ticks').appendChild(tick); }
     return b;
@@ -314,7 +359,29 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
   function loop() { if (!v.paused && !v.ended) { render(v.currentTime); requestAnimationFrame(loop); } }
 
   // ---- controls ----
-  function toggle() { if (v.paused || v.ended) { if (v.ended) v.currentTime = 0; v.play(); } else { v.pause(); } }
+  var lastToggle = 0, startTimer = 0;
+  function tryPlay() {
+    if (v.ended) v.currentTime = 0;
+    var p;
+    try { p = v.play(); } catch (e) { playFailed(e); return; }
+    if (p && typeof p.then === 'function') p.then(function () { log('play() started'); }, playFailed);
+    clearTimeout(startTimer);
+    startTimer = setTimeout(function () {             // asked to play, and still no picture
+      if (!v.paused && !v.ended && v.readyState < 3) { plain(); say('The video is taking a long time to start. The connection may be slow.', true); }
+    }, 12000);
+  }
+  function playFailed(e) {
+    var name = (e && e.name) || 'unknown';
+    log('play() refused: ' + name + ' ' + ((e && e.message) || ''));
+    if (name === 'AbortError') return;                // a pause or a reload interrupted it; nothing is wrong
+    wait(false);
+    if (v.error) return;                              // the error handler below has already said why
+    plain(); say('The video did not start here (' + name + '). Use the play button on the video itself.');
+  }
+  function toggle() {
+    var now = Date.now(); if (now - lastToggle < 300) return; lastToggle = now;   // one tap, one action
+    if (v.paused || v.ended) tryPlay(); else v.pause();
+  }
   function setState(s) {
     player.dataset.state = s;
     var label = s === 'playing' ? 'Pause' : s === 'ended' ? 'Play again' : 'Play';
@@ -322,13 +389,19 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
   }
   $('play').addEventListener('click', toggle);
   $('bigplay').addEventListener('click', toggle);
-  v.addEventListener('click', toggle);
-  v.addEventListener('play', function () { setState('playing'); requestAnimationFrame(loop); });
+  v.addEventListener('click', function () { if (!v.controls) toggle(); });   // with its own controls showing, the video handles taps itself
+  v.addEventListener('play', function () { setState('playing'); if (v.readyState < 3) wait(true); requestAnimationFrame(loop); });
+  v.addEventListener('waiting', function () { if (!v.paused) wait(true); });
+  ['playing', 'canplay', 'pause', 'ended', 'error'].forEach(function (ev) { v.addEventListener(ev, function () { wait(false); }); });
+  v.addEventListener('playing', function () { clearTimeout(startTimer); say(''); });
   v.addEventListener('pause', function () { if (!v.ended) setState('paused'); });
   v.addEventListener('ended', function () { setState('ended'); render(S.duration); });
   v.addEventListener('timeupdate', function () { if (v.paused) render(v.currentTime); });
   v.addEventListener('seeked', function () { render(v.currentTime, true); });
-  v.addEventListener('error', function () { $('notice').hidden = false; });
+  v.addEventListener('error', function () {
+    var c = v.error ? v.error.code : 0;
+    plain(); say('The video could not load' + (c ? ' (code ' + c + ')' : '') + '. The slides and transcript still work.', true);
+  });
 
   seek.addEventListener('pointerdown', function () { dragging = true; });
   window.addEventListener('pointerup', function () { dragging = false; });
