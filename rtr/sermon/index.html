@@ -274,6 +274,9 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
       'abort', 'emptied', 'pause', 'seeking', 'seeked', 'ended', 'error'].forEach(function (ev) { v.addEventListener(ev, function () { log(ev); }); });
     document.addEventListener('click', function (e) { var t = e.target; log('tap on ' + (t.id || t.className || t.tagName)); }, true);
     window.addEventListener('error', function (e) { log('script error: ' + e.message); });
+    v.addEventListener('playing', function () {
+      [1000, 3000, 6000].forEach(function (ms) { setTimeout(function () { log('+' + ms / 1000 + 's after playing, paused ' + v.paused); }, ms); });
+    });
   }
 
   if (!S) {                                          // data.js did not arrive: leave a video that still plays
@@ -374,13 +377,36 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
     var name = (e && e.name) || 'unknown';
     log('play() refused: ' + name + ' ' + ((e && e.message) || ''));
     if (name === 'AbortError') return;                // a pause or a reload interrupted it; nothing is wrong
-    wait(false);
+    nudging = false; wait(false);
     if (v.error) return;                              // the error handler below has already said why
     plain(); say('The video did not start here (' + name + '). Use the play button on the video itself.');
   }
   function toggle() {
     var now = Date.now(); if (now - lastToggle < 300) return; lastToggle = now;   // one tap, one action
+    nudging = false;
     if (v.paused || v.ended) tryPlay(); else v.pause();
+  }
+
+  // Safari on an iPhone can report "playing" while the clock stands still (seen in the simulator: play pressed
+  // moments after the page loaded, and the video sat at 0:00 until it was paused and played again).
+  // So check that time is passing; if not, pause and play again, and after two tries hand over to the device's controls.
+  var nudges = 0, nudging = false, nudgeFrom = 0, clockTimer = 0;
+  function checkClock() {
+    clearTimeout(clockTimer);
+    var from = v.currentTime;
+    clockTimer = setTimeout(function () {
+      if (v.paused || v.ended || v.seeking || document.hidden || v.readyState < 3 || !v.playbackRate) return;
+      if (Math.abs(v.currentTime - from) > 0.05) { nudges = 0; return; }
+      nudges++; log('the clock is not moving, nudge ' + nudges);
+      if (nudges > 2) {
+        nudges = 0; nudging = false; wait(false); v.pause(); plain();
+        say('The video is not starting. Use the play button on the video itself.');
+        return;
+      }
+      nudging = true; nudgeFrom = v.currentTime; wait(true);
+      v.pause();
+      setTimeout(function () { if (nudging) tryPlay(); }, nudges === 1 ? 150 : 600);
+    }, 1500);
   }
   function setState(s) {
     player.dataset.state = s;
@@ -392,11 +418,14 @@ h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif)
   v.addEventListener('click', function () { if (!v.controls) toggle(); });   // with its own controls showing, the video handles taps itself
   v.addEventListener('play', function () { setState('playing'); if (v.readyState < 3) wait(true); requestAnimationFrame(loop); });
   v.addEventListener('waiting', function () { if (!v.paused) wait(true); });
-  ['playing', 'canplay', 'pause', 'ended', 'error'].forEach(function (ev) { v.addEventListener(ev, function () { wait(false); }); });
-  v.addEventListener('playing', function () { clearTimeout(startTimer); say(''); });
-  v.addEventListener('pause', function () { if (!v.ended) setState('paused'); });
+  ['playing', 'canplay', 'pause', 'ended', 'error'].forEach(function (ev) { v.addEventListener(ev, function () { if (!nudging) wait(false); }); });
+  v.addEventListener('playing', function () { clearTimeout(startTimer); say(''); checkClock(); });
+  v.addEventListener('pause', function () { if (!v.ended && !nudging) setState('paused'); });
   v.addEventListener('ended', function () { setState('ended'); render(S.duration); });
-  v.addEventListener('timeupdate', function () { if (v.paused) render(v.currentTime); });
+  v.addEventListener('timeupdate', function () {
+    if (nudging && Math.abs(v.currentTime - nudgeFrom) > 0.05) { nudging = false; nudges = 0; wait(false); }
+    if (v.paused) render(v.currentTime);
+  });
   v.addEventListener('seeked', function () { render(v.currentTime, true); });
   v.addEventListener('error', function () {
     var c = v.error ? v.error.code : 0;
