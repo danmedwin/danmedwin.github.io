@@ -217,10 +217,8 @@ h1 em { font-style: italic; color: var(--gold); }
 .section-inner { max-width: 1100px; margin: 0 auto; padding: var(--space-2xl) var(--space-xl); }
 
 /* Later sections follow learning on the same paper, so a rule marks where one ends. */
-.ai .section-inner,
-.tools .section-inner { padding-top: 0; }
-.ai .section-inner::before,
-.tools .section-inner::before {
+.paper + .paper .section-inner { padding-top: 0; }
+.paper + .paper .section-inner::before {
   content: '';
   display: block;
   margin-bottom: var(--space-2xl);
@@ -439,8 +437,7 @@ h2 {
   .hero-inner { padding: var(--space-xl) var(--space-md) var(--space-2xl); }
   .section-inner { padding: var(--space-xl) var(--space-md); }
   .card-body { padding: var(--space-md) var(--space-md) var(--space-lg); }
-  .ai .section-inner::before,
-  .tools .section-inner::before { margin-bottom: var(--space-xl); }
+  .paper + .paper .section-inner::before { margin-bottom: var(--space-xl); }
   .contact { grid-template-columns: 1fr; gap: var(--space-lg); }
   .portrait { width: 144px; }
 }
@@ -486,6 +483,46 @@ h2 {
         <span class="who">Rabbi Abraham Isaac Kook</span>
       </figcaption>
     </figure>
+  </div>
+</section>
+
+<section class="paper sermon" aria-labelledby="sermon">
+  <div class="section-inner">
+    <p class="eyebrow"><span lang="he" dir="rtl">דְּרָשָׁה</span> Sermon</p>
+    <h2 id="sermon">Friday night’s sermon, in five minutes or thirty</h2>
+    <p class="intro">On Friday night I spoke about the dance between Judaism and technology. Technology helps us see our ancient tradition in new ways, and Judaism helps us make technology sacred. The sermon runs thirty minutes, so I also cut five minutes of highlights for anyone who missed it or wants to share it.</p>
+
+    <div class="cards">
+      <article class="card">
+        <img class="shot" src="/rtr/img/sermon-highlights.webp" width="1200" height="675" alt="The sermon highlights page: the sermon’s title slide beside a video of Rabbi Dan Medwin at the lectern, with a play button.">
+        <div class="card-body">
+          <p class="kicker">Five minutes, with the slides</p>
+          <h3><a href="https://techrabbi.org/rtr/sermon/">Sermon Highlights</a></h3>
+          <p class="desc">On the livestream, the slides behind me were small or out of the frame. So I built a page that plays the highlights beside the slides themselves, with a transcript that follows along as I speak. Selecting any line or chapter jumps to that moment.</p>
+          <span class="go" aria-hidden="true">Watch the highlights <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/rtr/img/sermon-video.webp" width="1200" height="675" alt="A frame of the highlights video: Rav Kook’s line in Hebrew, transliteration, and English on the left, Rabbi Dan Medwin speaking on the right, and a caption underneath.">
+        <div class="card-body">
+          <p class="kicker">Five minutes, as one video</p>
+          <h3><a href="https://vimeo.com/1248989253/00c9810ea2">The Highlights Video</a></h3>
+          <p class="desc">The same highlights as a single video, with the slides and captions in the picture. I made it for sharing, and for showing on a screen.</p>
+          <span class="go" aria-hidden="true">Watch the video <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/rtr/img/sermon-full.webp" width="1200" height="675" alt="The sanctuary of the Reform Temple of Rockland on Friday night: Rabbi Dan Medwin at the lectern beside the Shabbat candles, with the sermon’s title slide on a screen above.">
+        <div class="card-body">
+          <p class="kicker">Thirty minutes</p>
+          <h3><a href="https://vimeo.com/1248989254/6e4d18543b">The Full Sermon</a></h3>
+          <p class="desc">The whole sermon from Friday night’s service, from God creating light on the first day to what Judaism asks of us when a new technology like AI arrives. It has captions throughout.</p>
+          <span class="go" aria-hidden="true">Watch the full sermon <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
