@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Renew the Old and Sanctify the New: Two Short Versions | Tech Rabbi</title>
+<meta name="description" content="Two ninety-second versions of Rabbi Dan Medwin’s sermon on the dance between Judaism and technology, each with a different focus. Tap the heart on the one you would share.">
+<link rel="icon" href="/apps/logo.png" type="image/png">
+
+<meta property="og:type" content="video.other">
+<meta property="og:title" content="Renew the Old and Sanctify the New, in ninety seconds">
+<meta property="og:description" content="Two short versions of the sermon, each with a different focus. Tap the heart on the one you would share.">
+<meta property="og:image" content="https://techrabbi.org/rtr/shorts/share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* Two vertical videos, side by side when there is room and stacked on a phone.
+   Each has a heart on top of the picture; plays and hearts are counted (see the script). */
+:root {
+  --navy:      #0f1b2d;
+  --navy-deep: #0b1422;
+  --navy-up:   #17273f;
+  --gold:      #d4a853;
+  --gold-soft: #e8c97a;
+  --cream:     #eee8db;
+  --slate:     #9aa3b4;
+  --line:      rgba(255, 255, 255, 0.08);
+  --heart:     #ff4d6d;
+
+  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:  'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--navy); color: var(--cream); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.site-header { display: flex; align-items: center; padding: 14px var(--gutter-r) 14px var(--gutter-l); border-bottom: 1px solid var(--line); }
+.site-header .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.site-header .logo img { height: 32px; width: auto; }
+.logo-text { font-family: var(--serif); font-size: 1.3rem; font-weight: 700; color: var(--gold); }
+.logo-text span { color: var(--cream); font-weight: 400; }
+
+.wrap { max-width: 980px; margin: 0 auto; padding: 26px var(--gutter-r) 44px var(--gutter-l); }
+
+/* ---- heading ---- */
+.eyebrow { margin: 0 0 8px; font: 500 0.74rem/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+h1 { margin: 0 0 6px; font: 700 clamp(1.55rem, 3.6vw, 2.35rem)/1.12 var(--serif); text-wrap: balance; }
+.p-sub { margin: 0; color: var(--slate); font-size: 0.95rem; }
+.p-sub em { font-family: var(--serif); font-style: italic; color: var(--cream); font-size: 1.05em; }
+.lede { margin: 18px 0 0; max-width: 62ch; font-size: 1.06rem; line-height: 1.65; text-wrap: pretty; }
+.lede strong { color: var(--gold-soft); font-weight: 600; }
+@media (max-width: 699px) { .p-sub { font-size: 0.88rem; } .p-sub em { display: block; } .p-sub .sep { display: none; } .lede { font-size: 1rem; } }
+
+/* ---- the two shorts ---- */
+.pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; margin-top: 30px; justify-items: center; }
+.short { width: 100%; max-width: 400px; }
+@media (min-width: 700px) {
+  .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; align-items: start; }
+  .short { max-width: 380px; }
+}
+
+.frame { position: relative; aspect-ratio: 9 / 16; border-radius: 18px; overflow: hidden; background: var(--navy-deep); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35); }
+.frame video { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; background: var(--navy-deep); }
+
+/* the big play button, until the first play; after that the video's own controls take over */
+.bigplay { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; display: none; align-items: center; justify-content: center;
+  background: rgba(11, 20, 34, 0.62); border: 1.5px solid rgba(255, 255, 255, 0.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: transform 0.15s ease, background 0.15s ease; }
+.bigplay svg { width: 30px; height: 30px; margin-left: 4px; fill: #fff; }
+.bigplay:hover { transform: scale(1.06); background: rgba(11, 20, 34, 0.78); }
+.js .frame[data-started="no"] .bigplay { display: flex; }
+
+/* the heart, where a phone app would put it */
+.heart { position: absolute; right: 10px; top: 63%; width: 64px; display: none; flex-direction: column; align-items: center; gap: 4px; -webkit-tap-highlight-color: transparent; }
+.js .heart { display: flex; }
+.heart-disc { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(11, 20, 34, 0.58); border: 1px solid rgba(255, 255, 255, 0.28);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: transform 0.15s ease, background 0.15s ease; }
+.heart svg { width: 28px; height: 28px; overflow: visible; }
+.heart path { fill: none; stroke: #fff; stroke-width: 2; stroke-linejoin: round; transition: fill 0.15s ease, stroke 0.15s ease; }
+.heart-label { font: 600 0.74rem/1 var(--sans); letter-spacing: 0.02em; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75); }
+.heart:hover .heart-disc { transform: scale(1.07); background: rgba(11, 20, 34, 0.74); }
+.heart[aria-pressed="true"] path { fill: var(--heart); stroke: var(--heart); }
+.heart[aria-pressed="true"] .heart-disc { border-color: rgba(255, 77, 109, 0.6); }
+.heart.pop svg { animation: pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
+.heart.pop .heart-disc::after { content: ''; position: absolute; width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--heart); animation: ring 0.55s ease-out forwards; pointer-events: none; }
+@keyframes pop { 0% { transform: scale(0.6); } 55% { transform: scale(1.32); } 100% { transform: scale(1); } }
+@keyframes ring { from { transform: scale(0.9); opacity: 0.9; } to { transform: scale(1.9); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .heart.pop svg, .heart.pop .heart-disc::after { animation: none; } .heart-disc, .bigplay { transition: none; } }
+
+.notice { position: absolute; left: 10px; right: 10px; top: 10px; margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(11, 20, 34, 0.92); border: 1px solid rgba(212, 168, 83, 0.5); font-size: 0.86rem; line-height: 1.45; }
+.notice a { color: var(--gold-soft); }
+
+.kicker { margin: 16px 0 4px; font: 500 0.72rem/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+.short h2 { margin: 0 0 6px; font: 700 1.3rem/1.2 var(--serif); text-wrap: balance; }
+.desc { margin: 0; color: #c6cbd6; font-size: 0.98rem; line-height: 1.6; text-wrap: pretty; }
+
+.counted { margin: 34px 0 0; padding-top: 18px; border-top: 1px solid var(--line); color: var(--slate); font-size: 0.9rem; max-width: 62ch; }
+.more { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 16px; font-size: 0.95rem; }
+.more a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(212, 168, 83, 0.35); padding-bottom: 1px; }
+.more a:hover { color: var(--gold-soft); border-color: var(--gold-soft); }
+
+.site-footer { border-top: 1px solid var(--line); margin-top: 8px; }
+.fine { max-width: 980px; margin: 0 auto; padding: 18px var(--gutter-r) 28px var(--gutter-l); display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; font-size: 0.82rem; color: var(--slate); }
+.fine a { color: var(--slate); }
+</style>
+<script>document.documentElement.className += ' js';</script>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="logo">
+    <img src="/apps/logo.png" alt="">
+    <span class="logo-text">Tech<span>Rabbi</span></span>
+  </a>
+</header>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Two short versions · 90 seconds each</p>
+    <h1>Renew the Old and Sanctify the New</h1>
+    <p class="p-sub"><em>The Dance between Judaism and Technology</em><span class="sep"> · </span>Rabbi Dan Medwin · Reform Temple of Rockland · November 20, 2026</p>
+    <p class="lede">My sermon on Friday night ran thirty minutes, which is a lot to ask of someone holding a phone. So I cut two short versions, each about ninety seconds, and each with a different focus. I would like to know which one speaks to you, so I gave each a heart. <strong>Tap the heart on the one you would share.</strong></p>
+  </header>
+
+  <div class="pair">
+    <article class="short" data-short="A" data-title="In God’s image, and in ours">
+      <div class="frame" data-started="no">
+        <video controls playsinline preload="none" poster="image-and-mirror.jpg" src="image-and-mirror.mp4" aria-label="In God’s image, and in ours. A vertical video with captions, 1 minute 31 seconds."></video>
+        <button class="bigplay" type="button" aria-label="Play “In God’s image, and in ours”"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17l14-8.5z"/></svg></button>
+        <button class="heart" type="button" aria-pressed="false" aria-label="Like “In God’s image, and in ours”">
+          <span class="heart-disc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C5.4 15.4 2.8 12 2.8 8.6A4.6 4.6 0 0 1 7.4 4c1.9 0 3.5 1 4.6 2.7C13.1 5 14.7 4 16.6 4a4.6 4.6 0 0 1 4.6 4.6c0 3.4-2.6 6.8-9.2 12z"/></svg></span>
+          <span class="heart-label">Like</span>
+        </button>
+      </div>
+      <p class="kicker">1 min 31 sec</p>
+      <h2>In God’s image, and in ours</h2>
+      <p class="desc">God created us b’tzelem Elohim (in the image of God), and we are now creating AI in our own image. What we put into it is what we will see come out of it.</p>
+    </article>
+
+    <article class="short" data-short="B" data-title="From memory to scrolls to screens">
+      <div class="frame" data-started="no">
+        <video controls playsinline preload="none" poster="our-technologies.jpg" src="our-technologies.mp4" aria-label="From memory to scrolls to screens. A vertical video with captions, 1 minute 35 seconds."></video>
+        <button class="bigplay" type="button" aria-label="Play “From memory to scrolls to screens”"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17l14-8.5z"/></svg></button>
+        <button class="heart" type="button" aria-pressed="false" aria-label="Like “From memory to scrolls to screens”">
+          <span class="heart-disc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C5.4 15.4 2.8 12 2.8 8.6A4.6 4.6 0 0 1 7.4 4c1.9 0 3.5 1 4.6 2.7C13.1 5 14.7 4 16.6 4a4.6 4.6 0 0 1 4.6 4.6c0 3.4-2.6 6.8-9.2 12z"/></svg></span>
+          <span class="heart-label">Like</span>
+        </button>
+      </div>
+      <p class="kicker">1 min 35 sec</p>
+      <h2>From memory to scrolls to screens</h2>
+      <p class="desc">Our sacred texts have lived in memory, on stone tablets, in scrolls, in books, and on screens. Each one was a new technology once, and with AI we are having the same conversation again.</p>
+    </article>
+  </div>
+
+  <p class="counted">I count plays and hearts so I can see which version works better. No names or other details are recorded.</p>
+  <nav class="more" aria-label="More of the sermon">
+    <a href="/rtr/sermon/">Watch the five-minute highlights</a>
+    <a href="https://vimeo.com/1248989254/6e4d18543b">Watch the full sermon</a>
+    <a href="/rtr/">The Scholar-in-Residence weekend</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="fine">
+    <span>&copy; 2026 Tech Rabbi · Rabbi Dan Medwin</span>
+    <a href="/rtr/">The Scholar-in-Residence weekend</a>
+    <a href="/">techrabbi.org</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  // Plays and hearts go to a Google Form, which fills a Sheet: which short, what happened, and how far into the
+  // video it happened. Nothing about the visitor is sent. With ?test on the address, each event is marked
+  // "test" so that trying the page out does not add to the counts.
+  var FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSeYD0Tt6vYp7bZX-fMIkb-PVpD4aVOReVruloZWGqa6lc6zFA/formResponse';
+  var FIELD = { short: 'entry.1623458208', event: 'entry.47875406', note: 'entry.540261874' };
+  var TEST = /[?&]test(=|&|$)/.test(location.search);
+  function record(short, event, note) {
+    try {
+      var body = new URLSearchParams();
+      body.append(FIELD.short, short); body.append(FIELD.event, (TEST ? 'test ' : '') + event); body.append(FIELD.note, note || '');
+      fetch(FORM, { method: 'POST', mode: 'no-cors', body: body, keepalive: true }).catch(function () {});
+    } catch (e) {}
+  }
+
+  // a heart is remembered on this device only, so the same person is not counted twice
+  var KEY = 'rtr-shorts-liked', liked = {};
+  try { liked = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { liked = {}; }
+  function remember() { try { localStorage.setItem(KEY, JSON.stringify(liked)); } catch (e) {} }
+
+  var shorts = Array.prototype.slice.call(document.querySelectorAll('.short'));
+  shorts.forEach(function (el) {
+    var id = el.dataset.short, title = el.dataset.title, frame = el.querySelector('.frame'), v = el.querySelector('video');
+    var big = el.querySelector('.bigplay'), heart = el.querySelector('.heart'), label = heart.querySelector('.heart-label');
+    var played = false, finished = false;
+    var at = function () { return String(Math.round(v.currentTime || 0)); };
+
+    v.controls = false;                               // our own play button first; the video's controls after the first play
+    function started() { frame.dataset.started = 'yes'; v.controls = true; }
+    function fail() {
+      started();
+      if (frame.querySelector('.notice')) return;
+      var p = document.createElement('p'); p.className = 'notice'; p.setAttribute('role', 'status');
+      p.appendChild(document.createTextNode('The video did not start here. '));
+      var a = document.createElement('a'); a.href = v.getAttribute('src'); a.textContent = 'Open the video on its own';
+      p.appendChild(a); p.appendChild(document.createTextNode('.')); frame.appendChild(p);
+    }
+    big.addEventListener('click', function () {
+      started();
+      var p = v.play();
+      if (p && p.catch) p.catch(function (e) { if (e && e.name !== 'AbortError') fail(); });
+    });
+    v.addEventListener('play', function () {
+      started();
+      shorts.forEach(function (other) { if (other !== el) other.querySelector('video').pause(); });
+    });
+    v.addEventListener('playing', function () {
+      var n = frame.querySelector('.notice'); if (n) n.remove();
+      if (!played) { played = true; record(id, 'play'); }
+    });
+    v.addEventListener('ended', function () { if (!finished) { finished = true; record(id, 'finish', at()); } });
+    v.addEventListener('error', fail);
+
+    function show(on, animate) {
+      heart.setAttribute('aria-pressed', on ? 'true' : 'false');
+      heart.setAttribute('aria-label', (on ? 'Liked: “' : 'Like “') + title + (on ? '”. Select to undo.' : '”'));
+      label.textContent = on ? 'Liked' : 'Like';
+      if (animate && on) { heart.classList.remove('pop'); void heart.offsetWidth; heart.classList.add('pop'); }
+    }
+    show(!!liked[id], false);
+    heart.addEventListener('click', function () {
+      var on = heart.getAttribute('aria-pressed') !== 'true';
+      if (on) liked[id] = true; else delete liked[id];
+      remember(); show(on, true); record(id, on ? 'like' : 'unlike', at());
+    });
+  });
+})();
+</script>
+</body>
+</html>
